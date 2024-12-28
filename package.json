@@ -1,0 +1,22 @@
+{
+  "name": "env-manage-plugin",
+  "version": "0.0.1",
+  "description": "A dev env plugin that integrates an Express server with request proxying capabilities.",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "webpack serve --config ./example/webpack.config.js",
+    "start": "node src/server.js",
+    "testServer": "node ./test/index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^3.0.3"
+  },
+  "devDependencies": {
+    "webpack": "^4.47.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.15.2"
+  },
+  "author": "lcn",
+  "license": "MIT"
+}

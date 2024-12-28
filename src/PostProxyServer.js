@@ -1,0 +1,177 @@
+const express = require("express");
+const path = require("path");
+const { createProxyMiddleware } = require("http-proxy-middleware");
+const { PreProxyServer } = require("./PreProxyServer");
+const exp = require("constants");
+
+const defaultOptions = {
+  port: 3000,
+  basePath: "/env",
+  envConfigPath: "./env.config.js",
+};
+
+class PostServer {
+  constructor(plugindOption, devServerUrl) {
+    this.envConfig = {};
+    this.devServerUrl = devServerUrl;
+
+    this.envConfigMap = new Map();
+    this.proxyServerMap = new Map();
+
+    this.options = Object.assign({}, defaultOptions, plugindOption);
+
+    this.getEnvPluginConfig();
+
+    this.app = this.createServer();
+
+    this.setMangeRouter();
+
+    this.setProxyRouter();
+
+    this.listen();
+  }
+
+  updateDevServerUrl(devServerUrl) {
+    this.devServerUrl = devServerUrl;
+
+    for (const [key, value] of this.proxyServerMap) {
+      value.updateDevServerUrl(devServerUrl);
+    }
+  }
+
+  get port() {
+    return this.options.port;
+  }
+
+  /**
+   * 获取插件的环境配置信息
+   */
+  getEnvPluginConfig() {
+    this.envConfig = require(this.options.envConfigPath)();
+    this.envConfig.envList.forEach((item, index) => {
+      const key = `${index}`;
+      item.key = key;
+      this.envConfigMap.set(key, item);
+    });
+  }
+
+  createServer() {
+    return express();
+  }
+
+  listen() {
+    this.app.listen(this.options.port, () => {
+      console.log(`Example app listening on port ${this.options.port}`);
+    });
+  }
+
+  /**
+   * 设置管理路由
+   */
+  setMangeRouter() {
+    const { basePath } = this.options;
+    /**
+     * 获取静态页面，环境列表页
+     */
+    this.app.get(`${basePath}/`, (request, response) => {
+      response.sendFile(path.resolve(__dirname, "./static/index.html"));
+    });
+
+    /**
+     * 获取环境列表
+     */
+    this.app.get(`${basePath}/api/getlist`, (request, response) => {
+      const { protocol, hostname } = request;
+      const ipAdress = `${protocol}://${hostname}`;
+      this.envConfig.envList.forEach((item) => {
+        item.protocol = item.protocol || protocol;
+        item.indexPage = `${ipAdress}:${item?.localPort ?? "[auto]"}${
+          item?.index ?? ""
+        }`;
+        item.status = this.proxyServerMap.has(item.key) ? "running" : "standby";
+      });
+      response.send(this.envConfig.envList);
+    });
+
+    /**
+     * 启动环境
+     */
+    this.app.get(`${basePath}/api/server/start`, async (request, response) => {
+      const key = request.query.key;
+      if (this.proxyServerMap.has(key)) {
+        response.send({
+          code: "1",
+          message: "环境已经启动",
+        });
+      } else {
+        const envConfig = this.envConfigMap.get(key);
+
+        const preProxyServerConfig = {
+          ...envConfig,
+          devServerUrl: this.devServerUrl,
+        };
+
+        const appServer = new PreProxyServer(preProxyServerConfig);
+        this.proxyServerMap.set(key, appServer);
+        response.send({
+          code: "0",
+          message: "环境启动成功",
+        });
+      }
+    });
+
+    /**
+     * 关闭环境
+     */
+    this.app.get(`${basePath}/api/server/stop`, (request, response) => {
+      const key = request.query.key;
+      if (this.proxyServerMap.has(key)) {
+        const inst = this.proxyServerMap.get(key);
+        inst.stop();
+        this.proxyServerMap.delete(key);
+        response.send({
+          code: "0",
+          message: "环境关闭成功",
+        });
+      } else {
+        response.send({
+          code: "1",
+          message: "环境已经关闭",
+        });
+      }
+    });
+
+    /**
+     * 更新环境的 devServerUrl
+     */
+    this.app.get(`${basePath}/api/server/updateurl`, (request, response) => {
+      const serverurl = request.query.serverurl;
+      this.updateDevServerUrl(serverurl);
+      response.send({
+        code: "0",
+        message: "更新完成",
+      });
+    });
+  }
+
+  /**
+   * 设置代理转发路由
+   */
+  setProxyRouter() {
+    const proxyMiddleware = createProxyMiddleware({
+      changeOrigin: true,
+      pathFilter: (path, req) => {
+        const key = req.header("X-Proxy-Target");
+        return !!key;
+      },
+      router: (req) => {
+        const key = req.header("X-Proxy-Target");
+        const envConfig = this.envConfigMap.get(key);
+        return envConfig.target;
+      },
+    });
+    this.app.use(proxyMiddleware);
+  }
+}
+
+module.exports = { PostServer };
