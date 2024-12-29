@@ -48,9 +48,13 @@ class PostServer {
    */
   getEnvPluginConfig() {
     const modulePath = this.options.envConfigPath;
-    delete require.cache[require.resolve(modulePath)]; // 清除缓存
-    this.envPluginConfig = require(modulePath);
-
+    try {
+      delete require.cache[require.resolve(modulePath)]; // 清除缓存
+      this.envPluginConfig = require(modulePath);
+    } catch (error) {
+      console.error(`Failed to load module at ${modulePath}:`, error);
+      this.envPluginConfig = { envList: [] }; // 设置默认值为空数组
+    }
     this.envPluginConfig.envList.forEach((item, index) => {
       const key = `${index}`;
       item.key = key;
@@ -64,7 +68,7 @@ class PostServer {
 
   listen() {
     this.app.listen(this.options.port, () => {
-      console.log(`Example app listening on port ${this.options.port}`);
+      console.log(`PostServer app listening on port ${this.options.port}`);
     });
   }
 
