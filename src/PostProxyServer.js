@@ -12,7 +12,7 @@ const defaultOptions = {
 
 class PostServer {
   constructor(plugindOption, devServerUrl) {
-    this.envConfig = {};
+    this.envPluginConfig = {};
     this.devServerUrl = devServerUrl;
 
     this.envConfigMap = new Map();
@@ -47,8 +47,11 @@ class PostServer {
    * 获取插件的环境配置信息
    */
   getEnvPluginConfig() {
-    this.envConfig = require(this.options.envConfigPath)();
-    this.envConfig.envList.forEach((item, index) => {
+    const modulePath = this.options.envConfigPath;
+    delete require.cache[require.resolve(modulePath)]; // 清除缓存
+    this.envPluginConfig = require(modulePath);
+
+    this.envPluginConfig.envList.forEach((item, index) => {
       const key = `${index}`;
       item.key = key;
       this.envConfigMap.set(key, item);
@@ -83,14 +86,14 @@ class PostServer {
     this.app.get(`${basePath}/api/getlist`, (request, response) => {
       const { protocol, hostname } = request;
       const ipAdress = `${protocol}://${hostname}`;
-      this.envConfig.envList.forEach((item) => {
+      this.envPluginConfig.envList.forEach((item) => {
         item.protocol = item.protocol || protocol;
         item.indexPage = `${ipAdress}:${item?.localPort ?? "[auto]"}${
           item?.index ?? ""
         }`;
         item.status = this.proxyServerMap.has(item.key) ? "running" : "standby";
       });
-      response.send(this.envConfig.envList);
+      response.send(this.envPluginConfig.envList);
     });
 
     /**
@@ -147,6 +150,16 @@ class PostServer {
     this.app.get(`${basePath}/api/server/updateurl`, (request, response) => {
       const serverurl = request.query.serverurl;
       this.updateDevServerUrl(serverurl);
+      response.send({
+        code: "0",
+        message: "更新完成",
+      });
+    });
+    /**
+     * 重新加载环境配置
+     */
+    this.app.get(`${basePath}/api/server/reload`, (request, response) => {
+      this.getEnvPluginConfig();
       response.send({
         code: "0",
         message: "更新完成",

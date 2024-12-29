@@ -82,6 +82,7 @@
       value="http://localhost:8080"
     />
     <button id="updateServerurl">更新地址 （update dev server url）</button>
+    <button id="reloadPluginConfig">重新加载配置 （reload config）</button>
     <table
       width="100%"
       border="0"
@@ -130,6 +131,19 @@
           console.log("Error starting service: " + error.message);
         });
     });
+    document
+      .getElementById("reloadPluginConfig")
+      .addEventListener("click", () => {
+        fetch(`${apiPrefix}/api/server/reload`)
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data, "");
+            getEnvList();
+          })
+          .catch((error) => {
+            console.log("Error starting service: " + error.message);
+          });
+      });
 
     /**
      * 获取环境列表
@@ -156,11 +170,7 @@
         const isRunning = status === "running";
 
         let envListHTML = ``;
-        if (typeof item.target === "string") {
-          envListHTML = `** --->${item.target}<br/>`;
-        } else {
-          envListHTML = `** --->${item.fallbackTarget}<br/>`;
-        }
+        envListHTML = `** --->${item.target}<br/>`;
 
         if (typeof item.target === "object") {
           envListHTML += Object.entries(item?.target || {})
