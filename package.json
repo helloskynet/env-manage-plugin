@@ -1,6 +1,6 @@
 {
   "name": "env-manage-plugin",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A dev env plugin that integrates an Express server with request proxying capabilities.",
   "bin": {
     "envmanage": "bin/index.js"
@@ -21,9 +21,14 @@
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.15.2"
   },
-  "bugs": "https://github.com/helloskynet/env-manage-plugin/issues",
-  "homepage": "https://github.com/helloskynet/env-manage-plugin",
-  "repository": "https://github.com/helloskynet/env-manage-plugin.git",
+  "bugs": {
+    "url": "https://github.com/helloskynet/env-manage-plugin/issues"
+  },
+  "homepage": "https://github.com/helloskynet/env-manage-plugin#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/helloskynet/env-manage-plugin.git"
+  },
   "engines": {
     "node": ">=14.0.0"
   }
