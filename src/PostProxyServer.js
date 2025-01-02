@@ -2,12 +2,11 @@ const express = require("express");
 const path = require("path");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const { PreProxyServer } = require("./PreProxyServer");
-const exp = require("constants");
 
 const defaultOptions = {
   port: 3000,
   basePath: "/env",
-  envConfigPath: "./env.config.js",
+  envConfigPath: path.resolve(process.cwd(),"./env.config.js"),
 };
 
 class PostServer {
