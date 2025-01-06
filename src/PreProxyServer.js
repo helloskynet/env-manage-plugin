@@ -6,35 +6,58 @@ class PreProxyServer {
     this.envConfig = envConfig;
 
     this.devServerUrl = this.envConfig.devServerUrl;
-    this.start();
+
+    this.app = express();
+
+    this.setupMiddlewares();
+
+    this.listen();
   }
 
   updateDevServerUrl(devServerUrl) {
     this.devServerUrl = devServerUrl;
   }
 
-  start() {
-    const { localPort: port, key } = this.envConfig;
-    const app = express();
+  /**
+   * @private
+   * @returns {void}
+   */
+  setupMiddlewares() {
+    let middlewares = [];
 
-    const proxyMiddleware = createProxyMiddleware({
+    const inMiddlewares = createProxyMiddleware({
       router: () => {
         return this.devServerUrl;
       },
       changeOrigin: true,
       headers: {
         "X-Proxy-By": "PreProxyServer",
-        "X-Proxy-Target": key,
+        "X-Proxy-Target": this.envConfig.key,
       },
     });
 
-    app.use(proxyMiddleware);
+    if (this.envConfig.setupMiddlewares) {
+      middlewares = this.envConfig.setupMiddlewares(middlewares, this);
+    }
 
-    const server = app.listen(port, () => {
+    middlewares.push(inMiddlewares);
+
+    for (const middleware of middlewares) {
+      if (typeof middleware === "function") {
+        this.app.use(middleware);
+      } else if (typeof middleware.path !== "undefined") {
+        this.app.use(middleware.path, middleware.middleware);
+      } else {
+        this.app.use(middleware.middleware);
+      }
+    }
+  }
+
+  listen() {
+    const port = this.envConfig.localPort;
+    this.server = this.app.listen(port, () => {
       console.log(`Proxy Service started on port ${port}`);
     });
-
-    this.server = server;
   }
 
   stop() {

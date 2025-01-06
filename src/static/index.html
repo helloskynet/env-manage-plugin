@@ -4,11 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>dev env manage</title>
-    <link
-      rel="shortcut icon"
-      href="https://github.githubassets.com/favicons/favicon.svg"
-      type="image/x-icon"
-    />
+    <link rel="shortcut icon" href="https://github.githubassets.com/favicons/favicon.svg" type="image/x-icon" />
     <style>
       @charset "utf-8";
       /* CSS Document */
@@ -16,7 +12,6 @@
         margin-top: 13px;
       }
       .tabtop13 td {
-        background-color: #ffffff;
         height: 25px;
         line-height: 150%;
       }
@@ -66,32 +61,25 @@
         line-height: 20px;
       }
       .status-running {
-        background-color: greenyellow !important;
+        background-color: #90EE90 !important;
       }
       .status-standby {
         background-color: gray !important;
+      }
+      tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+      }
+      tbody tr:nth-child(even) {
+        background: #e9faff !important;
       }
     </style>
   </head>
   <body>
     devServer地址：
-    <input
-      type="url"
-      id="serverurl"
-      placeholder="http://localhost:8080"
-      value="http://localhost:8080"
-    />
+    <input type="url" id="serverurl" placeholder="http://localhost:8080" value="http://localhost:8080" />
     <button id="updateServerurl">更新地址 （update dev server url）</button>
     <button id="reloadPluginConfig">重新加载配置 （reload config）</button>
-    <table
-      width="100%"
-      border="0"
-      cellspacing="1"
-      cellpadding="4"
-      bgcolor="#cccccc"
-      class="tabtop13"
-      align="center"
-    >
+    <table width="100%" border="0" cellspacing="1" cellpadding="4" bgcolor="#cccccc" class="tabtop13" align="center">
       <caption align="center" class="biaoti" height="60">
         环境列表（env-list）
       </caption>
@@ -116,8 +104,7 @@
     }
 
     document.getElementById("updateServerurl").addEventListener("click", () => {
-      const serverurl =
-        document.getElementById("serverurl").value || "http://localhost:8080";
+      const serverurl = document.getElementById("serverurl").value || "http://localhost:8080";
       fetch(
         `${apiPrefix}/api/server/updateurl?${new URLSearchParams({
           serverurl,
@@ -131,19 +118,17 @@
           console.log("Error starting service: " + error.message);
         });
     });
-    document
-      .getElementById("reloadPluginConfig")
-      .addEventListener("click", () => {
-        fetch(`${apiPrefix}/api/server/reload`)
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data, "");
-            getEnvList();
-          })
-          .catch((error) => {
-            console.log("Error starting service: " + error.message);
-          });
-      });
+    document.getElementById("reloadPluginConfig").addEventListener("click", () => {
+      fetch(`${apiPrefix}/api/server/reload`)
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data, "");
+          getEnvList();
+        })
+        .catch((error) => {
+          console.log("Error starting service: " + error.message);
+        });
+    });
 
     /**
      * 获取环境列表
@@ -192,9 +177,7 @@
               </td>
               <td class="font-center status-${status}">${status}</td>
               <td class="font-center">
-                <button data-key="${item.key || ""}" data-action="${
-          isRunning ? "stop" : "start"
-        }" ${item.key ? "" : "disabled"}>
+                <button data-key="${item.key || ""}" data-action="${isRunning ? "stop" : "start"}" ${item.key ? "" : "disabled"}>
                   ${isRunning ? "停止" : "启动"}
                 </button>
               </td>
@@ -207,18 +190,16 @@
     /**
      *  监听按钮点击事件，启动或者停止环境
      * */
-    document
-      .getElementById("tableContent")
-      .addEventListener("click", (event) => {
-        const { action, key } = event.target.dataset;
-        if (key) {
-          if (action === "start") {
-            startServer(key);
-          } else if (action === "stop") {
-            stopServer(key);
-          }
+    document.getElementById("tableContent").addEventListener("click", (event) => {
+      const { action, key } = event.target.dataset;
+      if (key) {
+        if (action === "start") {
+          startServer(key);
+        } else if (action === "stop") {
+          stopServer(key);
         }
-      });
+      }
+    });
 
     /**
      *
