@@ -6,7 +6,8 @@ module.exports = {
   mode: "development",
   devServer: {
     proxy: {
-      "/two": "http://localhost:3020",
+      "/two": "http://localhost:3010",
+      '/simple':'http://localhost:3000'
     },
   },
   plugins: [

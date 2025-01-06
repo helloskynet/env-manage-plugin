@@ -9,9 +9,12 @@
  * @property {string} port - 前置开发服务器端口
  * @property {string} target - 请求转发地址
  * @property {function(middlewares)} setupMiddlewares - 自定义中间件
+ * @property {import("http-proxy-middleware").Options []} proxy 代理配置
  */
 
 module.exports = {
+  basePath:'/env',
+  port: '3000',
   /**
    * An array of environment configurations.
    * @type {EnvironmentConfig[]}
@@ -27,6 +30,12 @@ module.exports = {
           console.log("1号测试环境中间件", middlewares);
           return middlewares;
         },
+        proxy: [
+          {
+            target:'http://localhost:3020',
+            pathFilter:['/simple']
+          },
+        ],
       },
     },
     {

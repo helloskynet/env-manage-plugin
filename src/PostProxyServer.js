@@ -6,7 +6,7 @@ const { PreProxyServer } = require("./PreProxyServer");
 const defaultOptions = {
   port: 3000,
   basePath: "/env",
-  envConfigPath: path.resolve(process.cwd(),"./env.config.js"),
+  envConfigPath: path.resolve(process.cwd(), "./env.config.js"),
 };
 
 class PostServer {
@@ -59,6 +59,14 @@ class PostServer {
       item.key = key;
       this.envConfigMap.set(key, item);
     });
+
+    if (this.envPluginConfig.port) {
+      this.options.port = this.envPluginConfig.port;
+    }
+
+    if (this.envPluginConfig.basePath) {
+      this.options.basePath = this.envPluginConfig.basePath;
+    }
   }
 
   createServer() {
@@ -91,9 +99,7 @@ class PostServer {
       const ipAdress = `${protocol}://${hostname}`;
       this.envPluginConfig.envList.forEach((item) => {
         item.protocol = item.protocol || protocol;
-        item.indexPage = `${ipAdress}:${item?.devServer?.port ?? "[auto]"}${
-          item?.index ?? ""
-        }`;
+        item.indexPage = `${ipAdress}:${item?.devServer?.port ?? "[auto]"}${item?.index ?? ""}`;
         item.status = this.proxyServerMap.has(item.key) ? "running" : "standby";
       });
       response.send(this.envPluginConfig.envList);

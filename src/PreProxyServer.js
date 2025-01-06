@@ -33,6 +33,57 @@ class PreProxyServer {
   setupMiddlewares() {
     let middlewares = [];
 
+    if (this.envConfig.devServer.proxy) {
+      this.envConfig.devServer.proxy.forEach((proxyConfigOrCallback) => {
+        let proxyMiddleware;
+
+        let proxyConfig = typeof proxyConfigOrCallback === "function" ? proxyConfigOrCallback() : proxyConfigOrCallback;
+
+        proxyMiddleware = createProxyMiddleware(proxyConfig);
+
+        // if (proxyConfig.ws) {
+        //   this.webSocketProxies.push(proxyMiddleware);
+        // }
+
+        /**
+         * @param {Request} req
+         * @param {Response} res
+         * @param {NextFunction} next
+         * @returns {Promise<void>}
+         */
+        const handler = async (req, res, next) => {
+          if (typeof proxyConfigOrCallback === "function") {
+            const newProxyConfig = proxyConfigOrCallback(req, res, next);
+
+            if (newProxyConfig !== proxyConfig) {
+              proxyConfig = newProxyConfig;
+
+              const socket = req.socket != null ? req.socket : req.connection;
+              // @ts-ignore
+              const server = socket != null ? socket.server : null;
+
+              if (server) {
+                server.removeAllListeners("close");
+              }
+
+              proxyMiddleware = getProxyMiddleware(proxyConfig);
+            }
+          }
+
+          if (proxyMiddleware) {
+            return proxyMiddleware(req, res, next);
+          } else {
+            next();
+          }
+        };
+
+        middlewares.push(handler);
+
+        // Also forward error requests to the proxy so it can handle them.
+        middlewares.push((error, req, res, next) => handler(req, res, next));
+      });
+    }
+
     const inMiddlewares = createProxyMiddleware({
       router: () => {
         return this.devServerUrl;
