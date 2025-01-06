@@ -49,6 +49,8 @@ class PostServer {
       console.error(`Failed to load module at ${modulePath}:`, error);
       this.envPluginConfig = { envList: [] }; // 设置默认值为空数组
     }
+    this.envConfigMap.clear();
+
     this.envPluginConfig.envList.forEach((item, index) => {
       const key = `${item.key || index}`;
       item.key = key;
@@ -63,6 +65,20 @@ class PostServer {
 
     if (this.envPluginConfig.basePath) {
       this.options.basePath = this.envPluginConfig.basePath;
+    }
+
+    this.updatePreDevServer();
+  }
+
+  /**
+   * 配置重新加载之后，如果有环境已经删除则关闭对应的环境
+   */
+  updatePreDevServer() {
+    for (const [key, inst] of this.proxyServerMap) {
+      if (!this.envConfigMap.has(key)) {
+        inst.stop();
+        this.proxyServerMap.delete(key);
+      }
     }
   }
 

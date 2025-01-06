@@ -23,6 +23,7 @@ module.exports = {
   envList: [
     {
       name: "1号测试环境",
+      key:'11',
       index: "/main",
       devServer: {
         port: "3001",
@@ -42,6 +43,7 @@ module.exports = {
     {
       name: "2号测试环境",
       index: "/main",
+      key:'21',
       devServer: {
         port: "3002",
         target: "http://localhost:3012",
@@ -54,6 +56,7 @@ module.exports = {
     {
       name: "3号测试环境",
       index: "/main",
+      key:'62',
       devServer: {
         port: "3003",
         target: "http://localhost:3013",

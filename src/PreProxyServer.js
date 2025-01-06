@@ -114,11 +114,12 @@ class PreProxyServer {
       console.log(`Proxy Service started on port ${port}`);
     });
   }
-
+  
   stop() {
     if (this.server) {
+      const port = this.envConfig.devServer.port;
       this.server.close(() => {
-        console.log("Service stopped");
+        console.log(`Proxy Service stopped ${port}`);
       });
     }
   }
