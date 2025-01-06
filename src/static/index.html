@@ -61,7 +61,7 @@
         line-height: 20px;
       }
       .status-running {
-        background-color: #90EE90 !important;
+        background-color: #90ee90 !important;
       }
       .status-standby {
         background-color: gray !important;
@@ -113,6 +113,7 @@
         .then((response) => response.json())
         .then((data) => {
           console.log(data, "");
+          getDevServerUrl();
         })
         .catch((error) => {
           console.log("Error starting service: " + error.message);
@@ -124,6 +125,7 @@
         .then((data) => {
           console.log(data, "");
           getEnvList();
+          getDevServerUrl();
         })
         .catch((error) => {
           console.log("Error starting service: " + error.message);
@@ -240,6 +242,18 @@
         });
     }
 
+    function getDevServerUrl() {
+      fetch(`${apiPrefix}/api/server/geturl`)
+        .then((response) => response.json())
+        .then((result) => {
+          document.getElementById("serverurl").value = result.data;
+        })
+        .catch((error) => {
+          console.log("Error starting service: " + error.message);
+        });
+    }
+
+    getDevServerUrl();
     getEnvList();
   </script>
 </html>

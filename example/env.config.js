@@ -15,6 +15,7 @@
 module.exports = {
   basePath:'/env',
   port: '3000',
+  devServerUrl:'http://localhost:8080',
   /**
    * An array of environment configurations.
    * @type {EnvironmentConfig[]}

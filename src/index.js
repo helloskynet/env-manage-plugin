@@ -16,7 +16,7 @@ class EnvManagePlugin {
    * 独立启动插件
    */
   startIndependent() {
-    const postServer = new PostServer(this.options, "http://localhost:8080");
+    const postServer = new PostServer(this.options);
     return postServer;
   }
 }

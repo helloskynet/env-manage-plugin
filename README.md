@@ -90,6 +90,14 @@ http://localhost:3000/env
 - 会覆盖插件配置
 - 重载配置时，此属性不会重载
 
+#### devServerUrl
+
+本地开发服务的启动地址，例如 webpack 的启动地址；
+
+默认为 `http://localhost:8080`
+
+插件启动之后可以在管理页面，更新此配置。重载配置后恢复。
+
 #### envList[] 环境列表
 
 #### envListItem.name 环境名称
@@ -101,6 +109,10 @@ http://localhost:3000/env
 首页地址，用于在管理页面展示跳转链接
 
 #### envListItem.devServer 前置服务器配置
+
+##### envListItem.devServer.key
+
+唯一标识，重载配置时使用，如果未配置，重载配置之后需要，前置服务可能需要手动重启。
 
 ##### envListItem.devServer.port
 

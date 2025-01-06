@@ -10,9 +10,8 @@ const defaultOptions = {
 };
 
 class PostServer {
-  constructor(plugindOption, devServerUrl) {
+  constructor(plugindOption) {
     this.envPluginConfig = {};
-    this.devServerUrl = devServerUrl;
 
     this.envConfigMap = new Map();
     this.proxyServerMap = new Map();
@@ -31,11 +30,7 @@ class PostServer {
   }
 
   updateDevServerUrl(devServerUrl) {
-    this.devServerUrl = devServerUrl;
-
-    for (const [key, value] of this.proxyServerMap) {
-      value.updateDevServerUrl(devServerUrl);
-    }
+    PreProxyServer.devServerUrl = devServerUrl || this.envPluginConfig.devServerUrl || "http://localhost:8080";
   }
 
   get port() {
@@ -55,10 +50,12 @@ class PostServer {
       this.envPluginConfig = { envList: [] }; // 设置默认值为空数组
     }
     this.envPluginConfig.envList.forEach((item, index) => {
-      const key = `${index}`;
+      const key = `${item.key || index}`;
       item.key = key;
       this.envConfigMap.set(key, item);
     });
+
+    this.updateDevServerUrl();
 
     if (this.envPluginConfig.port) {
       this.options.port = this.envPluginConfig.port;
@@ -120,7 +117,6 @@ class PostServer {
 
         const preProxyServerConfig = {
           ...envConfig,
-          devServerUrl: this.devServerUrl,
         };
 
         const appServer = new PreProxyServer(preProxyServerConfig);
@@ -164,6 +160,18 @@ class PostServer {
         message: "更新完成",
       });
     });
+
+    /**
+     * 查询的 devServerUrl
+     */
+    this.app.get(`${basePath}/api/server/geturl`, (request, response) => {
+      response.send({
+        code: "0",
+        message: "",
+        data: PreProxyServer.devServerUrl,
+      });
+    });
+
     /**
      * 重新加载环境配置
      */

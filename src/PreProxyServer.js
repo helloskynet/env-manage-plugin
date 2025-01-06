@@ -10,20 +10,16 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
  */
 
 class PreProxyServer {
+  static devServerUrl = "";
+
   constructor(envConfig) {
     this.envConfig = envConfig;
-
-    this.devServerUrl = this.envConfig.devServerUrl;
 
     this.app = express();
 
     this.setupMiddlewares();
 
     this.listen();
-  }
-
-  updateDevServerUrl(devServerUrl) {
-    this.devServerUrl = devServerUrl;
   }
 
   /**
@@ -86,7 +82,7 @@ class PreProxyServer {
 
     const inMiddlewares = createProxyMiddleware({
       router: () => {
-        return this.devServerUrl;
+        return PreProxyServer.devServerUrl;
       },
       changeOrigin: true,
       headers: {
