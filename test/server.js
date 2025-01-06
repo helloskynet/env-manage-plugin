@@ -13,9 +13,6 @@ const createServer = (port, second) => {
   });
 
   app.get("/simple", (req, res) => {
-    // console.log(req.header)
-    
-    console.log(req.headers["X-Proxy-Target"],'ssss X-Proxy-Target');
     res.send({ message: "this response from -- simple" + port });
   });
   if (second) {

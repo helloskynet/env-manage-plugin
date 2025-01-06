@@ -91,7 +91,7 @@ class PostServer {
       const ipAdress = `${protocol}://${hostname}`;
       this.envPluginConfig.envList.forEach((item) => {
         item.protocol = item.protocol || protocol;
-        item.indexPage = `${ipAdress}:${item?.localPort ?? "[auto]"}${
+        item.indexPage = `${ipAdress}:${item?.devServer?.port ?? "[auto]"}${
           item?.index ?? ""
         }`;
         item.status = this.proxyServerMap.has(item.key) ? "running" : "standby";
@@ -175,7 +175,6 @@ class PostServer {
    */
   setProxyRouter() {
     const proxyMiddleware = createProxyMiddleware({
-      changeOrigin: true,
       pathFilter: (path, req) => {
         const key = req.header("X-Proxy-Target");
         return !!key;
@@ -183,7 +182,7 @@ class PostServer {
       router: (req) => {
         const key = req.header("X-Proxy-Target");
         const envConfig = this.envConfigMap.get(key);
-        return envConfig.target;
+        return envConfig.devServer.target;
       },
     });
     this.app.use(proxyMiddleware);

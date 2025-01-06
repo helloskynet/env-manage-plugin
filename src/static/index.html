@@ -155,9 +155,9 @@
         const isRunning = status === "running";
 
         let envListHTML = ``;
-        envListHTML = `** --->${item.target}<br/>`;
+        envListHTML = `** --->${item.devServer.target}<br/>`;
 
-        if (typeof item.target === "object") {
+        if (typeof item.devServer.target === "object") {
           envListHTML += Object.entries(item?.target || {})
             .map((targetItem) => {
               return `${targetItem[0]}--->${targetItem[1]}`;

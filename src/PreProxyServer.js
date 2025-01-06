@@ -1,6 +1,14 @@
 const express = require("express");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
+/**
+ * @typedef {Object} EnvConfig
+ * @property {string} key
+ * @property {string} index
+ * @property {string} port
+ * @property {object} devServer
+ */
+
 class PreProxyServer {
   constructor(envConfig) {
     this.envConfig = envConfig;
@@ -36,11 +44,11 @@ class PreProxyServer {
       },
     });
 
-    if (this.envConfig.setupMiddlewares) {
-      middlewares = this.envConfig.setupMiddlewares(middlewares, this);
-    }
-
     middlewares.push(inMiddlewares);
+
+    if (this.envConfig.devServer.setupMiddlewares) {
+      middlewares = this.envConfig.devServer.setupMiddlewares(middlewares, this);
+    }
 
     for (const middleware of middlewares) {
       if (typeof middleware === "function") {
@@ -54,7 +62,7 @@ class PreProxyServer {
   }
 
   listen() {
-    const port = this.envConfig.localPort;
+    const port = this.envConfig.devServer.port;
     this.server = this.app.listen(port, () => {
       console.log(`Proxy Service started on port ${port}`);
     });

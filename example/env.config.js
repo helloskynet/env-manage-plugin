@@ -1,22 +1,57 @@
+/**
+ * An array of environment configurations.
+ * @typedef {Object} EnvironmentConfig
+ * @property {string} name - 环境名称
+ * @property {string} index - 首页
+ * @property {DevServerConfig} devServer - 前置开发服务器配置
+ *
+ * @typedef {Object} DevServerConfig
+ * @property {string} port - 前置开发服务器端口
+ * @property {string} target - 请求转发地址
+ * @property {function(middlewares)} setupMiddlewares - 自定义中间件
+ */
+
 module.exports = {
+  /**
+   * An array of environment configurations.
+   * @type {EnvironmentConfig[]}
+   */
   envList: [
     {
       name: "1号测试环境",
-      localPort: "3001",
       index: "/main",
-      target: "http://localhost:3010",
+      devServer: {
+        port: "3001",
+        target: "http://localhost:3010",
+        setupMiddlewares: (middlewares) => {
+          console.log("1号测试环境中间件", middlewares);
+          return middlewares;
+        },
+      },
     },
     {
       name: "2号测试环境",
-      target: "http://localhost:3012",
       index: "/main",
-      localPort: "3002",
+      devServer: {
+        port: "3002",
+        target: "http://localhost:3012",
+        setupMiddlewares: (middlewares) => {
+          console.log("2号测试环境中间件", middlewares);
+          return middlewares;
+        },
+      },
     },
     {
       name: "3号测试环境",
-      target: "http://localhost:3013",
       index: "/main",
-      localPort: "3003",
+      devServer: {
+        port: "3003",
+        target: "http://localhost:3013",
+        setupMiddlewares: (middlewares) => {
+          console.log("3号测试环境中间件", middlewares);
+          return middlewares;
+        },
+      },
     },
   ],
 };
