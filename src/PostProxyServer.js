@@ -36,9 +36,11 @@ class PostProxyMiddleware {
       changeOrigin: true,
       ws: true,
       router: (req) => {
+        console.log("req.headers",req.headers["x-api-server"],req.path);
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"];
           const env = envList.find((item) => item.port == port);
+          console.log( env.target,'0--------')
           if (env && env.target) {
             return env.target;
           }

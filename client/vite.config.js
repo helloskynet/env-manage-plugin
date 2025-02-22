@@ -14,6 +14,22 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
+  server: {
+    proxy: {
+      '/dev-manage-api': {
+        target: 'http://localhost:3099',
+        changeOrigin: true,
+      },
+      '/simple': {
+        target: 'http://localhost:3099',
+        changeOrigin: true,
+      },
+      '/two': {
+        target: 'http://localhost:3099',
+        changeOrigin: true,
+      }
+    }
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

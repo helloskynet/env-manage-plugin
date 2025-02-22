@@ -1,8 +1,18 @@
 <template>
+  <el-button type="success" @click="getEnvList">刷新</el-button>
   <el-table :data="tableData" style="width: 100%">
     <el-table-column prop="name" label="环境名称" width="180" />
     <el-table-column prop="target" label="环境代理详情" width="180" />
-    <el-table-column prop="address" label="首页地址" />
+    <el-table-column prop="index" label="首页地址">
+      <template #default="scope">
+        <span v-if="scope.row.status === 'stop'">
+          <el-tag type="danger">未启动</el-tag>
+        </span>
+        <el-link v-else type="primary" :href="scope.row.index" target="_blank">{{
+          scope.row.index
+        }}</el-link>
+      </template>
+    </el-table-column>
     <el-table-column prop="port" label="端口" />
     <el-table-column prop="status" label="状态" />
     <el-table-column label="操作">

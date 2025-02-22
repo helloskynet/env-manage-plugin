@@ -2,7 +2,7 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 const express = require("express");
 
 class PreProxyMiddleware {
-  WEBPACK_DEV_SERVER = "http://localhost:8080";
+  WEBPACK_DEV_SERVER = "http://localhost:5173";
   constructor() {
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
@@ -19,7 +19,9 @@ class PreProxyMiddleware {
       },
       on: {
         proxyReq(proxyReq, req, res) {
-          proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
+          if (!req.path.includes("dev-manage-api")) {
+            proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
+          }
         },
       },
     });

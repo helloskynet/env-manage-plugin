@@ -6,26 +6,31 @@ class ManageServer {
       name: "dev",
       port: 3000,
       target: "http://localhost:3010",
+      indexPath: "/Test",
     },
     {
       name: "test",
       port: 3001,
       target: "http://localhost:3011",
+      indexPath: "/Test",
     },
     {
       name: "prod",
       port: 3002,
       target: "http://localhost:3012",
+      indexPath: "/Test",
     },
     {
       name: "prod3013",
       port: 3003,
       target: "http://localhost:3013",
+      indexPath: "/Test",
     },
     {
       name: "prod20",
       port: 3004,
       target: "http://localhost:3020",
+      indexPath: "/Test",
     },
   ];
 
@@ -113,6 +118,9 @@ class ManageServer {
           port: item.port,
           target: item.target,
           status: this.servers[item.port] ? "running" : "stop",
+          index: `${item.index || `http://localhost:${item.port}`}${
+            item.indexPath
+          }`,
         };
       });
       return res.json({ list: enableList });
