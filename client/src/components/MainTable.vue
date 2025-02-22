@@ -5,16 +5,22 @@
     <el-table-column prop="target" label="环境代理详情" width="180" />
     <el-table-column prop="index" label="首页地址">
       <template #default="scope">
-        <span v-if="scope.row.status === 'stop'">
-          <el-tag type="danger">未启动</el-tag>
-        </span>
-        <el-link v-else type="primary" :href="scope.row.index" target="_blank">{{
-          scope.row.index
-        }}</el-link>
+        <el-link
+          :disabled="scope.row.status === 'stop'"
+          type="primary"
+          :href="scope.row.index"
+          target="_blank"
+          >{{ scope.row.index }}</el-link
+        >
       </template>
     </el-table-column>
     <el-table-column prop="port" label="端口" />
-    <el-table-column prop="status" label="状态" />
+    <el-table-column prop="status" label="状态">
+      <template #default="scope">
+        <el-tag v-if="scope.row.status === 'stop'" type="danger">未启动</el-tag>
+        <el-tag v-else type="success">已启动</el-tag>
+      </template>
+    </el-table-column>
     <el-table-column label="操作">
       <template #default="scope">
         <el-button type="success" v-if="scope.row.status === 'stop'" @click="handleStart(scope.row)"
