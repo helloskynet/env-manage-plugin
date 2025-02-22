@@ -3,12 +3,15 @@ const path = require("path");
 
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const ManageServer = require("./ManageServer");
+const expressStaticGzip = require("express-static-gzip");
 
 class PostProxyMiddleware {
   constructor(port) {
     this.app = express();
 
-    this.app.use(express.static(path.join(__dirname, "client")));
+
+    // this.app.use(express.static(path.join(__dirname, "client")));
+    this.app.use(expressStaticGzip(path.join(__dirname, "client")));
 
     this.app.use(this.createPostProxyMiddleware());
 

@@ -7,12 +7,22 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import ElementPlus from 'unplugin-element-plus/vite';
+import viteCompression from 'vite-plugin-compression'
 
 // https://vite.dev/config/
 export default defineConfig({
   build: {
     outDir: '../src/client',
     emptyOutDir: true, // 强制清空输出目录
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vue: ['vue'], // 将vue单独打包
+          'element-plus': ['element-plus'], // 将element-plus单独打包
+        },
+      },
+    },
   },
   plugins: [
     vue(),
@@ -22,6 +32,11 @@ export default defineConfig({
     }),
     Components({
       resolvers: [ElementPlusResolver()],
+    }),
+    ElementPlus(),
+    viteCompression({
+      algorithm: 'gzip',
+      deleteOriginFile: true,
     }),
   ],
   server: {
@@ -37,12 +52,12 @@ export default defineConfig({
       '/two': {
         target: 'http://localhost:3099',
         changeOrigin: true,
-      }
-    }
+      },
+    },
   },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
 })

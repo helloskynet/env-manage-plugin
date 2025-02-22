@@ -8,12 +8,14 @@
     "dev:proxy": "nodemon bin/index.js --config=env.config.js",
     "dev:client": "cd client && npm run dev",
     "dev:server": "node test/server.js",
+    "test": "",
     "build:client": "cd client && npm run build",
     "start": "node src/index.js"
   },
   "dependencies": {
     "chokidar": "^4.0.3",
     "express": "^4.21.2",
+    "express-static-gzip": "^2.2.0",
     "http-proxy-middleware": "^3.0.3",
     "yargs": "^17.7.2"
   },
