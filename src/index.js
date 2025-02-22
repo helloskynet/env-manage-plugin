@@ -11,4 +11,4 @@ const preProxyMiddleware = new PreProxyMiddleware();
 // 使用前置转发  所有请求都会先转发到webpack-dev-server
 app.use(preProxyMiddleware.getPreProxyMiddleware);
 
-manageServer.startServer(3000);
+manageServer.startInitServer();
