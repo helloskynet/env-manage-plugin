@@ -21,6 +21,22 @@
         <el-tag v-else type="success">已启动</el-tag>
       </template>
     </el-table-column>
+    <el-table-column prop="devServerId" label="devServer">
+      <template #default="scope">
+        <el-radio-group
+          v-model="scope.row.devServerId"
+          @change="(value) => updateDevServerId(value, scope.row)"
+        >
+          <el-radio
+            v-for="(item, index) in devServerList"
+            :value="`${index}`"
+            border
+            size="small"
+            >{{ item.name }}</el-radio
+          >
+        </el-radio-group>
+      </template>
+    </el-table-column>
     <el-table-column label="操作">
       <template #default="scope">
         <el-button type="success" v-if="scope.row.status === 'stop'" @click="handleStart(scope.row)"
@@ -39,6 +55,8 @@ import { onMounted, ref } from 'vue'
 const apiPrefix = 'dev-manage-api'
 
 let tableData = ref([])
+
+let devServerList = ref([])
 /**
  * 获取环境列表
  *
@@ -53,9 +71,24 @@ const getEnvList = () => {
       tableData.value = res.list
     })
 }
+/**
+ * 获取环境列表
+ *
+ */
+const getDevServerList = () => {
+  fetch(`${apiPrefix}/get-dev-server-list`)
+    .then((res) => {
+      return res.json()
+    })
+    .then((res) => {
+      console.log(res)
+      devServerList.value = res.list
+    })
+}
 
 onMounted(() => {
   getEnvList()
+  getDevServerList()
 })
 
 const handleStart = (rowData) => {
@@ -83,6 +116,31 @@ const updateStatus = (body) => {
       'Content-Type': 'application/json', // 必须设置
     },
     body: JSON.stringify(body),
+  })
+    .then((res) => {
+      return res.json()
+    })
+    .then((res) => {
+      console.log(res)
+      if (res.error) {
+        ElMessage.error(res.error)
+      } else if (res.message) {
+        ElMessage.success(res.message)
+      }
+      getEnvList()
+    })
+}
+
+const updateDevServerId = (devServerId, rowData) => {
+  fetch(`${apiPrefix}/update-dev-server-id`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json', // 必须设置
+    },
+    body: JSON.stringify({
+      name: rowData.name,
+      devServerId,
+    }),
   })
     .then((res) => {
       return res.json()

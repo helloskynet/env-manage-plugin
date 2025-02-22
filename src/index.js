@@ -45,6 +45,7 @@ class EnvManage {
       devServerUrl = "http://localhost:5173",
       basePath = "/dev-manage-api",
       envList = [],
+      devServerList = [],
     } = this.envConfig;
 
     this.envConfig.port = port;
@@ -52,10 +53,7 @@ class EnvManage {
     this.envConfig.basePath = basePath;
 
     ManageServer.envList = envList;
-
-    if (this.preProxyServer) {
-      this.preProxyServer.updateWebpackDevServer(devServerUrl);
-    }
+    ManageServer.devServerList = devServerList;
   }
 
   startIndependent() {

@@ -2,6 +2,16 @@ module.exports = {
   port: 3099,
   basePath: "/dev-manage-api",
   devServerUrl: "http://localhost:5173",
+  devServerList: [
+    {
+      name: "dev1",
+      target: "http://localhost:5173",
+    },
+    {
+      name: "dev2025",
+      target: "http://localhost:5173",
+    },
+  ],
   envList: [
     {
       name: "dev",

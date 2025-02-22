@@ -1,10 +1,9 @@
+const ManageServer = require("./ManageServer");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const express = require("express");
 
 class PreProxyMiddleware {
-  WEBPACK_DEV_SERVER = "http://localhost:5173";
   constructor(devServerUrl) {
-    this.WEBPACK_DEV_SERVER = devServerUrl;
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
   }
@@ -14,9 +13,15 @@ class PreProxyMiddleware {
     return createProxyMiddleware({
       changeOrigin: true,
       ws: true,
-      router: () => {
+      router: (req) => {
+        const env = ManageServer.envList.find(
+          (item) => item.port == req.socket.localPort
+        );
+
+        const devServerId = env.devServerId || "0";
+
         // 默认转发到 Webpack 开发服务器
-        return this.WEBPACK_DEV_SERVER;
+        return ManageServer.devServerList[devServerId].target;
       },
       on: {
         proxyReq(proxyReq, req, res) {
@@ -26,10 +31,6 @@ class PreProxyMiddleware {
         },
       },
     });
-  }
-
-  updateWebpackDevServer(url) {
-    this.WEBPACK_DEV_SERVER = url;
   }
 
   get getPreProxyMiddleware() {

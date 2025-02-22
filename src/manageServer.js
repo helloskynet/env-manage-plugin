@@ -2,6 +2,7 @@ const express = require("express");
 
 class ManageServer {
   static envList = [];
+  static devServerList = [];
 
   constructor(preApp, postApp, basePath) {
     this.app = preApp;
@@ -12,7 +13,7 @@ class ManageServer {
     this.init();
     this.postApp.use(basePath, this.router);
   }
-  
+
   startServer(port) {
     if (this.servers[port]) {
       console.log(`端口 ${port} 已经启动`);
@@ -86,10 +87,42 @@ class ManageServer {
           index: `${item.index || `http://localhost:${item.port}`}${
             item.indexPath
           }`,
+          devServerId: item.devServerId || "0",
         };
       });
       return res.json({ list: enableList });
     });
+
+    this.router.get("/get-dev-server-list", (req, res) => {
+      const enableList = ManageServer.devServerList.map((item) => {
+        return {
+          name: item.name,
+          target: item.target,
+        };
+      });
+      return res.json({ list: enableList });
+    });
+
+    this.router.post(
+      "/update-dev-server-id",
+      express.json(),
+      async (req, res) => {
+        const { devServerId, name } = req.body;
+
+        if (!devServerId || !name) {
+          return res.status(400).json({ error: "缺少 action 或 name 参数" });
+        }
+
+        ManageServer.envList.some((item) => {
+          if (item.name === name) {
+            item.devServerId = devServerId;
+            return true;
+          }
+          return false;
+        });
+        return res.json({ list: ManageServer.envList });
+      }
+    );
   }
 }
 
