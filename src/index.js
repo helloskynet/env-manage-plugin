@@ -1,41 +1,77 @@
 const path = require("path");
-
 const yargs = require("yargs/yargs");
 const { hideBin } = require("yargs/helpers");
-
-// 解析命令行参数
-const argv = yargs(hideBin(process.argv)).option("config", {
-  alias: "n",
-  type: "string",
-  description: "config path 配置文件地址",
-}).argv;
-
-console.log(argv.config);
-
-// 读取配置文件
-const envConfigPath = path.resolve(
-  process.cwd(),
-  argv.config || "./env.config.js"
-);
-
-const envConfig = require(envConfigPath);
-const managePort = envConfig.port || 3099;
-const devServerUrl = envConfig.devServerUrl || "http://localhost:5173";
-const basePath = envConfig.basePath || "/dev-manage-api";
-
 const ManageServer = require("./ManageServer");
-ManageServer.envList = envConfig.envList;
-
-// 使用前置转发  所有请求都会先转发到webpack-dev-server
 const PreProxyServer = require("./PreProxyServer");
-const preProxyServer = new PreProxyServer(devServerUrl);
-
-// 后置转发 和 管理路由
 const PostProxyServer = require("./PostProxyServer");
-const postProxyServer = new PostProxyServer(managePort);
 
-const manageServer = new ManageServer(
-  preProxyServer.getApp,
-  postProxyServer.getApp,
-  basePath
-);
+class EnvManage {
+  constructor(options = {}) {
+    this.options = options;
+  }
+
+  apply(compiler) {
+    compiler.hooks.afterPlugins.tap("EnvManagePlugin", (compilation) => {
+      this.startIndependent();
+    });
+  }
+
+  getConfigPath() {
+    // 解析命令行参数
+    const argv = yargs(hideBin(process.argv)).option("config", {
+      alias: "c",
+      type: "string",
+      description: "config path 配置文件地址",
+    }).argv;
+
+    this.configPath = argv.config || this.options.config || "./env.config.js";
+  }
+
+  getEnvPluginConfig() {
+    const modulePath = path.resolve(process.cwd(), this.configPath);
+    try {
+      delete require.cache[require.resolve(modulePath)]; // 清除缓存
+      this.envConfig = require(modulePath);
+    } catch (error) {
+      console.error(`Failed to load module at ${modulePath}:`, error);
+      this.envConfig = { envList: [] }; // 设置默认值为空数组
+    }
+
+    const {
+      port = 3099,
+      devServerUrl = "http://localhost:5173",
+      basePath = "/dev-manage-api",
+      envList = [],
+    } = this.envConfig;
+
+    this.envConfig.port = port;
+    this.envConfig.devServerUrl = devServerUrl;
+    this.envConfig.basePath = basePath;
+
+    ManageServer.envList = envList;
+
+    if (this.preProxyServer) {
+      this.preProxyServer.updateWebpackDevServer(devServerUrl);
+    }
+  }
+
+  startIndependent() {
+    // 读取配置文件
+    this.getConfigPath();
+    this.getEnvPluginConfig();
+
+    // 后置转发 和 管理路由
+    this.postProxyServer = new PostProxyServer(this.envConfig.port);
+
+    // 使用前置转发  所有请求都会先转发到 dev-server
+    this.preProxyServer = new PreProxyServer(this.envConfig.devServerUrl);
+
+    const manageServer = new ManageServer(
+      this.preProxyServer.getApp,
+      this.postProxyServer.getApp,
+      this.envConfig.basePath
+    );
+  }
+}
+
+module.exports = EnvManage;

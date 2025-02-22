@@ -12,11 +12,7 @@ class ManageServer {
     this.init();
     this.postApp.use(basePath, this.router);
   }
-
-  startInitServer() {
-    this.startServer(ManageServer.envList[0].port);
-  }
-
+  
   startServer(port) {
     if (this.servers[port]) {
       console.log(`端口 ${port} 已经启动`);
