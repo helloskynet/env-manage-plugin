@@ -1,5 +1,6 @@
 const path = require("path");
 const yargs = require("yargs/yargs");
+const chokidar = require("chokidar");
 const { hideBin } = require("yargs/helpers");
 const ManageServer = require("./ManageServer");
 const PreProxyServer = require("./PreProxyServer");
@@ -24,11 +25,13 @@ class EnvManage {
       description: "config path 配置文件地址",
     }).argv;
 
-    this.configPath = argv.config || this.options.config || "./env.config.js";
+    const configPath = argv.config || this.options.config || "./env.config.js";
+
+    this.configPath = path.resolve(process.cwd(), configPath);
   }
 
   getEnvPluginConfig() {
-    const modulePath = path.resolve(process.cwd(), this.configPath);
+    const modulePath = this.configPath;
     try {
       delete require.cache[require.resolve(modulePath)]; // 清除缓存
       this.envConfig = require(modulePath);
@@ -71,6 +74,19 @@ class EnvManage {
       this.postProxyServer.getApp,
       this.envConfig.basePath
     );
+
+    this.watchConfig();
+  }
+
+  watchConfig() {
+    const watcher = chokidar.watch(this.configPath, {
+      persistent: true,
+    });
+
+    watcher.on("change", () => {
+      console.log("Config file changed");
+      this.getEnvPluginConfig();
+    });
   }
 }
 
