@@ -1,33 +1,46 @@
 const express = require("express");
 
 class ManageServer {
-  constructor(app) {
-    this.envList = [
-      {
-        name: "dev",
-        port: 3000,
-        target: "http://localhost:8080",
-      },
-      {
-        name: "test",
-        port: 3001,
-        target: "http://localhost:8081",
-      },
-      {
-        name: "prod",
-        port: 3002,
-        target: "http://localhost:8082",
-      },
-    ];
-    this.app = app;
+  static envList = [
+    {
+      name: "dev",
+      port: 3000,
+      target: "http://localhost:3010",
+    },
+    {
+      name: "test",
+      port: 3001,
+      target: "http://localhost:3011",
+    },
+    {
+      name: "prod",
+      port: 3002,
+      target: "http://localhost:3012",
+    },
+    {
+      name: "prod3013",
+      port: 3003,
+      target: "http://localhost:3013",
+    },
+    {
+      name: "prod20",
+      port: 3004,
+      target: "http://localhost:3020",
+    },
+  ];
+
+  constructor(preApp, postApp) {
+    this.app = preApp;
+    this.postApp = postApp;
+
     this.servers = {};
     this.router = express.Router();
     this.init();
-    this.app.use("/dev-manage-api", this.router);
+    this.postApp.use("/dev-manage-api", this.router);
   }
 
   startInitServer() {
-    this.startServer(this.envList[0].port);
+    this.startServer(ManageServer.envList[0].port);
   }
 
   startServer(port) {
@@ -70,7 +83,7 @@ class ManageServer {
         return res.status(400).json({ error: "缺少 action 或 name 参数" });
       }
 
-      const env = this.envList.find((item) => item.name === name);
+      const env = ManageServer.envList.find((item) => item.name === name);
       if (!env) {
         return res.status(400).json({ error: "环境不存在" });
       }
@@ -94,7 +107,7 @@ class ManageServer {
     });
 
     this.router.get("/getlist", (req, res) => {
-      const enableList = this.envList.map((item) => {
+      const enableList = ManageServer.envList.map((item) => {
         return {
           name: item.name,
           port: item.port,

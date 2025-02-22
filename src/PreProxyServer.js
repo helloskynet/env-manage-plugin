@@ -1,15 +1,16 @@
 const { createProxyMiddleware } = require("http-proxy-middleware");
+const express = require("express");
 
 class PreProxyMiddleware {
-  WEBPACK_DEV_SERVER = "http://localhost:5173";
+  WEBPACK_DEV_SERVER = "http://localhost:8080";
   constructor() {
-    this.proProxyMiddleware = null;
-    this.createPreProxyMiddleware();
+    this.app = express();
+    this.app.use(this.createPreProxyMiddleware());
   }
 
   createPreProxyMiddleware() {
     // 前置转发：将请求转发到 Webpack 开发服务器
-    this.proProxyMiddleware = createProxyMiddleware({
+    return createProxyMiddleware({
       changeOrigin: true,
       ws: true,
       router: () => {
@@ -29,7 +30,11 @@ class PreProxyMiddleware {
   }
 
   get getPreProxyMiddleware() {
-    return this.proProxyMiddleware;
+    return this.preProxyMiddleware;
+  }
+
+  get getApp() {
+    return this.app;
   }
 }
 

@@ -1,14 +1,14 @@
-const express = require("express");
-const ManageServer = require("./manageServer");
-const PreProxyMiddleware = require("./preProxyMiddleware");
+const ManageServer = require("./ManageServer");
 
-const app = express();
-
-// 注册管理路由
-const manageServer = new ManageServer(app);
-
-const preProxyMiddleware = new PreProxyMiddleware();
 // 使用前置转发  所有请求都会先转发到webpack-dev-server
-app.use(preProxyMiddleware.getPreProxyMiddleware);
+const PreProxyServer = require("./PreProxyServer");
+const preProxyServer = new PreProxyServer();
 
-manageServer.startInitServer();
+// 后置转发 和 管理路由
+const PostProxyServer = require("./PostProxyServer");
+const postProxyServer = new PostProxyServer();
+
+const manageServer = new ManageServer(
+  preProxyServer.getApp,
+  postProxyServer.getApp
+);
