@@ -1,47 +1,16 @@
 const express = require("express");
 
 class ManageServer {
-  static envList = [
-    {
-      name: "dev",
-      port: 3000,
-      target: "http://localhost:3010",
-      indexPath: "/Test",
-    },
-    {
-      name: "test",
-      port: 3001,
-      target: "http://localhost:3011",
-      indexPath: "/Test",
-    },
-    {
-      name: "prod",
-      port: 3002,
-      target: "http://localhost:3012",
-      indexPath: "/Test",
-    },
-    {
-      name: "prod3013",
-      port: 3003,
-      target: "http://localhost:3013",
-      indexPath: "/Test",
-    },
-    {
-      name: "prod20",
-      port: 3004,
-      target: "http://localhost:3020",
-      indexPath: "/Test",
-    },
-  ];
+  static envList = [];
 
-  constructor(preApp, postApp) {
+  constructor(preApp, postApp, basePath) {
     this.app = preApp;
     this.postApp = postApp;
 
     this.servers = {};
     this.router = express.Router();
     this.init();
-    this.postApp.use("/dev-manage-api", this.router);
+    this.postApp.use(basePath, this.router);
   }
 
   startInitServer() {

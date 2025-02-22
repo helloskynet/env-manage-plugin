@@ -5,7 +5,7 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 const ManageServer = require("./ManageServer");
 
 class PostProxyMiddleware {
-  constructor() {
+  constructor(port) {
     this.app = express();
 
     this.app.use(express.static(path.join(__dirname, "client")));
@@ -22,8 +22,8 @@ class PostProxyMiddleware {
       res.status(500).send("代理服务器出错");
     });
 
-    this.app.listen(3099, () => {
-      console.log("Post Proxy Middleware is running on http://localhost:3099");
+    this.app.listen(port, () => {
+      console.log(`Post Proxy Middleware is running on http://localhost:${port}`);
     });
   }
 
@@ -36,11 +36,9 @@ class PostProxyMiddleware {
       changeOrigin: true,
       ws: true,
       router: (req) => {
-        console.log("req.headers",req.headers["x-api-server"],req.path);
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"];
           const env = envList.find((item) => item.port == port);
-          console.log( env.target,'0--------')
           if (env && env.target) {
             return env.target;
           }

@@ -3,7 +3,8 @@ const express = require("express");
 
 class PreProxyMiddleware {
   WEBPACK_DEV_SERVER = "http://localhost:5173";
-  constructor() {
+  constructor(devServerUrl) {
+    this.WEBPACK_DEV_SERVER = devServerUrl;
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
   }
