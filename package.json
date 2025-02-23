@@ -40,5 +40,11 @@
   },
   "engines": {
     "node": ">=14.0.0"
-  }
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ]
 }
