@@ -47,7 +47,6 @@ graph LR
 // 支持 ES Module
 module.exports = {
   port: 3099, // 管理服务器的端口
-  devServerUrl: "http://localhost:5173", // 默认的开发服务器地址
   basePath: "/dev-manage-api", // 管理 API 的基础路径
   envList: [
     {

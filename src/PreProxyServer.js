@@ -3,7 +3,7 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 const express = require("express");
 
 class PreProxyServer {
-  constructor(devServerUrl) {
+  constructor() {
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
   }

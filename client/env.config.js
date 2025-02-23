@@ -1,7 +1,6 @@
 export default {
   port: 3099,
   basePath: '/dev-manage-api',
-  devServerUrl: 'http://localhost:5173',
   devServerList: [
     {
       name: 'dev1',

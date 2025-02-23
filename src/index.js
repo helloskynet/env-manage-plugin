@@ -60,14 +60,12 @@ class EnvManage {
 
     const {
       port = 3099,
-      devServerUrl = "http://localhost:5173",
       basePath = "/dev-manage-api",
       envList = [],
       devServerList = [],
     } = this.envConfig;
 
     this.envConfig.port = port;
-    this.envConfig.devServerUrl = devServerUrl;
     this.envConfig.basePath = basePath;
 
     ManageServer.envList = envList;
@@ -83,7 +81,7 @@ class EnvManage {
     this.postProxyServer = new PostProxyServer(this.envConfig.port);
 
     // 使用前置转发  所有请求都会先转发到 dev-server
-    this.preProxyServer = new PreProxyServer(this.envConfig.devServerUrl);
+    this.preProxyServer = new PreProxyServer();
 
     const manageServer = new ManageServer(
       this.preProxyServer.getApp,
