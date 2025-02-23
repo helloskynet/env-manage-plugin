@@ -10,7 +10,7 @@
   },
   "main": "src/index.js",
   "scripts": {
-    "dev": "concurrently --prefix \"{name}\" --names \"Proxy,Client,TestServer\" \"npm run dev:proxy\" \"npm run dev:client\" \"npm run dev:server\"",
+    "dev": "concurrently --prefix \"[{name}]\" --names \"Proxy,Client,TestServer\" \"npm run dev:proxy\" \"npm run dev:client\" \"npm run dev:server\"",
     "dev:proxy": "nodemon bin/index.js --config=./client/env.config.js",
     "dev:client": "cd client && npm run dev",
     "dev:server": "node test/server.js",
