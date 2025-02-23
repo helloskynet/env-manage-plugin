@@ -1,11 +1,10 @@
 const express = require("express");
-const EnvManage = require(".");
 
 class ManageServer {
   static envList = [];
   static devServerList = [];
 
-  static currentEnvList = []
+  static currentEnvList = [];
 
   constructor(preApp, postApp, basePath) {
     this.app = preApp;
@@ -73,11 +72,13 @@ class ManageServer {
         } else {
           this.startServer(envPort, env.name);
         }
-        return res.json({ message: `端口 ${envPort} 已启动` });
+        return res.json({ message: `环境 ${name} 在端口 ${envPort} 已启动` });
       } else if (action === "stop") {
         return this.stopServer(envPort)
           .then(() => {
-            return res.json({ message: `端口 ${envPort} 已关闭` });
+            return res.json({
+              message: `环境 ${name} 在端口 ${envPort} 已关闭`,
+            });
           })
           .catch((err) => {
             console.log(err);
@@ -106,7 +107,7 @@ class ManageServer {
         };
       });
 
-      ManageServer.currentEnvList = enableList
+      ManageServer.currentEnvList = enableList;
       return res.json({ list: enableList });
     });
 
@@ -139,7 +140,12 @@ class ManageServer {
           }
           return false;
         });
-        return res.json({ list: ManageServer.envList });
+
+        const selectedDevServer = ManageServer.devServerList[devServerId] || {};
+
+        return res.json({
+          message: `环境 ${name} 在端口 ${port} 已经切换到 ${selectedDevServer.name}`,
+        });
       }
     );
   }
