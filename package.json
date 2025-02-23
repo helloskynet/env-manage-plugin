@@ -15,6 +15,7 @@
     "dev:client": "cd client && npm run dev",
     "dev:server": "node test/server.js",
     "build:client": "cd client && npm run build",
+    "test:installed": "concurrently --prefix \"[{name}]\" --names \"Client,TestServer\" \"npm run dev:client\" \"npm run dev:server\"",
     "start": "node src/index.js"
   },
   "author": "lcn",
