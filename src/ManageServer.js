@@ -90,6 +90,10 @@ class ManageServer {
     });
 
     this.router.get("/getlist", (req, res) => {
+      const { protocol, hostname } = req;
+
+      const ipAdress = `${protocol}://${hostname}`;
+
       const enableList = ManageServer.envList.map((item) => {
         return {
           name: item.name,
@@ -100,9 +104,7 @@ class ManageServer {
             this.servers[item.port].x_name === item.name
               ? "running"
               : "stop",
-          index: `${item.index || `http://localhost:${item.port}`}${
-            item.indexPath
-          }`,
+          index: `${ipAdress}:${item.port}${item.indexPath}`,
           devServerId: item.devServerId || "0",
         };
       });

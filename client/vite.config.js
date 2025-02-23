@@ -7,7 +7,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
-import ElementPlus from 'unplugin-element-plus/vite';
+import ElementPlus from 'unplugin-element-plus/vite'
 import viteCompression from 'vite-plugin-compression'
 
 // https://vite.dev/config/
@@ -40,10 +40,10 @@ export default defineConfig({
     }),
   ],
   server: {
+    host: '0.0.0.0',
     proxy: {
       '/dev-manage-api': {
         target: 'http://localhost:3099',
-        changeOrigin: true,
       },
       '/simple': {
         target: 'http://localhost:3099',
