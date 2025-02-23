@@ -1,9 +1,9 @@
 <template>
-  <el-button type="success" @click="getEnvList">刷新</el-button>
+  <el-button type="success" @click="getEnvList();getDevServerList()" :loading="refreshLoading">刷新</el-button>
   <el-table :data="tableData" style="width: 100%">
-    <el-table-column prop="name" label="环境名称" width="180" />
+    <el-table-column prop="name" label="环境名称" width="100" />
     <el-table-column prop="target" label="环境代理详情" width="180" />
-    <el-table-column prop="index" label="首页地址">
+    <el-table-column prop="index" label="首页地址" show-overflow-tooltip>
       <template #default="scope">
         <el-link
           :disabled="scope.row.status === 'stop'"
@@ -29,7 +29,7 @@
         >
           <el-radio
             v-for="(item, index) in devServerList"
-            :key="item.name"  
+            :key="item.name"
             :value="`${index}`"
             border
             size="small"
@@ -40,10 +40,20 @@
     </el-table-column>
     <el-table-column label="操作">
       <template #default="scope">
-        <el-button type="success" v-if="scope.row.status === 'stop'" @click="handleStart(scope.row)"
+        <el-button
+          type="success"
+          v-if="scope.row.status === 'stop'"
+          :loading="loadingMap[scope.row.port]"
+          @click="handleStart(scope.row)"
           >启动</el-button
         >
-        <el-button type="danger" v-else @click="handleStop(scope.row)">停止</el-button>
+        <el-button
+          type="danger"
+          v-else
+          :loading="loadingMap[scope.row.port]"
+          @click="handleStop(scope.row)"
+          >停止</el-button
+        >
       </template>
     </el-table-column>
   </el-table>
@@ -58,11 +68,16 @@ const apiPrefix = 'dev-manage-api'
 let tableData = ref([])
 
 let devServerList = ref([])
+
+let loadingMap = ref({}) // 存储每行的 loading 状态
+
+let refreshLoading = ref(false)
 /**
  * 获取环境列表
  *
  */
 const getEnvList = () => {
+  refreshLoading.value = true
   fetch(`${apiPrefix}/getlist`)
     .then((res) => {
       return res.json()
@@ -70,6 +85,9 @@ const getEnvList = () => {
     .then((res) => {
       console.log(res)
       tableData.value = res.list
+    })
+    .finally(() => {
+      refreshLoading.value = false
     })
 }
 /**
@@ -113,6 +131,8 @@ const handleStop = (rowData) => {
 }
 
 const updateStatus = (body) => {
+  loadingMap.value[body.port] = true
+
   fetch(`${apiPrefix}/manage-server`, {
     method: 'POST',
     headers: {
@@ -131,6 +151,9 @@ const updateStatus = (body) => {
         ElMessage.success(res.message)
       }
       getEnvList()
+    })
+    .finally(() => {
+      loadingMap.value[body.port] = false
     })
 }
 
