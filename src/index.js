@@ -32,6 +32,8 @@ class EnvManage {
     this.configPath = path.resolve(process.cwd(), configPath);
   }
 
+  cacheBuster = 0;
+
   async getEnvPluginConfig() {
     const modulePath = this.configPath;
 
@@ -47,7 +49,9 @@ class EnvManage {
         // 动态加载 ES Module
 
         const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
-        const module = await import(fileUrl);
+
+        const urlWithCacheBuster = `${fileUrl}?v=${this.cacheBuster++}`; // 添加查询参数 = `${fileUrl}?v=${this.cacheBuster++}`; // 添加查询参数
+        const module = await import(urlWithCacheBuster);
         this.envConfig = module.default || module;
       } else {
         // 使用 require 加载 CommonJS
@@ -68,9 +72,30 @@ class EnvManage {
     this.envConfig.port = port;
     this.envConfig.basePath = basePath;
 
-    ManageServer.envList = envList;
-    ManageServer.devServerList = devServerList;
+    ManageServer.envList = EnvManage.removeDuplicatesByCombinedKey(envList);
+    ManageServer.devServerList =
+      EnvManage.removeDuplicatesByCombinedKey(devServerList);
   }
+
+  static removeDuplicatesByCombinedKey = (envList) => {
+    const uniqueMap = {};
+    const result = [];
+
+    envList.forEach((item) => {
+      const key = `${item.name}-${item.port}`;
+      if (!uniqueMap[key]) {
+        uniqueMap[key] = true;
+        result.push(item);
+      }
+    });
+
+    console.log("result", result);
+
+    return result;
+  };
+
+  // 调用去重函数
+  // config.envList = removeDuplicatesByCombinedKey(config.envList);
 
   async startIndependent() {
     // 读取配置文件
