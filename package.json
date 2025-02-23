@@ -8,7 +8,6 @@
     "dev:proxy": "nodemon bin/index.js --config=env.config.js",
     "dev:client": "cd client && npm run dev",
     "dev:server": "node test/server.js",
-    "test": "",
     "build:client": "cd client && npm run build",
     "start": "node src/index.js"
   },

@@ -5,10 +5,9 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 const ManageServer = require("./ManageServer");
 const expressStaticGzip = require("express-static-gzip");
 
-class PostProxyMiddleware {
+class PostProxyServer {
   constructor(port) {
     this.app = express();
-
 
     // this.app.use(express.static(path.join(__dirname, "client")));
     this.app.use(expressStaticGzip(path.join(__dirname, "client")));
@@ -26,7 +25,9 @@ class PostProxyMiddleware {
     });
 
     this.app.listen(port, () => {
-      console.log(`Post Proxy Middleware is running on http://localhost:${port}`);
+      console.log(
+        `Post Proxy Middleware is running on http://localhost:${port}`
+      );
     });
   }
 
@@ -42,6 +43,11 @@ class PostProxyMiddleware {
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"];
           const env = envList.find((item) => item.port == port);
+
+          if (env && env.router) {
+            return env.router(req, env);
+          }
+          
           if (env && env.target) {
             return env.target;
           }
@@ -52,13 +58,9 @@ class PostProxyMiddleware {
     });
   }
 
-  get getPostProxyMiddleware() {
-    return this.postProxyMiddleware;
-  }
-
   get getApp() {
     return this.app;
   }
 }
 
-module.exports = PostProxyMiddleware;
+module.exports = PostProxyServer;

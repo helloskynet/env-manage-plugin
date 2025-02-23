@@ -18,6 +18,9 @@ module.exports = {
       port: 3000,
       target: "http://localhost:3010",
       indexPath: "/Test",
+      router: (req, env) => {
+        return env.target;
+      },
     },
     {
       name: "test",

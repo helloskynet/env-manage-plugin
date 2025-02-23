@@ -2,7 +2,7 @@ const ManageServer = require("./ManageServer");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const express = require("express");
 
-class PreProxyMiddleware {
+class PreProxyServer {
   constructor(devServerUrl) {
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
@@ -33,13 +33,9 @@ class PreProxyMiddleware {
     });
   }
 
-  get getPreProxyMiddleware() {
-    return this.preProxyMiddleware;
-  }
-
   get getApp() {
     return this.app;
   }
 }
 
-module.exports = PreProxyMiddleware;
+module.exports = PreProxyServer;
