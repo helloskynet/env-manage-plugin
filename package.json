@@ -1,16 +1,24 @@
 {
-  "main": "src/index.js",
+  "name": "env-manage-plugin",
+  "version": "0.0.5",
+  "description": "A dev env plugin that integrates an Express server with request proxying capabilities.",
+  "workspaces": [
+    "client"
+  ],
   "bin": {
     "envmanage": "bin/index.js"
   },
+  "main": "src/index.js",
   "scripts": {
     "dev": "concurrently --prefix \"{name}\" --names \"Proxy,Client,TestServer\" \"npm run dev:proxy\" \"npm run dev:client\" \"npm run dev:server\"",
-    "dev:proxy": "nodemon bin/index.js --config=env.config.js",
+    "dev:proxy": "nodemon bin/index.js --config=./client/env.config.js",
     "dev:client": "cd client && npm run dev",
     "dev:server": "node test/server.js",
     "build:client": "cd client && npm run build",
     "start": "node src/index.js"
   },
+  "author": "lcn",
+  "license": "MIT",
   "dependencies": {
     "chokidar": "^4.0.3",
     "express": "^4.21.2",
@@ -21,5 +29,16 @@
   "devDependencies": {
     "concurrently": "^9.1.2",
     "nodemon": "^3.1.9"
+  },
+  "bugs": {
+    "url": "https://github.com/helloskynet/env-manage-plugin/issues"
+  },
+  "homepage": "https://github.com/helloskynet/env-manage-plugin#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/helloskynet/env-manage-plugin.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }

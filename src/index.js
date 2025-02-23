@@ -1,4 +1,6 @@
 const path = require("path");
+const fs = require("fs");
+const { pathToFileURL } = require("url");
 const yargs = require("yargs/yargs");
 const chokidar = require("chokidar");
 const { hideBin } = require("yargs/helpers");
@@ -30,11 +32,27 @@ class EnvManage {
     this.configPath = path.resolve(process.cwd(), configPath);
   }
 
-  getEnvPluginConfig() {
+  async getEnvPluginConfig() {
     const modulePath = this.configPath;
+
     try {
-      delete require.cache[require.resolve(modulePath)]; // 清除缓存
-      this.envConfig = require(modulePath);
+      // 清除缓存（仅对 CommonJS 有效）
+      delete require.cache[require.resolve(modulePath)];
+
+      // 判断文件类型
+      if (
+        modulePath.endsWith(".mjs") ||
+        (modulePath.endsWith(".js") && this.isESModule(modulePath))
+      ) {
+        // 动态加载 ES Module
+
+        const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
+        const module = await import(fileUrl);
+        this.envConfig = module.default || module;
+      } else {
+        // 使用 require 加载 CommonJS
+        this.envConfig = require(modulePath);
+      }
     } catch (error) {
       console.error(`Failed to load module at ${modulePath}:`, error);
       this.envConfig = { envList: [] }; // 设置默认值为空数组
@@ -56,10 +74,10 @@ class EnvManage {
     ManageServer.devServerList = devServerList;
   }
 
-  startIndependent() {
+  async startIndependent() {
     // 读取配置文件
     this.getConfigPath();
-    this.getEnvPluginConfig();
+    await this.getEnvPluginConfig();
 
     // 后置转发 和 管理路由
     this.postProxyServer = new PostProxyServer(this.envConfig.port);
@@ -85,6 +103,34 @@ class EnvManage {
       console.log("Config file changed");
       this.getEnvPluginConfig();
     });
+  }
+
+  /**
+   * 判断文件是否是 ES Module
+   * @param {string} filePath - 文件路径
+   * @returns {boolean}
+   */
+  isESModule(filePath) {
+    try {
+      // 检查文件扩展名
+      if (filePath.endsWith(".mjs")) return true;
+      if (filePath.endsWith(".cjs")) return false;
+
+      // 检查 package.json 的 type 字段
+      const dir = path.dirname(filePath);
+      const packageJsonPath = path.join(dir, "package.json");
+      if (fs.existsSync(packageJsonPath)) {
+        const packageJson = require(packageJsonPath);
+        return packageJson.type === "module";
+      }
+
+      // 检查文件内容
+      const content = fs.readFileSync(filePath, "utf8");
+      return content.includes("export default") || content.includes("export ");
+    } catch (error) {
+      console.error(`Failed to check module type at ${filePath}:`, error);
+      return false;
+    }
   }
 }
 

@@ -39,6 +39,7 @@ graph LR
 在项目根目录下创建 `env.config.js` 文件，配置示例如下：
 
 ```javascript
+// 支持 ES Module
 module.exports = {
   port: 3099, // 管理服务器的端口
   devServerUrl: "http://localhost:5173", // 默认的开发服务器地址
