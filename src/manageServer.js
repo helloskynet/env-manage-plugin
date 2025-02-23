@@ -1,8 +1,11 @@
 const express = require("express");
+const EnvManage = require(".");
 
 class ManageServer {
   static envList = [];
   static devServerList = [];
+
+  static currentEnvList = []
 
   constructor(preApp, postApp, basePath) {
     this.app = preApp;
@@ -14,7 +17,7 @@ class ManageServer {
     this.postApp.use(basePath, this.router);
   }
 
-  startServer(port) {
+  startServer(port, name) {
     if (this.servers[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;
@@ -23,6 +26,8 @@ class ManageServer {
     const server = this.app.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
     });
+
+    server.x_name = name;
 
     this.servers[port] = server;
   }
@@ -48,25 +53,31 @@ class ManageServer {
 
   init() {
     this.router.post("/manage-server", express.json(), async (req, res) => {
-      const { action, name } = req.body;
+      const { action, name, port } = req.body;
 
       if (!action || !name) {
         return res.status(400).json({ error: "缺少 action 或 name 参数" });
       }
 
-      const env = ManageServer.envList.find((item) => item.name === name);
+      const env = ManageServer.envList.find(
+        (item) => item.name === name && item.port == port
+      );
       if (!env) {
         return res.status(400).json({ error: "环境不存在" });
       }
-      const port = env.port;
+      const envPort = env.port;
 
       if (action === "start") {
-        this.startServer(port);
-        return res.json({ message: `端口 ${port} 已启动` });
+        if (this.servers[port]) {
+          this.servers[port].x_name = name;
+        } else {
+          this.startServer(envPort, env.name);
+        }
+        return res.json({ message: `端口 ${envPort} 已启动` });
       } else if (action === "stop") {
-        return this.stopServer(port)
+        return this.stopServer(envPort)
           .then(() => {
-            return res.json({ message: `端口 ${port} 已关闭` });
+            return res.json({ message: `端口 ${envPort} 已关闭` });
           })
           .catch((err) => {
             console.log(err);
@@ -83,13 +94,19 @@ class ManageServer {
           name: item.name,
           port: item.port,
           target: item.target,
-          status: this.servers[item.port] ? "running" : "stop",
+          status:
+            this.servers[item.port] &&
+            this.servers[item.port].x_name === item.name
+              ? "running"
+              : "stop",
           index: `${item.index || `http://localhost:${item.port}`}${
             item.indexPath
           }`,
           devServerId: item.devServerId || "0",
         };
       });
+
+      ManageServer.currentEnvList = enableList
       return res.json({ list: enableList });
     });
 
@@ -107,14 +124,16 @@ class ManageServer {
       "/update-dev-server-id",
       express.json(),
       async (req, res) => {
-        const { devServerId, name } = req.body;
+        const { devServerId, name, port } = req.body;
 
-        if (!devServerId || !name) {
-          return res.status(400).json({ error: "缺少 action 或 name 参数" });
+        if (!devServerId || !name || !port) {
+          return res
+            .status(400)
+            .json({ error: "缺少 action 或 name 或者 port 参数" });
         }
 
         ManageServer.envList.some((item) => {
-          if (item.name === name) {
+          if (item.name === name && item.port == port) {
             item.devServerId = devServerId;
             return true;
           }

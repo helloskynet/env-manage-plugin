@@ -14,8 +14,9 @@ class PreProxyServer {
       changeOrigin: true,
       ws: true,
       router: (req) => {
-        const env = ManageServer.envList.find(
-          (item) => item.port == req.socket.localPort
+        const env = ManageServer.currentEnvList.find(
+          (item) =>
+            item.port == req.socket.localPort && item.status === "running"
         );
 
         const devServerId = env.devServerId || "0";

@@ -72,7 +72,12 @@ class EnvManage {
     this.envConfig.port = port;
     this.envConfig.basePath = basePath;
 
-    ManageServer.envList = EnvManage.removeDuplicatesByCombinedKey(envList);
+    ManageServer.envList = EnvManage.removeDuplicatesByCombinedKey(envList).map(
+      (item) => {
+        item.encodeName = encodeURIComponent(item.name);
+        return item;
+      }
+    );
     ManageServer.devServerList =
       EnvManage.removeDuplicatesByCombinedKey(devServerList);
   }
@@ -88,8 +93,6 @@ class EnvManage {
         result.push(item);
       }
     });
-
-    console.log("result", result);
 
     return result;
   };

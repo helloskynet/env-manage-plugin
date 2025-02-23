@@ -2,7 +2,6 @@
 [![node][node]][node-url]
 ![npm](https://img.shields.io/npm/dw/env-manage-plugin.svg)
 
-
 # EnvManage - 环境管理工具
 
 `EnvManage` 是一个用于管理和代理多个开发环境的工具。它允许你通过配置文件动态启动、停止和管理多个开发服务器，并通过代理中间件将请求转发到相应的服务器。该工具特别适用于需要同时运行多个开发环境的场景。
@@ -78,6 +77,14 @@ module.exports = {
   ],
 };
 ```
+
+### envList
+
+envList 的主键组合为 name 和 port 。若数据完全相同，则后一条数据会被忽略。对于 port 相同的情况，系统会自动进行互斥处理，即启动其中一个后，再尝试启动其他相同 port 的实例时，系统会自动关闭已启动的实例，避免冲突。
+
+### devServerList
+
+devServerList 的主键为 name，相同则忽略后一个。
 
 ## 开发服务器配置
 
@@ -166,7 +173,6 @@ npx envmanage --config ./path/to/env.config.js
 ---
 
 感谢使用 `EnvManage`！如果你有任何问题或建议，请随时联系我们。
-
 
 [npm]: https://img.shields.io/npm/v/env-manage-plugin.svg
 [npm-url]: https://npmjs.com/package/env-manage-plugin

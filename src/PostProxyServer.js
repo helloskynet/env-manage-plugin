@@ -34,20 +34,20 @@ class PostProxyServer {
   createPostProxyMiddleware() {
     // 前置转发：将请求转发到 Webpack 开发服务器
 
-    const envList = ManageServer.envList;
-
     return createProxyMiddleware({
       changeOrigin: true,
       ws: true,
       router: (req) => {
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"];
-          const env = envList.find((item) => item.port == port);
+          const env = ManageServer.currentEnvList.find(
+            (item) => item.port == port && item.status === "running"
+          );
 
           if (env && env.router) {
             return env.router(req, env);
           }
-          
+
           if (env && env.target) {
             return env.target;
           }

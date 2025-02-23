@@ -29,6 +29,7 @@
         >
           <el-radio
             v-for="(item, index) in devServerList"
+            :key="item.name"  
             :value="`${index}`"
             border
             size="small"
@@ -95,6 +96,7 @@ const handleStart = (rowData) => {
   updateStatus({
     action: 'start',
     name: rowData.name,
+    port: rowData.port,
   })
 }
 const handleStop = (rowData) => {
@@ -106,6 +108,7 @@ const handleStop = (rowData) => {
   updateStatus({
     action: 'stop',
     name: rowData.name,
+    port: rowData.port,
   })
 }
 
@@ -139,6 +142,7 @@ const updateDevServerId = (devServerId, rowData) => {
     },
     body: JSON.stringify({
       name: rowData.name,
+      port: rowData.port,
       devServerId,
     }),
   })

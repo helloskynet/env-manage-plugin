@@ -45,5 +45,11 @@ export default {
       target: 'http://localhost:3020',
       indexPath: '/Test',
     },
+    {
+      name: 'prod201',
+      port: 3004,
+      target: 'http://localhost:3013',
+      indexPath: '/Test',
+    },
   ],
 }
