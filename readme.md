@@ -4,7 +4,7 @@
 
 # EnvManage - 环境管理工具
 
-`EnvManage` 是一个用于管理和代理多个开发环境的工具。它允许你通过配置文件动态启动、停止和管理多个开发服务器，并通过代理中间件将请求转发到相应的服务器。该工具特别适用于需要同时运行多个开发环境的场景。
+`EnvManage` 是一款强大的环境管理工具，专为管理和代理多个开发环境而设计，特别适用于需要同时运行多个开发环境的场景。无论是小型项目还是大型企业级应用，`EnvManage` 都能极大地提升开发效率，简化环境管理流程。
 
 ```mermaid
 graph LR
@@ -15,82 +15,99 @@ graph LR
     D -->|x-api-server: 2| F[API 服务器2]
 ```
 
-## 功能特性
+## 🌟功能特性
 
-- **动态环境管理**：通过配置文件动态管理多个开发环境。
-- **请求代理**：支持前置和后置代理，将请求转发到指定的开发服务器。
-- **配置文件热更新**：支持配置文件的热更新，修改配置文件后无需重启服务。
-- **多服务器管理**：可以同时启动和管理多个开发服务器，并通过 API 进行控制。
+- **动态环境管理**
 
-## 安装
+  通过简单的配置文件 `env.config.js`，您可以轻松定义和管理多个开发环境。在该文件中，您能灵活设置不同环境的名称、端口、目标服务器地址等关键信息，实现对各个开发环境的精准区分与高效管理。
 
-1. 安装项目。
+- **请求代理**
 
-   ```bash
-   npm i -D envmange
-   ```
+  支持前置和后置代理，确保请求准确无误地转发到指定的开发服务器。代理服务器会依据配置的目标服务器地址，将请求精准转发到对应的 API 服务器，保障数据交互顺畅。
 
-   或者全局安装
+- **配置文件热更新**
 
-   ```bash
-   npm i -g envmange
-   ```
+  无需繁琐的重启服务操作，`EnvManage` 支持配置文件热更新。当您对配置文件进行修改后，工具会自动检测并应用新的配置，显著提高开发效率，让您的开发过程更加流畅。
 
-2. 在项目根目录下创建 `env.config.js` 配置文件。
+- **多服务器管理**
 
-## 配置文件示例
+  轻松实现同时启动和管理多个开发服务器，并通过管理页面查看代理服务运行状态，同时可灵活启动或停止某个环境对应的服务器。
 
-在项目根目录下创建 `env.config.js` 文件，配置示例如下：
+## 🚀 快速上手
 
-```javascript
-// 支持 ES Module
-module.exports = {
-  port: 3099, // 管理服务器的端口
-  basePath: "/dev-manage-api", // 管理 API 的基础路径
+### 安装
+
+```bash
+npm i -D envmange
+```
+
+或者全局安装
+
+```bash
+npm i -g envmange
+```
+
+### 配置
+
+在项目根目录下创建 `env.config.js` 文件，根据实际需求定义开发环境和开发服务器列表。以下是各配置属性的详细说明
+
+**配置文件示例**
+
+```js
+// env.config.js  支持CommonJS 和 ES Module
+export default {
+  // 管理服务器运行的端口，可根据实际需求修改，确保该端口未被其他程序占用
+  port: 3099,
+  // 基础路径，用于构建API请求的前缀，方便统一管理和识别与EnvManage相关的接口请求
+  basePath: "/dev-manage-api",
+  devServerList: [
+    {
+      // 为开发服务器命名，便于识别和管理，名称可自定义
+      // prima key
+      name: "your_dev_server_1",
+      // 该开发服务器对应的目标地址，即实际提供服务的地址
+      target: "http://localhost:5173",
+    },
+    // 可以添加更多开发服务器
+  ],
   envList: [
     {
-      name: "env1", // 环境名称
-      port: 3001, // 环境端口
-      target: "http://localhost:3001", // 目标服务器地址
-      devServerId: "0", // 关联的开发服务器 ID
+      // 为开发环境命名，如开发环境、测试环境等，方便区分
+      // prima key
+      name: "your_env_1",
+      // 该环境对外暴露的端口，用于访问该环境下的应用
+      // prima key
+      port: 3000,
+      // 该环境请求转发的目标服务器地址，通常是后端 API 服务地址
+      target: "http://localhost:3010",
+      // 环境的索引路径，可作为该环境的首页路径或特定的入口路径
+      indexPath: "/Test",
+      // 关联的开发服务器 ID  即索引
+      devServerId: "0",
+      // 路由规则函数，根据请求和环境信息，返回请求应转发到的目标地址
+      // 自定义 目标地址 可以覆盖 target
       router: (req, env) => {
-        // 自定义target
         return env.target;
       },
     },
-    {
-      name: "env2",
-      port: 3002,
-      target: "http://localhost:3002",
-      devServerId: "1",
-    },
-  ],
-  devServerList: [
-    {
-      name: "devServer1", // 开发服务器名称
-      target: "http://localhost:5173", // 开发服务器地址
-    },
-    {
-      name: "devServer2",
-      target: "http://localhost:5174",
-    },
+    // 可以添加更多环境
   ],
 };
 ```
 
-### envList
+**envList**
 
 envList 的主键组合为 name 和 port 。若数据完全相同，则后一条数据会被忽略。对于 port 相同的情况，系统会自动进行互斥处理，即启动其中一个后，再尝试启动其他相同 port 的实例时，系统会自动关闭已启动的实例，避免冲突。
 
-### devServerList
+**devServerList**
 
 devServerList 的主键为 name，相同则忽略后一个。
 
-## 开发服务器配置
+### 开发服务器配置
 
-将需要代理到 API 服务器的请求，转发到 后置代理服务器。
+调整开发服务器，将需要代理到 API 服务器的请求，转发到 后置代理服务器。
 
-### webpack-dev-server
+**webpack-dev-server**
 
 ```js
 // webpack.config.js
@@ -104,7 +121,7 @@ module.exports = {
 };
 ```
 
-### vite
+**vite**
 
 ```js
 // vite.config.js
@@ -131,11 +148,9 @@ export default defineConfig({
 });
 ```
 
-## 使用说明
+### 启动
 
-### 启动管理服务器
-
-在项目根目录下运行以下命令启动管理服务器：
+运行以下命令启动管理服务器：
 
 ```bash
 npx envmange
@@ -147,9 +162,11 @@ npx envmange
 npx envmanage --config ./path/to/env.config.js
 ```
 
+访问管理页面 [http://localhost:3099/](http://localhost:3099/) 对各个代理服务进行管理。
+
 ### 配置文件热更新
 
-当 env.config.js 文件发生变化时，管理服务器会自动重新加载配置，无需重启服务。
+如果需要修改环境配置，直接修改 `env.config.js` 文件，工具支持热更新，修改后无需重启服务即可生效。
 
 ## 依赖
 
