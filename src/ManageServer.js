@@ -4,6 +4,14 @@ class ManageServer {
   static envList = [];
   static devServerList = [];
 
+  static udpateEnvList(newEnvList) {
+    ManageServer.envList = newEnvList;
+  }
+
+  static updateDevServerList(newDevServerList) {
+    ManageServer.devServerList = newDevServerList;
+  }
+
   /**
    * 查询选择的 devServer
    * @param {*} devServerName
@@ -52,6 +60,10 @@ class ManageServer {
     server.x_name = name;
 
     this.servers[port] = server;
+  }
+
+  isRunning(port, name) {
+    return this.servers[port] && this.servers[port].x_name === name;
   }
 
   stopServer(port) {
@@ -120,11 +132,7 @@ class ManageServer {
       ManageServer.envList.forEach((item) => {
         Object.assign(item, {
           index: `${ipAdress}:${item.indexPage}`,
-          status:
-            this.servers[item.port] &&
-            this.servers[item.port].x_name === item.name
-              ? "running"
-              : "stop",
+          status: this.isRunning(item.port, item.name) ? "running" : "stop",
         });
       });
 
