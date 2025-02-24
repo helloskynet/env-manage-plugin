@@ -9,6 +9,8 @@ const PreProxyServer = require("./PreProxyServer");
 const PostProxyServer = require("./PostProxyServer");
 
 class EnvManage {
+  cacheBuster = 0; // 缓存破坏者
+
   constructor(options = {}) {
     this.options = options;
   }
@@ -32,8 +34,6 @@ class EnvManage {
     this.configPath = path.resolve(process.cwd(), configPath);
   }
 
-  cacheBuster = 0;
-
   async getEnvPluginConfig() {
     const modulePath = this.configPath;
 
@@ -50,7 +50,7 @@ class EnvManage {
 
         const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
 
-        const urlWithCacheBuster = `${fileUrl}?v=${this.cacheBuster++}`; // 添加查询参数 = `${fileUrl}?v=${this.cacheBuster++}`; // 添加查询参数
+        const urlWithCacheBuster = `${fileUrl}?v=${this.cacheBuster++}`;
         const module = await import(urlWithCacheBuster);
         this.envConfig = module.default || module;
       } else {
@@ -67,6 +67,7 @@ class EnvManage {
       basePath = "/dev-manage-api",
       envList = [],
       devServerList = [],
+      indexPage = ''
     } = this.envConfig;
 
     this.envConfig.port = port;
@@ -74,31 +75,15 @@ class EnvManage {
 
     ManageServer.envList = EnvManage.removeDuplicatesByCombinedKey(envList).map(
       (item) => {
-        item.encodeName = encodeURIComponent(item.name);
+        item.devServerId = item.devServerId || "0";
+        item.index = `${item.port}${item.indexPage || indexPage || ""}`;
         return item;
       }
     );
+
     ManageServer.devServerList =
       EnvManage.removeDuplicatesByCombinedKey(devServerList);
   }
-
-  static removeDuplicatesByCombinedKey = (envList) => {
-    const uniqueMap = {};
-    const result = [];
-
-    envList.forEach((item) => {
-      const key = `${item.name}-${item.port}`;
-      if (!uniqueMap[key]) {
-        uniqueMap[key] = true;
-        result.push(item);
-      }
-    });
-
-    return result;
-  };
-
-  // 调用去重函数
-  // config.envList = removeDuplicatesByCombinedKey(config.envList);
 
   async startIndependent() {
     // 读取配置文件
@@ -158,6 +143,21 @@ class EnvManage {
       return false;
     }
   }
+
+  static removeDuplicatesByCombinedKey = (envList) => {
+    const uniqueMap = {};
+    const result = [];
+
+    envList.forEach((item) => {
+      const key = `${item.name}-${item.port}`;
+      if (!uniqueMap[key]) {
+        uniqueMap[key] = true;
+        result.push(item);
+      }
+    });
+
+    return result;
+  };
 }
 
 module.exports = EnvManage;

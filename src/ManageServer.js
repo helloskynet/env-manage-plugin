@@ -96,16 +96,13 @@ class ManageServer {
 
       const enableList = ManageServer.envList.map((item) => {
         return {
-          name: item.name,
-          port: item.port,
-          target: item.target,
+          ...item,
+          index: `${ipAdress}:${item.index}`,
           status:
             this.servers[item.port] &&
             this.servers[item.port].x_name === item.name
               ? "running"
               : "stop",
-          index: `${ipAdress}:${item.port}${item.indexPath}`,
-          devServerId: item.devServerId || "0",
         };
       });
 

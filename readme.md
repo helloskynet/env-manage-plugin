@@ -60,6 +60,8 @@ export default {
   port: 3099,
   // 基础路径，用于构建API请求的前缀，方便统一管理和识别与EnvManage相关的接口请求
   basePath: "/dev-manage-api",
+  // 环境的索引路径，可作为环境的首页路径或特定的入口路径，可以被 envList 中的覆盖
+  indexPage: "/Test",
   devServerList: [
     {
       // 为开发服务器命名，便于识别和管理，名称可自定义
@@ -81,7 +83,7 @@ export default {
       // 该环境请求转发的目标服务器地址，通常是后端 API 服务地址
       target: "http://localhost:3010",
       // 环境的索引路径，可作为该环境的首页路径或特定的入口路径
-      indexPath: "/Test",
+      indexPage: "/Test",
       // 关联的开发服务器 ID  即索引
       devServerId: "0",
       // 路由规则函数，根据请求和环境信息，返回请求应转发到的目标地址
