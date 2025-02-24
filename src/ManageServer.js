@@ -6,6 +6,17 @@ class ManageServer {
 
   static currentEnvList = [];
 
+  /**
+   * 
+   * @param {*} devServerName 
+   * @returns 
+   */
+  static findSelectedDevServer(devServerName) {
+    return ManageServer.devServerList.find(
+      (item) => item.name === devServerName
+    ) || {};
+  }
+
   constructor(preApp, postApp, basePath) {
     this.app = preApp;
     this.postApp = postApp;
@@ -124,9 +135,9 @@ class ManageServer {
       "/update-dev-server-id",
       express.json(),
       async (req, res) => {
-        const { devServerId, name, port } = req.body;
+        const { devServerName, name, port } = req.body;
 
-        if (!devServerId || !name || !port) {
+        if (!devServerName || !name || !port) {
           return res
             .status(400)
             .json({ error: "缺少 action 或 name 或者 port 参数" });
@@ -134,13 +145,17 @@ class ManageServer {
 
         ManageServer.envList.some((item) => {
           if (item.name === name && item.port == port) {
-            item.devServerId = devServerId;
+            item.devServerName = devServerName;
             return true;
           }
           return false;
         });
 
-        const selectedDevServer = ManageServer.devServerList[devServerId] || {};
+        const selectedDevServer = ManageServer.findSelectedDevServer(devServerName);
+  
+        if (!selectedDevServer) {
+          return res.status(400).json({ error: "devServer 不存在，请刷新" });
+        }
 
         return res.json({
           message: `环境 ${name} 在端口 ${port} 已经切换到 ${selectedDevServer.name}`,

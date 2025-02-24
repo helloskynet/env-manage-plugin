@@ -84,8 +84,8 @@ export default {
       target: "http://localhost:3010",
       // 环境的索引路径，可作为该环境的首页路径或特定的入口路径
       indexPage: "/Test",
-      // 关联的开发服务器 ID  即索引
-      devServerId: "0",
+      // 关联的开发服务器Name 未设置时 默认为第一个
+      devServerName: "your_dev_server_1",
       // 路由规则函数，根据请求和环境信息，返回请求应转发到的目标地址
       // 自定义 目标地址 可以覆盖 target
       router: (req, env) => {

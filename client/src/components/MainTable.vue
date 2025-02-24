@@ -21,16 +21,16 @@
         <el-tag v-else type="success">已启动</el-tag>
       </template>
     </el-table-column>
-    <el-table-column prop="devServerId" label="devServer">
+    <el-table-column prop="devServerName" label="devServer">
       <template #default="scope">
         <el-radio-group
-          v-model="scope.row.devServerId"
-          @change="(value) => updateDevServerId(value, scope.row)"
+          v-model="scope.row.devServerName"
+          @change="(value) => updateSelectedDevServer(value, scope.row)"
         >
           <el-radio
-            v-for="(item, index) in devServerList"
+            v-for="(item) in devServerList"
             :key="item.name"
-            :value="`${index}`"
+            :value="`${item.name}`"
             border
             size="small"
             >{{ item.name }}</el-radio
@@ -157,7 +157,7 @@ const updateStatus = (body) => {
     })
 }
 
-const updateDevServerId = (devServerId, rowData) => {
+const updateSelectedDevServer = (devServerName, rowData) => {
   fetch(`${apiPrefix}/update-dev-server-id`, {
     method: 'POST',
     headers: {
@@ -166,7 +166,7 @@ const updateDevServerId = (devServerId, rowData) => {
     body: JSON.stringify({
       name: rowData.name,
       port: rowData.port,
-      devServerId,
+      devServerName,
     }),
   })
     .then((res) => {

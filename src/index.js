@@ -67,15 +67,21 @@ class EnvManage {
       basePath = "/dev-manage-api",
       envList = [],
       devServerList = [],
-      indexPage = ''
+      indexPage = "",
     } = this.envConfig;
 
     this.envConfig.port = port;
     this.envConfig.basePath = basePath;
 
+    let devServerName = "";
+
+    if (devServerList[0]) {
+      devServerName = devServerList[0].name || "";
+    }
+
     ManageServer.envList = EnvManage.removeDuplicatesByCombinedKey(envList).map(
       (item) => {
-        item.devServerId = item.devServerId || "0";
+        item.devServerName = item.devServerName || devServerName;
         item.index = `${item.port}${item.indexPage || indexPage || ""}`;
         return item;
       }

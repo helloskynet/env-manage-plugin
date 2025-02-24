@@ -19,10 +19,10 @@ class PreProxyServer {
             item.port == req.socket.localPort && item.status === "running"
         );
 
-        const devServerId = env.devServerId || "0";
+        const target = ManageServer.findSelectedDevServer(env.devServerName);
 
         // 默认转发到 Webpack 开发服务器
-        return ManageServer.devServerList[devServerId].target;
+        return target.target;
       },
       on: {
         proxyReq(proxyReq, req, res) {
