@@ -40,9 +40,8 @@ class PostProxyServer {
       router: (req) => {
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"];
-          const env = ManageServer.currentEnvList.find(
-            (item) => item.port == port && item.status === "running"
-          );
+
+          const env = ManageServer.findRunningEnv(port);
 
           if (env && env.router) {
             return env.router(req, env);

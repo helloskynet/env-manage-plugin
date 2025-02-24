@@ -4,17 +4,29 @@ class ManageServer {
   static envList = [];
   static devServerList = [];
 
-  static currentEnvList = [];
-
   /**
-   * 
-   * @param {*} devServerName 
-   * @returns 
+   * 查询选择的 devServer
+   * @param {*} devServerName
+   * @returns
    */
   static findSelectedDevServer(devServerName) {
-    return ManageServer.devServerList.find(
-      (item) => item.name === devServerName
-    ) || {};
+    return (
+      ManageServer.devServerList.find((item) => item.name === devServerName) ||
+      {}
+    );
+  }
+
+  /**
+   * 获取运行中的环境 信息
+   * @param {*} port
+   * @returns
+   */
+  static findRunningEnv(port) {
+    return (
+      ManageServer.envList.find(
+        (item) => `${item.port}` === `${port}` && item.status === "running"
+      ) || {}
+    );
   }
 
   constructor(preApp, postApp, basePath) {
@@ -105,20 +117,18 @@ class ManageServer {
 
       const ipAdress = `${protocol}://${hostname}`;
 
-      const enableList = ManageServer.envList.map((item) => {
-        return {
-          ...item,
-          index: `${ipAdress}:${item.index}`,
+      ManageServer.envList.forEach((item) => {
+        Object.assign(item, {
+          index: `${ipAdress}:${item.indexPage}`,
           status:
             this.servers[item.port] &&
             this.servers[item.port].x_name === item.name
               ? "running"
               : "stop",
-        };
+        });
       });
 
-      ManageServer.currentEnvList = enableList;
-      return res.json({ list: enableList });
+      return res.json({ list: ManageServer.envList });
     });
 
     this.router.get("/get-dev-server-list", (req, res) => {
@@ -151,8 +161,9 @@ class ManageServer {
           return false;
         });
 
-        const selectedDevServer = ManageServer.findSelectedDevServer(devServerName);
-  
+        const selectedDevServer =
+          ManageServer.findSelectedDevServer(devServerName);
+
         if (!selectedDevServer) {
           return res.status(400).json({ error: "devServer 不存在，请刷新" });
         }

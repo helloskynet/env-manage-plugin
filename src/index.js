@@ -82,7 +82,7 @@ class EnvManage {
     ManageServer.envList = EnvManage.removeDuplicatesByCombinedKey(envList).map(
       (item) => {
         item.devServerName = item.devServerName || devServerName;
-        item.index = `${item.port}${item.indexPage || indexPage || ""}`;
+        item.indexPage = `${item.port}${item.indexPage || indexPage || ""}`;
         return item;
       }
     );
