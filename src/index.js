@@ -74,86 +74,10 @@ class EnvManage {
     this.envConfig.port = port;
     this.envConfig.basePath = basePath;
 
-    let devServerName = "";
+    ManageServer.updateDevServerList(devServerList);
 
-    if (devServerList[0]) {
-      devServerName = devServerList[0].name || "";
-    }
-
-    const newEnvList = EnvManage.removeDuplicatesByCombinedKey(envList).map(
-      (item) => {
-        item.devServerName = item.devServerName || devServerName;
-        item.indexPage = `${item.port}${item.indexPage || indexPage || ""}`;
-        return item;
-      }
-    );
-
-    const newDevServerList =
-      EnvManage.removeDuplicatesByCombinedKey(devServerList);
-
-    ManageServer.updateDevServerList(newDevServerList);
-
-    const resenvList = this.updateAndCleanEnvConfig(
-      newEnvList,
-      ManageServer.envList
-    );
-
-    ManageServer.udpateEnvList(resenvList);
+    ManageServer.udpateEnvList(envList, indexPage);
     console.log("config loaded");
-  }
-
-  /**
-   * 重新加载环境配置之后，对比新旧环境配置，关闭已经删除的环境
-   * @param {Array} newEnvList - 新的环境配置
-   * @param {Array} oldEnvList - 旧的环境配置
-   * @returns {Array}
-   */
-  updateAndCleanEnvConfig(newEnvList, oldEnvList) {
-    const newEnvMap = newEnvList.reduce((map, item) => {
-      map[`${item.name}+${item.port}`] = item;
-      return map;
-    }, {}); // 生成端口号到环境配置的映射
-
-    const oldEnvMap = oldEnvList.reduce((map, item) => {
-      map[`${item.name}+${item.port}`] = item;
-      return map;
-    }, {}); // 生成端口号到环境配置的映射
-
-    const devServerMap = ManageServer.devServerList.reduce((map, item) => {
-      // 生成 devServerName 到 devServerList 的映射
-      map[item.name] = item;
-      return map;
-    }, {});
-
-    let defautlDevserverName = "";
-
-    if (ManageServer.devServerList[0]) {
-      defautlDevserverName = ManageServer.devServerList[0].name;
-    }
-
-    // 关闭已经删除的环境
-    oldEnvList.forEach((item) => {
-      if (
-        !newEnvMap[`${item.name}+${item.port}`] &&
-        this.manageServer.isRunning(item.port, item.name)
-      ) {
-        this.manageServer.stopServer(item.port);
-      }
-    });
-
-    // 返回新的环境配置
-    return newEnvList.map((item) => {
-      console.log("item.devServerName", item.devServerName);
-      const newItem = {
-        ...item,
-        ...(oldEnvMap[`${item.name}+${item.port}`] || {}),
-      };
-
-      if (!devServerMap[newItem.devServerName]) {
-        newItem.devServerName = defautlDevserverName;
-      }
-      return newItem;
-    });
   }
 
   async startIndependent() {
@@ -214,21 +138,6 @@ class EnvManage {
       return false;
     }
   }
-
-  static removeDuplicatesByCombinedKey = (envList) => {
-    const uniqueMap = {};
-    const result = [];
-
-    envList.forEach((item) => {
-      const key = `${item.name}-${item.port}`;
-      if (!uniqueMap[key]) {
-        uniqueMap[key] = true;
-        result.push(item);
-      }
-    });
-
-    return result;
-  };
 }
 
 module.exports = EnvManage;

@@ -3,13 +3,104 @@ const express = require("express");
 class ManageServer {
   static envList = [];
   static devServerList = [];
+  static expressApps = {};
 
-  static udpateEnvList(newEnvList) {
-    ManageServer.envList = newEnvList;
+  /**
+   * 获取默认的 devServerName
+   * @returns
+   */
+  static get defautlDevserverName() {
+    if (ManageServer.devServerList[0]) {
+      return ManageServer.devServerList[0].name;
+    }
+    return "";
+  }
+
+  static udpateEnvList(newEnvList, indexPage) {
+    const tempNewList = ManageServer.removeDuplicatesByCombinedKey(
+      newEnvList
+    ).map((item) => {
+      item.devServerName =
+        item.devServerName || ManageServer.defautlDevserverName;
+      item.indexPage = `${item.port}${item.indexPage || indexPage || ""}`;
+      return item;
+    });
+    ManageServer.envList = ManageServer.updateAndCleanEnvConfig(
+      tempNewList,
+      ManageServer.envList
+    );
+  }
+
+  /**
+   * 去除重复的环境配置
+   * @param {*} envList
+   * @returns
+   */
+  static removeDuplicatesByCombinedKey = (envList) => {
+    const uniqueMap = {};
+    const result = [];
+
+    envList.forEach((item) => {
+      const key = `${item.name}-${item.port}`;
+      if (!uniqueMap[key]) {
+        uniqueMap[key] = true;
+        result.push(item);
+      }
+    });
+
+    return result;
+  };
+
+  /**
+   * 重新加载环境配置之后，对比新旧环境配置，关闭已经删除的环境
+   * @param {Array} newEnvList - 新的环境配置
+   * @param {Array} oldEnvList - 旧的环境配置
+   * @returns {Array}
+   */
+  static updateAndCleanEnvConfig(newEnvList, oldEnvList) {
+    const newEnvMap = newEnvList.reduce((map, item) => {
+      map[`${item.name}+${item.port}`] = item;
+      return map;
+    }, {}); // 生成端口号到环境配置的映射
+
+    const oldEnvMap = oldEnvList.reduce((map, item) => {
+      map[`${item.name}+${item.port}`] = item;
+      return map;
+    }, {}); // 生成端口号到环境配置的映射
+
+    const devServerMap = ManageServer.devServerList.reduce((map, item) => {
+      // 生成 devServerName 到 devServerList 的映射
+      map[item.name] = item;
+      return map;
+    }, {});
+
+    // 关闭已经删除的环境
+    oldEnvList.forEach((item) => {
+      if (
+        !newEnvMap[`${item.name}+${item.port}`] &&
+        ManageServer.isRunning(item.port, item.name)
+      ) {
+        ManageServer.stopServer(item.port);
+      }
+    });
+
+    // 返回新的环境配置
+    return newEnvList.map((item) => {
+      const newItem = {
+        ...item,
+        ...(oldEnvMap[`${item.name}+${item.port}`] || {}),
+      };
+
+      if (!devServerMap[newItem.devServerName]) {
+        newItem.devServerName = ManageServer.defautlDevserverName;
+      }
+      return newItem;
+    });
   }
 
   static updateDevServerList(newDevServerList) {
-    ManageServer.devServerList = newDevServerList;
+    ManageServer.devServerList =
+      ManageServer.removeDuplicatesByCombinedKey(newDevServerList);
   }
 
   /**
@@ -37,18 +128,30 @@ class ManageServer {
     );
   }
 
+  /**
+   * 判断对应的环境是否运行中
+   * @param {*} port
+   * @param {*} name
+   * @returns
+   */
+  static isRunning(port, name) {
+    return (
+      ManageServer.expressApps[port] &&
+      ManageServer.expressApps[port].x_name === name
+    );
+  }
+
   constructor(preApp, postApp, basePath) {
     this.app = preApp;
     this.postApp = postApp;
 
-    this.servers = {};
     this.router = express.Router();
-    this.init();
+    this.initManageRouter();
     this.postApp.use(basePath, this.router);
   }
 
   startServer(port, name) {
-    if (this.servers[port]) {
+    if (ManageServer.expressApps[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;
     }
@@ -59,35 +162,31 @@ class ManageServer {
 
     server.x_name = name;
 
-    this.servers[port] = server;
+    ManageServer.expressApps[port] = server;
   }
 
-  isRunning(port, name) {
-    return this.servers[port] && this.servers[port].x_name === name;
-  }
-
-  stopServer(port) {
+  static stopServer(port) {
     return new Promise((resolve, reject) => {
-      if (!this.servers[port]) {
+      if (!ManageServer.expressApps[port]) {
         console.log(`端口 ${port} 未启动`);
         reject(`端口 ${port} 未启动`);
         return;
       }
 
       // 关闭所有连接
-      if (this.servers[port].closeAllConnections) {
-        this.servers[port].closeAllConnections();
+      if (ManageServer.expressApps[port].closeAllConnections) {
+        ManageServer.expressApps[port].closeAllConnections();
       }
 
-      this.servers[port].close(() => {
+      ManageServer.expressApps[port].close(() => {
         console.log(`Server on port ${port} 已关闭`);
-        delete this.servers[port];
+        delete ManageServer.expressApps[port];
         resolve();
       });
     });
   }
 
-  init() {
+  initManageRouter() {
     this.router.post("/manage-server", express.json(), async (req, res) => {
       const { action, name, port } = req.body;
 
@@ -104,14 +203,14 @@ class ManageServer {
       const envPort = env.port;
 
       if (action === "start") {
-        if (this.servers[port]) {
-          this.servers[port].x_name = name;
+        if (ManageServer.expressApps[port]) {
+          ManageServer.expressApps[port].x_name = name;
         } else {
           this.startServer(envPort, env.name);
         }
         return res.json({ message: `环境 ${name} 在端口 ${envPort} 已启动` });
       } else if (action === "stop") {
-        return this.stopServer(envPort)
+        return ManageServer.stopServer(envPort)
           .then(() => {
             return res.json({
               message: `环境 ${name} 在端口 ${envPort} 已关闭`,
@@ -134,7 +233,9 @@ class ManageServer {
       ManageServer.envList.forEach((item) => {
         Object.assign(item, {
           index: `${ipAdress}:${item.indexPage}`,
-          status: this.isRunning(item.port, item.name) ? "running" : "stop",
+          status: ManageServer.isRunning(item.port, item.name)
+            ? "running"
+            : "stop",
         });
       });
 
