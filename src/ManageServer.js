@@ -1,4 +1,5 @@
 const express = require("express");
+const Utils = require("./Utils");
 
 class ManageServer {
   static envList = [];
@@ -17,39 +18,17 @@ class ManageServer {
   }
 
   static udpateEnvList(newEnvList, indexPage) {
-    const tempNewList = ManageServer.removeEnvDuplicates(newEnvList).map(
-      (item) => {
-        item.devServerName =
-          item.devServerName || ManageServer.defautlDevserverName;
-        item.indexPage = `${item.port}${item.indexPage || indexPage || ""}`;
-        return item;
-      }
-    );
+    const tempNewList = Utils.removeEnvDuplicates(newEnvList).map((item) => {
+      item.devServerName =
+        item.devServerName || ManageServer.defautlDevserverName;
+      item.indexPage = `${item.port}${item.indexPage || indexPage || ""}`;
+      return item;
+    });
     ManageServer.envList = ManageServer.updateAndCleanEnvConfig(
       tempNewList,
       ManageServer.envList
     );
   }
-
-  /**
-   * 去除具有相同 name 和 port 组合的环境配置重复项
-   * @param {Array} envList - 环境配置列表
-   * @returns {Array} - 去重后的环境配置列表
-   */
-  static removeEnvDuplicates = (envList) => {
-    const uniqueMap = {};
-    const result = [];
-
-    envList.forEach((item) => {
-      const key = `${item.name}-${item.port}`;
-      if (!uniqueMap[key]) {
-        uniqueMap[key] = true;
-        result.push(item);
-      }
-    });
-
-    return result;
-  };
 
   /**
    * 重新加载环境配置之后，对比新旧环境配置，关闭已经删除的环境
@@ -102,8 +81,7 @@ class ManageServer {
   }
 
   static updateDevServerList(newDevServerList) {
-    ManageServer.devServerList =
-      ManageServer.removeEnvDuplicates(newDevServerList);
+    ManageServer.devServerList = Utils.removeEnvDuplicates(newDevServerList);
   }
 
   /**
@@ -174,6 +152,13 @@ class ManageServer {
 
     server.on("connection", (socket) => {
       server.x_sockets.add(socket); // 保存 socket
+
+      socket.setTimeout(300000); // 设置超时时间为 5 分钟
+
+      socket.on("timeout", () => {
+        socket.destroy();
+        server.x_sockets.delete(socket);
+      });
 
       // 监听 socket 关闭事件
       socket.on("close", () => {
@@ -264,7 +249,7 @@ class ManageServer {
       ManageServer.envList.forEach((item) => {
         Object.assign(item, {
           index: `${ipAdress}:${item.indexPage}`,
-          status: ManageServer.getAppStauts(item.port, item.name)
+          status: ManageServer.getAppStauts(item.port, item.name),
         });
       });
 
