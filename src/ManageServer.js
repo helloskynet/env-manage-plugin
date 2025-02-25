@@ -86,9 +86,12 @@ class ManageServer {
 
     // 返回新的环境配置
     return newEnvList.map((item) => {
+      const oldItem = oldEnvMap[`${item.name}+${item.port}`] || {};
+      
       const newItem = {
         ...item,
-        ...(oldEnvMap[`${item.name}+${item.port}`] || {}),
+        status: ManageServer.isRunning(item.port, item.name)  ? 'running' : 'stop',
+        devServerName: oldItem.devServerName || item.devServerName,
       };
 
       if (!devServerMap[newItem.devServerName]) {
