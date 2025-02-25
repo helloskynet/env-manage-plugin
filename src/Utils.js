@@ -19,18 +19,25 @@ class Utils {
     return result;
   };
 
-/**
- * 转化列表为 Map
- * @param {*} list 
- * @param {*} keyGenerator 
- * @returns 
- */
-  static generateMap(list, keyGenerator) {
+  /**
+   * 转化列表为 Map
+   * @param {*} list
+   * @param {*} keys
+   * @returns
+   */
+  static generateMap(list, keys = ["name", "port"]) {
+    const keyGenerator = (item) => {
+      return keys
+        .map((e) => {
+          return `${item[e]}`;
+        })
+        .join("+");
+    };
     return list.reduce((map, item) => {
-        map[keyGenerator(item)] = item;
-        return map;
+      map[keyGenerator(item)] = item;
+      return map;
     }, {});
-}
+  }
 }
 
 module.exports = Utils;

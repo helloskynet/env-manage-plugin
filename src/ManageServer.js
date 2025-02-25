@@ -28,21 +28,13 @@ class ManageServer {
    * @returns {Array}
    */
   static updateAndCleanEnvConfig(newEnvList, oldEnvList) {
-    const newEnvMap = newEnvList.reduce((map, item) => {
-      map[`${item.name}+${item.port}`] = item;
-      return map;
-    }, {}); // 生成端口号到环境配置的映射
+    const newEnvMap = Utils.generateMap(newEnvList); // 生成端口号到环境配置的映射
 
-    const oldEnvMap = oldEnvList.reduce((map, item) => {
-      map[`${item.name}+${item.port}`] = item;
-      return map;
-    }, {}); // 生成端口号到环境配置的映射
+    const oldEnvMap = Utils.generateMap(oldEnvList); // 生成端口号到环境配置的映射
 
-    const devServerMap = ManageServer.devServerList.reduce((map, item) => {
-      // 生成 devServerName 到 devServerList 的映射
-      map[item.name] = item;
-      return map;
-    }, {});
+    const devServerMap = Utils.generateMap(ManageServer.devServerList, [
+      "name",
+    ]);
 
     // 关闭已经删除的环境
     oldEnvList.forEach((item) => {

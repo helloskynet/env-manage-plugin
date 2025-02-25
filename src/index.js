@@ -17,7 +17,7 @@ class EnvManage {
       type: "string",
       description: "config path 配置文件地址",
     }).argv;
-    
+
     return argv;
   }
 
@@ -35,7 +35,6 @@ class EnvManage {
   }
 
   get configPath() {
-
     const configPath = this.options.config || "./env.config.js";
 
     return path.resolve(process.cwd(), configPath);
@@ -66,7 +65,7 @@ class EnvManage {
       }
     } catch (error) {
       console.error(`Failed to load module at ${modulePath}:`, error);
-      this.envConfig = { envList: [] }; // 设置默认值为空数组
+      this.envConfig = {};
     }
 
     const {
@@ -87,7 +86,6 @@ class EnvManage {
   }
 
   async startIndependent() {
-    
     await this.getEnvPluginConfig();
 
     // 后置转发 和 管理路由
