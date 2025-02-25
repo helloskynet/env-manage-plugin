@@ -87,10 +87,10 @@ class ManageServer {
     // 返回新的环境配置
     return newEnvList.map((item) => {
       const oldItem = oldEnvMap[`${item.name}+${item.port}`] || {};
-      
+
       const newItem = {
         ...item,
-        status: ManageServer.isRunning(item.port, item.name)  ? 'running' : 'stop',
+        status: ManageServer.getAppStauts(item.port, item.name),
         devServerName: oldItem.devServerName || item.devServerName,
       };
 
@@ -142,6 +142,10 @@ class ManageServer {
       ManageServer.expressApps[port] &&
       ManageServer.expressApps[port].x_name === name
     );
+  }
+
+  static getAppStauts(port, name) {
+    return ManageServer.isRunning(port, name) ? "running" : "stop";
   }
 
   constructor(preApp, postApp, basePath) {
@@ -204,8 +208,8 @@ class ManageServer {
           // 强制关闭所有活动的连接
           for (const socket of ManageServer.expressApps[port].x_sockets) {
             socket.destroy(); // 强制关闭连接
-            console.log("Connection destroyed");
           }
+          console.log("Connection destroyed");
         }
       });
     });
@@ -260,9 +264,7 @@ class ManageServer {
       ManageServer.envList.forEach((item) => {
         Object.assign(item, {
           index: `${ipAdress}:${item.indexPage}`,
-          status: ManageServer.isRunning(item.port, item.name)
-            ? "running"
-            : "stop",
+          status: ManageServer.getAppStauts(item.port, item.name)
         });
       });
 

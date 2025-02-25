@@ -17,7 +17,6 @@ export default {
       name: 'dev',
       port: 3000,
       target: 'http://localhost:3010',
-      indexPage: '/Test',
       router: (req, env) => {
         return env.target
       },
