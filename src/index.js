@@ -9,6 +9,18 @@ const PreProxyServer = require("./PreProxyServer");
 const PostProxyServer = require("./PostProxyServer");
 
 class EnvManage {
+  static resolveConfigFormArgv() {
+    // 解析命令行参数
+    // 解析命令行参数
+    const argv = yargs(hideBin(process.argv)).option("config", {
+      alias: "c",
+      type: "string",
+      description: "config path 配置文件地址",
+    }).argv;
+    
+    return argv;
+  }
+
   cacheBuster = 0; // 缓存破坏者
 
   constructor(options = {}) {
@@ -22,17 +34,11 @@ class EnvManage {
     });
   }
 
-  getConfigPath() {
-    // 解析命令行参数
-    const argv = yargs(hideBin(process.argv)).option("config", {
-      alias: "c",
-      type: "string",
-      description: "config path 配置文件地址",
-    }).argv;
+  get configPath() {
 
-    const configPath = argv.config || this.options.config || "./env.config.js";
+    const configPath = this.options.config || "./env.config.js";
 
-    this.configPath = path.resolve(process.cwd(), configPath);
+    return path.resolve(process.cwd(), configPath);
   }
 
   async getEnvPluginConfig() {
@@ -81,8 +87,7 @@ class EnvManage {
   }
 
   async startIndependent() {
-    // 读取配置文件
-    this.getConfigPath();
+    
     await this.getEnvPluginConfig();
 
     // 后置转发 和 管理路由

@@ -2,6 +2,10 @@
 
 const EnvManagePlugin = require("../src/index");
 
-const envMangePlugin = new EnvManagePlugin();
+const argvConfig = EnvManagePlugin.resolveConfigFormArgv();
+
+const envMangePlugin = new EnvManagePlugin({
+  config: argvConfig.config,
+});
 
 envMangePlugin.startIndependent();
