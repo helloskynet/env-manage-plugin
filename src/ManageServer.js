@@ -75,7 +75,9 @@ class ManageServer {
       }
 
       // 关闭所有连接
-      this.servers[port].closeAllConnections();
+      if (this.servers[port].closeAllConnections) {
+        this.servers[port].closeAllConnections();
+      }
 
       this.servers[port].close(() => {
         console.log(`Server on port ${port} 已关闭`);
