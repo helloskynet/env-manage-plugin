@@ -162,6 +162,18 @@ class ManageServer {
 
     server.x_name = name;
 
+    // 保存所有活动的 socket 连接
+    server.x_sockets = new Set();
+
+    server.on("connection", (socket) => {
+      server.x_sockets.add(socket); // 保存 socket
+
+      // 监听 socket 关闭事件
+      socket.on("close", () => {
+        server.x_sockets.delete(socket); // 从集合中移除已关闭的 socket
+      });
+    });
+
     ManageServer.expressApps[port] = server;
   }
 
@@ -173,15 +185,25 @@ class ManageServer {
         return;
       }
 
-      // 关闭所有连接
-      if (ManageServer.expressApps[port].closeAllConnections) {
-        ManageServer.expressApps[port].closeAllConnections();
-      }
-
-      ManageServer.expressApps[port].close(() => {
-        console.log(`Server on port ${port} 已关闭`);
+      ManageServer.expressApps[port].close((err) => {
+        console.log(`Server on port ${port} 已关闭`, err || "");
         delete ManageServer.expressApps[port];
         resolve();
+      });
+
+      ManageServer.expressApps[port].getConnections((err, count) => {
+        if (err) {
+          console.error("Error getting connections:", err);
+        } else {
+          console.log(`Active connections: ${count}`);
+        }
+        if (count > 0) {
+          // 强制关闭所有活动的连接
+          for (const socket of ManageServer.expressApps[port].x_sockets) {
+            socket.destroy(); // 强制关闭连接
+            console.log("Connection destroyed");
+          }
+        }
       });
     });
   }
