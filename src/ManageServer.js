@@ -4,18 +4,9 @@ const Utils = require("./Utils");
 class ManageServer {
   static envList = [];
   static devServerList = [];
-  static expressApps = {};
+  static appMap = {}; // 保存所有的 app 实例
 
-  /**
-   * 获取默认的 devServerName
-   * @returns
-   */
-  static get defautlDevserverName() {
-    if (ManageServer.devServerList[0]) {
-      return ManageServer.devServerList[0].name;
-    }
-    return "";
-  }
+  static defautlDevserverName = "";
 
   static udpateEnvList(newEnvList, indexPage) {
     const tempNewList = Utils.removeEnvDuplicates(newEnvList).map((item) => {
@@ -82,6 +73,8 @@ class ManageServer {
 
   static updateDevServerList(newDevServerList) {
     ManageServer.devServerList = Utils.removeEnvDuplicates(newDevServerList);
+    ManageServer.defautlDevserverName =
+      ManageServer.devServerList[0]?.name || "";
   }
 
   /**
@@ -117,8 +110,7 @@ class ManageServer {
    */
   static isRunning(port, name) {
     return (
-      ManageServer.expressApps[port] &&
-      ManageServer.expressApps[port].x_name === name
+      ManageServer.appMap[port] && ManageServer.appMap[port].x_name === name
     );
   }
 
@@ -136,7 +128,7 @@ class ManageServer {
   }
 
   startServer(port, name) {
-    if (ManageServer.expressApps[port]) {
+    if (ManageServer.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;
     }
@@ -166,24 +158,24 @@ class ManageServer {
       });
     });
 
-    ManageServer.expressApps[port] = server;
+    ManageServer.appMap[port] = server;
   }
 
   static stopServer(port) {
     return new Promise((resolve, reject) => {
-      if (!ManageServer.expressApps[port]) {
+      if (!ManageServer.appMap[port]) {
         console.log(`端口 ${port} 未启动`);
         reject(`端口 【${port}】 未启动`);
         return;
       }
 
-      ManageServer.expressApps[port].close((err) => {
+      ManageServer.appMap[port].close((err) => {
         console.log(`Server on port ${port} 已关闭`, err || "");
-        delete ManageServer.expressApps[port];
+        delete ManageServer.appMap[port];
         resolve();
       });
 
-      ManageServer.expressApps[port].getConnections((err, count) => {
+      ManageServer.appMap[port].getConnections((err, count) => {
         if (err) {
           console.error("Error getting connections:", err);
         } else {
@@ -191,7 +183,7 @@ class ManageServer {
         }
         if (count > 0) {
           // 强制关闭所有活动的连接
-          for (const socket of ManageServer.expressApps[port].x_sockets) {
+          for (const socket of ManageServer.appMap[port].x_sockets) {
             socket.destroy(); // 强制关闭连接
           }
           console.log("Connection destroyed");
@@ -217,8 +209,8 @@ class ManageServer {
       const envPort = env.port;
 
       if (action === "start") {
-        if (ManageServer.expressApps[port]) {
-          ManageServer.expressApps[port].x_name = name;
+        if (ManageServer.appMap[port]) {
+          ManageServer.appMap[port].x_name = name;
         } else {
           this.startServer(envPort, env.name);
         }

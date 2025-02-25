@@ -18,6 +18,19 @@ class Utils {
 
     return result;
   };
+
+/**
+ * 转化列表为 Map
+ * @param {*} list 
+ * @param {*} keyGenerator 
+ * @returns 
+ */
+  static generateMap(list, keyGenerator) {
+    return list.reduce((map, item) => {
+        map[keyGenerator(item)] = item;
+        return map;
+    }, {});
+}
 }
 
 module.exports = Utils;
