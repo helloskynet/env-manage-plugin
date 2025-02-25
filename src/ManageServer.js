@@ -17,14 +17,14 @@ class ManageServer {
   }
 
   static udpateEnvList(newEnvList, indexPage) {
-    const tempNewList = ManageServer.removeDuplicatesByCombinedKey(
-      newEnvList
-    ).map((item) => {
-      item.devServerName =
-        item.devServerName || ManageServer.defautlDevserverName;
-      item.indexPage = `${item.port}${item.indexPage || indexPage || ""}`;
-      return item;
-    });
+    const tempNewList = ManageServer.removeEnvDuplicates(newEnvList).map(
+      (item) => {
+        item.devServerName =
+          item.devServerName || ManageServer.defautlDevserverName;
+        item.indexPage = `${item.port}${item.indexPage || indexPage || ""}`;
+        return item;
+      }
+    );
     ManageServer.envList = ManageServer.updateAndCleanEnvConfig(
       tempNewList,
       ManageServer.envList
@@ -32,11 +32,11 @@ class ManageServer {
   }
 
   /**
-   * 去除重复的环境配置
-   * @param {*} envList
-   * @returns
+   * 去除具有相同 name 和 port 组合的环境配置重复项
+   * @param {Array} envList - 环境配置列表
+   * @returns {Array} - 去重后的环境配置列表
    */
-  static removeDuplicatesByCombinedKey = (envList) => {
+  static removeEnvDuplicates = (envList) => {
     const uniqueMap = {};
     const result = [];
 
@@ -100,7 +100,7 @@ class ManageServer {
 
   static updateDevServerList(newDevServerList) {
     ManageServer.devServerList =
-      ManageServer.removeDuplicatesByCombinedKey(newDevServerList);
+      ManageServer.removeEnvDuplicates(newDevServerList);
   }
 
   /**
@@ -181,7 +181,7 @@ class ManageServer {
     return new Promise((resolve, reject) => {
       if (!ManageServer.expressApps[port]) {
         console.log(`端口 ${port} 未启动`);
-        reject(`端口 ${port} 未启动`);
+        reject(`端口 【${port}】 未启动`);
         return;
       }
 
@@ -230,12 +230,14 @@ class ManageServer {
         } else {
           this.startServer(envPort, env.name);
         }
-        return res.json({ message: `环境 ${name} 在端口 ${envPort} 已启动` });
+        return res.json({
+          message: `环境 【${name}】 在端口 【${envPort}】 已启动`,
+        });
       } else if (action === "stop") {
         return ManageServer.stopServer(envPort)
           .then(() => {
             return res.json({
-              message: `环境 ${name} 在端口 ${envPort} 已关闭`,
+              message: `环境 【${name}】 在端口 【${envPort}】 已关闭`,
             });
           })
           .catch((err) => {
@@ -283,11 +285,11 @@ class ManageServer {
         if (!devServerName || !name || !port) {
           return res
             .status(400)
-            .json({ error: "缺少 action 或 name 或者 port 参数" });
+            .json({ error: "缺少 devServerName 或 name 或者 port 参数" });
         }
 
         ManageServer.envList.some((item) => {
-          if (item.name === name && item.port == port) {
+          if (item.name === name && `${item.port}` === `${port}`) {
             item.devServerName = devServerName;
             return true;
           }
@@ -302,7 +304,7 @@ class ManageServer {
         }
 
         return res.json({
-          message: `环境 ${name} 在端口 ${port} 已经切换到 ${selectedDevServer.name}`,
+          message: `环境 【${name}】 在端口 【${port}】 已经切换到 【${selectedDevServer.name}】`,
         });
       }
     );
