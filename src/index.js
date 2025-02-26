@@ -1,5 +1,5 @@
 const path = require("path");
-const fs = require("fs-extra");
+const fs = require("fs");
 const { pathToFileURL } = require("url");
 const chokidar = require("chokidar");
 const ManageServer = require("./ManageServer");
@@ -128,7 +128,7 @@ class EnvManage {
       }
 
       // 拷贝模板文件到目标路径
-      fs.copySync(TEMPLATE_PATH, TARGET_PATH);
+      fs.copyFileSync(TEMPLATE_PATH, TARGET_PATH);
       console.log(
         `${CONFIG_FILE_NAME} ${isTargetExist ? "overwritten" : "created"} successfully!`
       );
