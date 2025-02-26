@@ -112,7 +112,7 @@ class EnvManage {
     // 模板文件路径
     const TEMPLATE_PATH = path.join(
       __dirname,
-      `../template/${CONFIG_FILE_NAME}`
+      `../templates/${CONFIG_FILE_NAME}`
     );
     // 目标文件路径
     const TARGET_PATH = path.join(process.cwd(), CONFIG_FILE_NAME);
