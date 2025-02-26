@@ -31,6 +31,7 @@
             v-for="(item) in devServerList"
             :key="item.name"
             :value="`${item.name}`"
+            :title="item.target"
             border
             size="small"
             >{{ item.name }}</el-radio
