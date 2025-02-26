@@ -1,48 +1,13 @@
 const path = require("path");
 const fs = require("fs-extra");
 const { pathToFileURL } = require("url");
-const yargs = require("yargs/yargs");
 const chokidar = require("chokidar");
-const { hideBin } = require("yargs/helpers");
 const ManageServer = require("./ManageServer");
 const PreProxyServer = require("./PreProxyServer");
 const PostProxyServer = require("./PostProxyServer");
 const Utils = require("./Utils");
 
 class EnvManage {
-  static resolveConfigFormArgv() {
-    // 解析命令行参数
-    const argv = yargs(hideBin(process.argv))
-      .scriptName("envm")
-      .command(
-        "init",
-        "Init config file 初始化配置文件",
-        (yargs) => {
-          return yargs.option("force", {
-            alias: "f",
-            describe: "force init config file 强制初始化配置文件",
-            type: "boolean",
-            default: false,
-          });
-        },
-        (argv) => {
-          EnvManage.initConfig(argv.force);
-        }
-      )
-      .option("config", {
-        alias: "c",
-        type: "string",
-        description: "Config path 配置文件地址",
-      })
-      .strict()
-      .alias("v", "version") // 设置版本命令别名
-      .alias("h", "help")
-      .help(true)
-      .parse(); // 设置帮助命令别名
-
-    return argv;
-  }
-
   cacheBuster = 0; // 缓存破坏者
 
   constructor(options = {}) {
