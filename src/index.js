@@ -1,5 +1,5 @@
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs-extra");
 const { pathToFileURL } = require("url");
 const yargs = require("yargs/yargs");
 const chokidar = require("chokidar");
@@ -7,16 +7,38 @@ const { hideBin } = require("yargs/helpers");
 const ManageServer = require("./ManageServer");
 const PreProxyServer = require("./PreProxyServer");
 const PostProxyServer = require("./PostProxyServer");
+const Utils = require("./Utils");
 
 class EnvManage {
   static resolveConfigFormArgv() {
     // 解析命令行参数
-    // 解析命令行参数
-    const argv = yargs(hideBin(process.argv)).option("config", {
-      alias: "c",
-      type: "string",
-      description: "config path 配置文件地址",
-    }).argv;
+    const argv = yargs(hideBin(process.argv))
+      .scriptName("envm")
+      .command(
+        "init",
+        "Init config file 初始化配置文件",
+        (yargs) => {
+          return yargs.option("force", {
+            alias: "f",
+            describe: "force init config file 强制初始化配置文件",
+            type: "boolean",
+            default: false,
+          });
+        },
+        (argv) => {
+          EnvManage.initConfig(argv.force);
+        }
+      )
+      .option("config", {
+        alias: "c",
+        type: "string",
+        description: "Config path 配置文件地址",
+      })
+      .strict()
+      .alias("v", "version") // 设置版本命令别名
+      .alias("h", "help")
+      .help(true)
+      .parse(); // 设置帮助命令别名
 
     return argv;
   }
@@ -50,7 +72,7 @@ class EnvManage {
       // 判断文件类型
       if (
         modulePath.endsWith(".mjs") ||
-        (modulePath.endsWith(".js") && this.isESModule(modulePath))
+        (modulePath.endsWith(".js") && Utils.isESModule(modulePath))
       ) {
         // 动态加载 ES Module
 
@@ -65,7 +87,7 @@ class EnvManage {
       }
     } catch (error) {
       console.error(`Failed to load module at ${modulePath}:`, error);
-      this.envConfig = {};
+      process.exit(1);
     }
 
     const {
@@ -82,7 +104,7 @@ class EnvManage {
     ManageServer.updateDevServerList(devServerList);
 
     ManageServer.udpateEnvList(envList, indexPage);
-    console.log("config loaded");
+    console.log("Config file loaded");
   }
 
   async startIndependent() {
@@ -115,30 +137,38 @@ class EnvManage {
   }
 
   /**
-   * 判断文件是否是 ES Module
-   * @param {string} filePath - 文件路径
-   * @returns {boolean}
+   * 初始化配置文件
+   * @param {boolean} force - 是否强制覆盖
    */
-  isESModule(filePath) {
-    try {
-      // 检查文件扩展名
-      if (filePath.endsWith(".mjs")) return true;
-      if (filePath.endsWith(".cjs")) return false;
+  static initConfig(force = false) {
+    const FILE_EXT = Utils.isESModuleByPackageJson() ? ".mjs" : ".js";
 
-      // 检查 package.json 的 type 字段
-      const dir = path.dirname(filePath);
-      const packageJsonPath = path.join(dir, "package.json");
-      if (fs.existsSync(packageJsonPath)) {
-        const packageJson = require(packageJsonPath);
-        return packageJson.type === "module";
+    const CONFIG_FILE_NAME = `env.config${FILE_EXT}`;
+    // 模板文件路径
+    const TEMPLATE_PATH = path.join(
+      __dirname,
+      `../template/${CONFIG_FILE_NAME}`
+    );
+    // 目标文件路径
+    const TARGET_PATH = path.join(process.cwd(), CONFIG_FILE_NAME);
+    try {
+      // 检查目标文件是否存在
+      const isTargetExist = fs.existsSync(TARGET_PATH);
+
+      if (isTargetExist && !force) {
+        console.log(
+          `${CONFIG_FILE_NAME} already exists. Use --force to overwrite.`
+        );
+        return;
       }
 
-      // 检查文件内容
-      const content = fs.readFileSync(filePath, "utf8");
-      return content.includes("export default") || content.includes("export ");
-    } catch (error) {
-      console.error(`Failed to check module type at ${filePath}:`, error);
-      return false;
+      // 拷贝模板文件到目标路径
+      fs.copySync(TEMPLATE_PATH, TARGET_PATH);
+      console.log(
+        `${CONFIG_FILE_NAME} ${isTargetExist ? "overwritten" : "created"} successfully!`
+      );
+    } catch (err) {
+      console.error("Failed to initialize env.config.js:", err);
     }
   }
 }
