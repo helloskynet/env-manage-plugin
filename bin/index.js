@@ -2,8 +2,12 @@
 
 const { program } = require("commander");
 const EnvManagePlugin = require("../src/index");
+const packageJson = require("../package.json");
 
-program.name("envm").option("-c, --config <string> Config path 配置文件地址");
+program
+  .name("envm")
+  .option("-c, --config <string> Config path 配置文件地址")
+  .version(packageJson.version);
 
 // 添加默认命令
 program
