@@ -175,7 +175,7 @@ npx envm --config ./path/to/env.config.js
 - `express`: Web 框架，用于创建和管理服务器。
 - `http-proxy-middleware`: 用于创建代理中间件，转发请求到目标服务器。
 - `chokidar`: 用于监听配置文件的变化，实现热更新。
-- `yargs`: 用于解析命令行参数。
+- `commander`: 用于解析命令行参数。
 
 ## 许可证
 
