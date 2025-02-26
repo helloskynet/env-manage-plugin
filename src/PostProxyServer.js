@@ -43,11 +43,11 @@ class PostProxyServer {
 
           const env = ManageServer.findRunningEnv(port);
 
-          if (env && env.router) {
+          if (env?.router) {
             return env.router(req, env);
           }
 
-          if (env && env.target) {
+          if (env?.target) {
             return env.target;
           }
         }

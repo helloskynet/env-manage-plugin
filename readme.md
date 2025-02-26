@@ -38,13 +38,13 @@ graph LR
 ### 安装
 
 ```bash
-npm i -D envmange
+npm i -D env-manage-plugin
 ```
 
 或者全局安装
 
 ```bash
-npm i -g envmange
+npm i -g env-manage-plugin
 ```
 
 ### 配置
@@ -155,13 +155,13 @@ export default defineConfig({
 运行以下命令启动管理服务器：
 
 ```bash
-npx envmange
+npx envm
 ```
 
 或者通过命令行参数指定配置文件路径：
 
 ```bash
-npx envmanage --config ./path/to/env.config.js
+npx envm --config ./path/to/env.config.js
 ```
 
 访问管理页面 [http://localhost:3099/](http://localhost:3099/) 对各个代理服务进行管理。
