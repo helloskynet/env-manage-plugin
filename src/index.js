@@ -76,7 +76,7 @@ class EnvManage {
     await this.getEnvPluginConfig();
 
     // 后置转发 和 管理路由
-    this.postProxyServer = new PostProxyServer(this.envConfig.port);
+    this.postProxyServer = new PostProxyServer(this.envConfig);
 
     // 使用前置转发  所有请求都会先转发到 dev-server
     this.preProxyServer = new PreProxyServer();
