@@ -1,11 +1,10 @@
-const path = require("path");
 const fs = require("fs");
-const { pathToFileURL } = require("url");
+const path = require("path");
 const chokidar = require("chokidar");
-const ManageServer = require("./ManageServer");
-const PreProxyServer = require("./PreProxyServer");
-const PostProxyServer = require("./PostProxyServer");
+const { pathToFileURL } = require("url");
+
 const Utils = require("./Utils");
+const ManageServer = require("./ManageServer");
 
 class EnvManage {
   cacheBuster = 0; // 缓存破坏者
@@ -75,17 +74,7 @@ class EnvManage {
   async startIndependent() {
     await this.getEnvPluginConfig();
 
-    // 后置转发 和 管理路由
-    this.postProxyServer = new PostProxyServer(this.envConfig);
-
-    // 使用前置转发  所有请求都会先转发到 dev-server
-    this.preProxyServer = new PreProxyServer();
-
-    this.manageServer = new ManageServer(
-      this.preProxyServer.getApp,
-      this.postProxyServer.getApp,
-      this.envConfig.basePath
-    );
+    this.manageServer = new ManageServer(this.envConfig);
 
     this.watchConfig();
   }

@@ -1,6 +1,15 @@
+const path = require("path");
 const express = require("express");
+const expressStaticGzip = require("express-static-gzip");
+const { createProxyMiddleware } = require("http-proxy-middleware");
+
 const Utils = require("./Utils");
 
+const PreProxyServer = require("./PreProxyServer");
+
+/**
+ * 后置代理服务器---同时也是管理页面的服务器
+ */
 class ManageServer {
   static envList = [];
   static devServerList = [];
@@ -110,22 +119,96 @@ class ManageServer {
     return ManageServer.isRunning(port, name) ? "running" : "stop";
   }
 
-  constructor(preApp, postApp, basePath) {
-    this.app = preApp;
-    this.postApp = postApp;
+  constructor(envConfig) {
+    // 使用前置转发  所有请求都会先转发到 dev-server
+    this.preApp = new PreProxyServer().app;
+
+    this.envConfig = envConfig;
+
+    // 后置转发 和 管理路由
+    this.postApp = this.initPostServer();
 
     this.router = express.Router();
     this.initManageRouter();
-    this.postApp.use(basePath, this.router);
+    this.postApp.use(this.envConfig.basePath, this.router);
+
+    // 启动服务
+    this.startServer();
   }
 
-  startServer(port, name) {
+  initPostServer() {
+    const postApp = express();
+
+    // 挂载管理页面的静态路由
+    postApp.use(
+      this.envConfig.basePath,
+      expressStaticGzip(path.join(__dirname, "client"))
+    );
+
+    // 挂载代理中间件
+    postApp.use(this.createPostProxyMiddleware());
+
+    // 错误处理
+    postApp.use((err, req, res, next) => {
+      if (err.message === "SKIP_PROXY") {
+        // 跳过代理并继续执行下一个中间件
+        return next();
+      }
+
+      // 其他错误处理
+      res.status(500).send("代理服务器出错");
+    });
+
+    return postApp;
+  }
+  /**
+   * 启动服务
+   */
+  startServer() {
+    this.postApp.listen(this.envConfig.port, () => {
+      console.log(
+        `Post Proxy Middleware is running on http://localhost:${this.envConfig.port}`
+      );
+    });
+  }
+
+  /**
+   * 创建后置代理中间件
+   * @returns {import("http-proxy-middleware").RequestHandler}
+   */
+  createPostProxyMiddleware() {
+    // 后置转发：将接收到请求转发到对应的 API 服务器
+
+    return createProxyMiddleware({
+      changeOrigin: true,
+      ws: true,
+      router: (req) => {
+        if (req.headers["x-api-server"]) {
+          const port = req.headers["x-api-server"];
+
+          const env = ManageServer.findRunningEnv(port);
+
+          if (env?.router) {
+            return env.router(req, env);
+          }
+
+          if (env?.target) {
+            return env.target;
+          }
+        }
+        // 抛出自定义错误
+        throw new Error("SKIP_PROXY");
+      },
+    });
+  }
+
+  startServer2(port, name) {
     if (ManageServer.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;
     }
 
-    const server = this.app.listen(port, () => {
+    const server = this.preApp.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
     });
 
@@ -204,7 +287,7 @@ class ManageServer {
         if (ManageServer.appMap[port]) {
           ManageServer.appMap[port].x_name = name;
         } else {
-          this.startServer(envPort, env.name);
+          this.startServer2(envPort, env.name);
         }
         return res.json({
           message: `环境 【${name}】 在端口 【${envPort}】 已启动`,
