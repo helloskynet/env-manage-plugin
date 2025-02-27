@@ -12,6 +12,10 @@ class EnvManage {
 
   constructor(options = {}) {
     this.options = options;
+
+    const configPath = this.options?.config || "./env.config.js";
+    this.configPath = path.resolve(process.cwd(), configPath);
+
     this.manageServer = {};
   }
 
@@ -19,12 +23,6 @@ class EnvManage {
     compiler.hooks.afterPlugins.tap("EnvManagePlugin", (compilation) => {
       this.startIndependent();
     });
-  }
-
-  get configPath() {
-    const configPath = this.options.config || "./env.config.js";
-
-    return path.resolve(process.cwd(), configPath);
   }
 
   async getEnvPluginConfig() {
