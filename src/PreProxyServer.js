@@ -1,4 +1,4 @@
-const ManageServer = require("./ManageServer");
+const PostProxyServer = require("./PostProxyServer");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const express = require("express");
 
@@ -14,9 +14,9 @@ class PreProxyServer {
       changeOrigin: true,
       ws: true,
       router: (req) => {
-        const env = ManageServer.findRunningEnv(req.socket.localPort);
+        const env = PostProxyServer.findRunningEnv(req.socket.localPort);
 
-        const target = ManageServer.findSelectedDevServer(env.devServerName);
+        const target = PostProxyServer.findSelectedDevServer(env.devServerName);
 
         // 默认转发到 Webpack 开发服务器
         return target.target;

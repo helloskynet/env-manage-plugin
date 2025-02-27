@@ -4,7 +4,8 @@ const chokidar = require("chokidar");
 const { pathToFileURL } = require("url");
 
 const Utils = require("./Utils");
-const ManageServer = require("./ManageServer");
+const PreProxyServer = require("./PreProxyServer");
+const PostProxyServer = require("./PostProxyServer");
 
 class EnvManage {
   cacheBuster = 0; // 缓存破坏者
@@ -65,16 +66,21 @@ class EnvManage {
     this.envConfig.port = port;
     this.envConfig.basePath = basePath;
 
-    ManageServer.updateDevServerList(devServerList);
+    PostProxyServer.updateDevServerList(devServerList);
 
-    ManageServer.udpateEnvList(envList, indexPage);
+    PostProxyServer.udpateEnvList(envList, indexPage);
     console.log("Config file loaded");
   }
 
   async startIndependent() {
     await this.getEnvPluginConfig();
 
-    this.manageServer = new ManageServer(this.envConfig);
+    this.preProxyServer = new PreProxyServer(this.envConfig);
+
+    this.manageServer = new PostProxyServer(
+      this.envConfig,
+      this.preProxyServer
+    );
 
     this.watchConfig();
   }

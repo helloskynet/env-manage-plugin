@@ -10,7 +10,7 @@ const PreProxyServer = require("./PreProxyServer");
 /**
  * 后置代理服务器---同时也是管理页面的服务器
  */
-class ManageServer {
+class PostProxyServer {
   static envList = [];
   static devServerList = [];
   static appMap = {}; // 保存所有的 app 实例
@@ -20,13 +20,13 @@ class ManageServer {
   static udpateEnvList(newEnvList, indexPage) {
     const tempNewList = Utils.removeEnvDuplicates(newEnvList).map((item) => {
       item.devServerName =
-        item.devServerName || ManageServer.defautlDevserverName;
+        item.devServerName || PostProxyServer.defautlDevserverName;
       item.indexPage = `${item.port}${item.indexPage || indexPage || ""}`;
       return item;
     });
-    ManageServer.envList = ManageServer.updateAndCleanEnvConfig(
+    PostProxyServer.envList = PostProxyServer.updateAndCleanEnvConfig(
       tempNewList,
-      ManageServer.envList
+      PostProxyServer.envList
     );
   }
 
@@ -41,7 +41,7 @@ class ManageServer {
 
     const oldEnvMap = Utils.generateMap(oldEnvList); // 生成端口号到环境配置的映射
 
-    const devServerMap = Utils.generateMap(ManageServer.devServerList, [
+    const devServerMap = Utils.generateMap(PostProxyServer.devServerList, [
       "name",
     ]);
 
@@ -49,9 +49,9 @@ class ManageServer {
     oldEnvList.forEach((item) => {
       if (
         !newEnvMap[`${item.name}+${item.port}`] &&
-        ManageServer.isRunning(item.port, item.name)
+        PostProxyServer.isRunning(item.port, item.name)
       ) {
-        ManageServer.stopServer(item.port);
+        PostProxyServer.stopServer(item.port);
       }
     });
 
@@ -61,21 +61,21 @@ class ManageServer {
 
       const newItem = {
         ...item,
-        status: ManageServer.getAppStauts(item.port, item.name),
+        status: PostProxyServer.getAppStauts(item.port, item.name),
         devServerName: oldItem.devServerName || item.devServerName,
       };
 
       if (!devServerMap[newItem.devServerName]) {
-        newItem.devServerName = ManageServer.defautlDevserverName;
+        newItem.devServerName = PostProxyServer.defautlDevserverName;
       }
       return newItem;
     });
   }
 
   static updateDevServerList(newDevServerList) {
-    ManageServer.devServerList = Utils.removeEnvDuplicates(newDevServerList);
-    ManageServer.defautlDevserverName =
-      ManageServer.devServerList[0]?.name || "";
+    PostProxyServer.devServerList = Utils.removeEnvDuplicates(newDevServerList);
+    PostProxyServer.defautlDevserverName =
+      PostProxyServer.devServerList[0]?.name || "";
   }
 
   /**
@@ -85,8 +85,9 @@ class ManageServer {
    */
   static findSelectedDevServer(devServerName) {
     return (
-      ManageServer.devServerList.find((item) => item.name === devServerName) ||
-      {}
+      PostProxyServer.devServerList.find(
+        (item) => item.name === devServerName
+      ) || {}
     );
   }
 
@@ -97,7 +98,7 @@ class ManageServer {
    */
   static findRunningEnv(port) {
     return (
-      ManageServer.envList.find(
+      PostProxyServer.envList.find(
         (item) => `${item.port}` === `${port}` && item.status === "running"
       ) || {}
     );
@@ -111,17 +112,19 @@ class ManageServer {
    */
   static isRunning(port, name) {
     return (
-      ManageServer.appMap[port] && ManageServer.appMap[port].x_name === name
+      PostProxyServer.appMap[port] &&
+      PostProxyServer.appMap[port].x_name === name
     );
   }
 
   static getAppStauts(port, name) {
-    return ManageServer.isRunning(port, name) ? "running" : "stop";
+    return PostProxyServer.isRunning(port, name) ? "running" : "stop";
   }
 
-  constructor(envConfig) {
+  constructor(envConfig, preProxyServer) {
     // 使用前置转发  所有请求都会先转发到 dev-server
-    this.preApp = new PreProxyServer().app;
+    this.preProxyServer = preProxyServer;
+    this.preApp = preProxyServer.app;
 
     this.envConfig = envConfig;
 
@@ -186,7 +189,7 @@ class ManageServer {
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"];
 
-          const env = ManageServer.findRunningEnv(port);
+          const env = PostProxyServer.findRunningEnv(port);
 
           if (env?.router) {
             return env.router(req, env);
@@ -203,7 +206,7 @@ class ManageServer {
   }
 
   startServer2(port, name) {
-    if (ManageServer.appMap[port]) {
+    if (PostProxyServer.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;
     }
@@ -233,24 +236,24 @@ class ManageServer {
       });
     });
 
-    ManageServer.appMap[port] = server;
+    PostProxyServer.appMap[port] = server;
   }
 
   static stopServer(port) {
     return new Promise((resolve, reject) => {
-      if (!ManageServer.appMap[port]) {
+      if (!PostProxyServer.appMap[port]) {
         console.log(`端口 ${port} 未启动`);
         reject(`端口 【${port}】 未启动`);
         return;
       }
 
-      ManageServer.appMap[port].close((err) => {
+      PostProxyServer.appMap[port].close((err) => {
         console.log(`Server on port ${port} 已关闭`, err || "");
-        delete ManageServer.appMap[port];
+        delete PostProxyServer.appMap[port];
         resolve();
       });
 
-      ManageServer.appMap[port].getConnections((err, count) => {
+      PostProxyServer.appMap[port].getConnections((err, count) => {
         if (err) {
           console.error("Error getting connections:", err);
         } else {
@@ -258,7 +261,7 @@ class ManageServer {
         }
         if (count > 0) {
           // 强制关闭所有活动的连接
-          for (const socket of ManageServer.appMap[port].x_sockets) {
+          for (const socket of PostProxyServer.appMap[port].x_sockets) {
             socket.destroy(); // 强制关闭连接
           }
           console.log("Connection destroyed");
@@ -275,7 +278,7 @@ class ManageServer {
         return res.status(400).json({ error: "缺少 action 或 name 参数" });
       }
 
-      const env = ManageServer.envList.find(
+      const env = PostProxyServer.envList.find(
         (item) => item.name === name && item.port == port
       );
       if (!env) {
@@ -284,8 +287,8 @@ class ManageServer {
       const envPort = env.port;
 
       if (action === "start") {
-        if (ManageServer.appMap[port]) {
-          ManageServer.appMap[port].x_name = name;
+        if (PostProxyServer.appMap[port]) {
+          PostProxyServer.appMap[port].x_name = name;
         } else {
           this.startServer2(envPort, env.name);
         }
@@ -293,7 +296,7 @@ class ManageServer {
           message: `环境 【${name}】 在端口 【${envPort}】 已启动`,
         });
       } else if (action === "stop") {
-        return ManageServer.stopServer(envPort)
+        return PostProxyServer.stopServer(envPort)
           .then(() => {
             return res.json({
               message: `环境 【${name}】 在端口 【${envPort}】 已关闭`,
@@ -313,18 +316,18 @@ class ManageServer {
 
       const ipAdress = `${protocol}://${hostname}`;
 
-      ManageServer.envList.forEach((item) => {
+      PostProxyServer.envList.forEach((item) => {
         Object.assign(item, {
           index: `${ipAdress}:${item.indexPage}`,
-          status: ManageServer.getAppStauts(item.port, item.name),
+          status: PostProxyServer.getAppStauts(item.port, item.name),
         });
       });
 
-      return res.json({ list: ManageServer.envList });
+      return res.json({ list: PostProxyServer.envList });
     });
 
     this.router.get("/get-dev-server-list", (req, res) => {
-      const enableList = ManageServer.devServerList.map((item) => {
+      const enableList = PostProxyServer.devServerList.map((item) => {
         return {
           name: item.name,
           target: item.target,
@@ -345,7 +348,7 @@ class ManageServer {
             .json({ error: "缺少 devServerName 或 name 或者 port 参数" });
         }
 
-        ManageServer.envList.some((item) => {
+        PostProxyServer.envList.some((item) => {
           if (item.name === name && `${item.port}` === `${port}`) {
             item.devServerName = devServerName;
             return true;
@@ -354,7 +357,7 @@ class ManageServer {
         });
 
         const selectedDevServer =
-          ManageServer.findSelectedDevServer(devServerName);
+          PostProxyServer.findSelectedDevServer(devServerName);
 
         if (!selectedDevServer) {
           return res.status(400).json({ error: "devServer 不存在，请刷新" });
@@ -368,4 +371,4 @@ class ManageServer {
   }
 }
 
-module.exports = ManageServer;
+module.exports = PostProxyServer;
