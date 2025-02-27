@@ -17,14 +17,14 @@ class PostProxyServer {
 
   static defautlDevserverName = "";
 
-  static udpateEnvList(newEnvList, indexPage) {
+  udpateEnvList(newEnvList, indexPage) {
     const tempNewList = Utils.removeEnvDuplicates(newEnvList).map((item) => {
       item.devServerName =
         item.devServerName || PostProxyServer.defautlDevserverName;
       item.indexPage = `${item.port}${item.indexPage || indexPage || ""}`;
       return item;
     });
-    PostProxyServer.envList = PostProxyServer.updateAndCleanEnvConfig(
+    PostProxyServer.envList = this.updateAndCleanEnvConfig(
       tempNewList,
       PostProxyServer.envList
     );
@@ -36,7 +36,7 @@ class PostProxyServer {
    * @param {Array} oldEnvList - 旧的环境配置
    * @returns {Array}
    */
-  static updateAndCleanEnvConfig(newEnvList, oldEnvList) {
+  updateAndCleanEnvConfig(newEnvList, oldEnvList) {
     const newEnvMap = Utils.generateMap(newEnvList); // 生成端口号到环境配置的映射
 
     const oldEnvMap = Utils.generateMap(oldEnvList); // 生成端口号到环境配置的映射
@@ -49,9 +49,9 @@ class PostProxyServer {
     oldEnvList.forEach((item) => {
       if (
         !newEnvMap[`${item.name}+${item.port}`] &&
-        PostProxyServer.isRunning(item.port, item.name)
+        this.isRunning(item.port, item.name)
       ) {
-        PostProxyServer.stopServer(item.port);
+        this.preProxyServer.stopServer(item.port);
       }
     });
 
@@ -61,7 +61,7 @@ class PostProxyServer {
 
       const newItem = {
         ...item,
-        status: PostProxyServer.getAppStauts(item.port, item.name),
+        status: this.getAppStauts(item.port, item.name),
         devServerName: oldItem.devServerName || item.devServerName,
       };
 
@@ -72,7 +72,7 @@ class PostProxyServer {
     });
   }
 
-  static updateDevServerList(newDevServerList) {
+  updateDevServerList(newDevServerList) {
     PostProxyServer.devServerList = Utils.removeEnvDuplicates(newDevServerList);
     PostProxyServer.defautlDevserverName =
       PostProxyServer.devServerList[0]?.name || "";
@@ -110,15 +110,15 @@ class PostProxyServer {
    * @param {*} name
    * @returns
    */
-  static isRunning(port, name) {
+  isRunning(port, name) {
     return (
-      PostProxyServer.appMap[port] &&
-      PostProxyServer.appMap[port].x_name === name
+      this.preProxyServer.appMap[port] &&
+      this.preProxyServer.appMap[port].x_name === name
     );
   }
 
-  static getAppStauts(port, name) {
-    return PostProxyServer.isRunning(port, name) ? "running" : "stop";
+  getAppStauts(port, name) {
+    return this.isRunning(port, name) ? "running" : "stop";
   }
 
   constructor(envConfig, preProxyServer) {
@@ -205,71 +205,6 @@ class PostProxyServer {
     });
   }
 
-  startServer2(port, name) {
-    if (PostProxyServer.appMap[port]) {
-      console.log(`端口 ${port} 已经启动`);
-      return;
-    }
-
-    const server = this.preApp.listen(port, () => {
-      console.log(`Server is running on http://localhost:${port}`);
-    });
-
-    server.x_name = name;
-
-    // 保存所有活动的 socket 连接
-    server.x_sockets = new Set();
-
-    server.on("connection", (socket) => {
-      server.x_sockets.add(socket); // 保存 socket
-
-      socket.setTimeout(300000); // 设置超时时间为 5 分钟
-
-      socket.on("timeout", () => {
-        socket.destroy();
-        server.x_sockets.delete(socket);
-      });
-
-      // 监听 socket 关闭事件
-      socket.on("close", () => {
-        server.x_sockets.delete(socket); // 从集合中移除已关闭的 socket
-      });
-    });
-
-    PostProxyServer.appMap[port] = server;
-  }
-
-  static stopServer(port) {
-    return new Promise((resolve, reject) => {
-      if (!PostProxyServer.appMap[port]) {
-        console.log(`端口 ${port} 未启动`);
-        reject(`端口 【${port}】 未启动`);
-        return;
-      }
-
-      PostProxyServer.appMap[port].close((err) => {
-        console.log(`Server on port ${port} 已关闭`, err || "");
-        delete PostProxyServer.appMap[port];
-        resolve();
-      });
-
-      PostProxyServer.appMap[port].getConnections((err, count) => {
-        if (err) {
-          console.error("Error getting connections:", err);
-        } else {
-          console.log(`Active connections: ${count}`);
-        }
-        if (count > 0) {
-          // 强制关闭所有活动的连接
-          for (const socket of PostProxyServer.appMap[port].x_sockets) {
-            socket.destroy(); // 强制关闭连接
-          }
-          console.log("Connection destroyed");
-        }
-      });
-    });
-  }
-
   initManageRouter() {
     this.router.post("/manage-server", express.json(), async (req, res) => {
       const { action, name, port } = req.body;
@@ -287,16 +222,17 @@ class PostProxyServer {
       const envPort = env.port;
 
       if (action === "start") {
-        if (PostProxyServer.appMap[port]) {
-          PostProxyServer.appMap[port].x_name = name;
+        if (this.preProxyServer.appMap[port]) {
+          this.preProxyServer.appMap[port].x_name = name;
         } else {
-          this.startServer2(envPort, env.name);
+          this.preProxyServer.startServer2(envPort, env.name);
         }
         return res.json({
           message: `环境 【${name}】 在端口 【${envPort}】 已启动`,
         });
       } else if (action === "stop") {
-        return PostProxyServer.stopServer(envPort)
+        return this.preProxyServer
+          .stopServer(envPort)
           .then(() => {
             return res.json({
               message: `环境 【${name}】 在端口 【${envPort}】 已关闭`,
@@ -319,7 +255,7 @@ class PostProxyServer {
       PostProxyServer.envList.forEach((item) => {
         Object.assign(item, {
           index: `${ipAdress}:${item.indexPage}`,
-          status: PostProxyServer.getAppStauts(item.port, item.name),
+          status: this.getAppStauts(item.port, item.name),
         });
       });
 

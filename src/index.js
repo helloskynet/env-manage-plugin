@@ -30,6 +30,7 @@ class EnvManage {
   async getEnvPluginConfig() {
     const modulePath = this.configPath;
 
+    let envConfig = {};
     try {
       // 清除缓存（仅对 CommonJS 有效）
       delete require.cache[require.resolve(modulePath)];
@@ -45,10 +46,10 @@ class EnvManage {
 
         const urlWithCacheBuster = `${fileUrl}?v=${this.cacheBuster++}`;
         const module = await import(urlWithCacheBuster);
-        this.envConfig = module.default || module;
+        envConfig = module.default || module;
       } else {
         // 使用 require 加载 CommonJS
-        this.envConfig = require(modulePath);
+        envConfig = require(modulePath);
       }
     } catch (error) {
       console.error(`Failed to load module at ${modulePath}:`, error);
@@ -61,14 +62,15 @@ class EnvManage {
       envList = [],
       devServerList = [],
       indexPage = "",
-    } = this.envConfig;
+    } = envConfig;
 
-    this.envConfig.port = port;
-    this.envConfig.basePath = basePath;
-
-    PostProxyServer.updateDevServerList(devServerList);
-
-    PostProxyServer.udpateEnvList(envList, indexPage);
+    this.envConfig = {
+      port,
+      basePath,
+      envList,
+      devServerList,
+      indexPage,
+    };
     console.log("Config file loaded");
   }
 
@@ -82,7 +84,17 @@ class EnvManage {
       this.preProxyServer
     );
 
+    this.updatePostProxyServerConfig();
+
     this.watchConfig();
+  }
+
+  updatePostProxyServerConfig() {
+    this.manageServer.updateDevServerList(this.envConfig.devServerList);
+    this.manageServer.udpateEnvList(
+      this.envConfig.envList,
+      this.envConfig.indexPage
+    );
   }
 
   watchConfig() {
@@ -92,7 +104,9 @@ class EnvManage {
 
     watcher.on("change", () => {
       console.log("Config file changed");
-      this.getEnvPluginConfig();
+      this.getEnvPluginConfig().then(() => {
+        this.updatePostProxyServerConfig();
+      });
     });
   }
 
