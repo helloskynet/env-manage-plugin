@@ -8,7 +8,7 @@ const PreProxyServer = require("./PreProxyServer");
 const PostProxyServer = require("./PostProxyServer");
 
 class EnvManage {
-  cacheBuster = 0; // 缓存破坏者
+  configCacheBuster = 0; // 缓存破坏者
 
   constructor(options = {}) {
     this.options = options;
@@ -42,7 +42,7 @@ class EnvManage {
 
         const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
 
-        const urlWithCacheBuster = `${fileUrl}?v=${this.cacheBuster++}`;
+        const urlWithCacheBuster = `${fileUrl}?v=${this.configCacheBuster++}`;
         const module = await import(urlWithCacheBuster);
         envConfig = module.default || module;
       } else {
@@ -96,11 +96,19 @@ class EnvManage {
       persistent: true,
     });
 
+    let debounceTimer;
     watcher.on("change", () => {
       console.log("Config file changed");
-      this.getEnvPluginConfig().then(() => {
-        this.updatePostProxyServerConfig();
-      });
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        this.getEnvPluginConfig()
+          .then(() => {
+            this.updatePostProxyServerConfig();
+          })
+          .catch((error) => {
+            console.error("Error updating config:", error);
+          });
+      }, 500);
     });
   }
 
