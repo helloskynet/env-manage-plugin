@@ -47,11 +47,11 @@ class PostProxyServer {
     // 代理中间件
     app.use(this.createPostProxyMiddleware());
 
+    // 无需代理的数据继续下一个中间件
+    app.use(this.errorHandler);
+
     // 静态资源
     app.use(expressStaticGzip(path.join(__dirname, "client")));
-
-    // 错误处理
-    app.use(this.errorHandler);
 
     return app;
   }
