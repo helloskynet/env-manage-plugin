@@ -56,7 +56,7 @@ class PreProxyServer {
     });
   }
 
-  startServer2(envConfig) {
+  startServer(envConfig) {
     const { port } = envConfig;
     if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
@@ -100,6 +100,10 @@ class PreProxyServer {
       }
 
       this.appMap[port].close((err) => {
+        this.appMap[port].x_sockets.forEach((socket) => {
+          socket.removeAllListeners();
+        });
+
         console.log(`Server on port ${port} 已关闭`, err || "");
         delete this.appMap[port];
         resolve();
