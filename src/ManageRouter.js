@@ -103,10 +103,7 @@ class ManageRouter {
 
   // 处理获取开发服务器列表
   handleGetDevServerList(req, res) {
-    const enableList = this.envConfig.devServerList.map((item) => ({
-      name: item.name,
-      target: item.target,
-    }));
+    const enableList = this.envConfig.devServerList;
     return res.json({ list: enableList });
   }
 
