@@ -88,11 +88,7 @@ class EnvManage {
   }
 
   updatePostProxyServerConfig() {
-    this.manageServer.updateDevServerList(this.envConfig.devServerList);
-    this.manageServer.udpateEnvList(
-      this.envConfig.envList,
-      this.envConfig.indexPage
-    );
+    this.manageServer.updateConfig(this.envConfig);
   }
 
   watchConfig() {

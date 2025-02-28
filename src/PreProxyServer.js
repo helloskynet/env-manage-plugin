@@ -1,8 +1,17 @@
-const PostProxyServer = require("./PostProxyServer");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const express = require("express");
+const Utils = require("./Utils");
 
 class PreProxyServer {
+  _envConfig = {};
+
+  set envConfig(newConfig) {
+    this.updateXenvOnApp(newConfig);
+    this._envConfig = newConfig;
+  }
+  get envConfig() {
+    return this._envConfig;
+  }
   constructor() {
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
@@ -14,12 +23,13 @@ class PreProxyServer {
       changeOrigin: true,
       ws: true,
       router: (req) => {
-        const env = PostProxyServer.findRunningEnv(req.socket.localPort);
+        const devServerName =
+          this.appMap[req.socket.localPort]?.x_env?.devServerName;
 
-        const target = PostProxyServer.findSelectedDevServer(env.devServerName);
+        const devServerConfig = this.findDevServerByName(devServerName);
 
         // 默认转发到 Webpack 开发服务器
-        return target.target;
+        return devServerConfig.target;
       },
       on: {
         proxyReq(proxyReq, req, res) {
@@ -31,13 +41,23 @@ class PreProxyServer {
     });
   }
 
-  get getApp() {
-    return this.app;
-  }
-
   appMap = {};
 
-  startServer2(port, name) {
+  findDevServerByName(name) {
+    return this.envConfig.devServerList.find((item) => item.name === name);
+  }
+
+  updateXenvOnApp(newConfig) {
+    let envMapWithNamAndPort = Utils.generateMap(newConfig.envList);
+    Object.values(this.appMap).forEach((item) => {
+      const envItem = item.x_env;
+      const rowKey = `${envItem.name}+${envItem.port}`;
+      envItem.x_env = envMapWithNamAndPort[rowKey];
+    });
+  }
+
+  startServer2(envConfig) {
+    const { port } = envConfig;
     if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;
@@ -47,7 +67,7 @@ class PreProxyServer {
       console.log(`Server is running on http://localhost:${port}`);
     });
 
-    server.x_name = name;
+    server.x_env = envConfig;
 
     // 保存所有活动的 socket 连接
     server.x_sockets = new Set();
