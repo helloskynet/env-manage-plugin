@@ -10,8 +10,24 @@ const ManageRouter = require("./ManageRouter");
  */
 class PostProxyServer {
   static envList = [];
+
+  get envConfig() {
+    return this.manageRouter.envConfig;
+  }
+
+  set envConfig(newConfig) {
+    const newEnvList = this.udpateEnvList(newConfig);
+    const envConfig = {
+      ...newConfig,
+      envList: newEnvList,
+    };
+    this.manageRouter.envConfig = envConfig;
+
+    this.preProxyServer.envConfig = envConfig;
+  }
+
   constructor(envConfig, preProxyServer) {
-    this.envConfig = envConfig;
+    // this.envConfig = envConfig;
     this.preProxyServer = preProxyServer;
 
     // 初始化服务器
@@ -61,17 +77,6 @@ class PostProxyServer {
   errorHandler(err, req, res, next) {
     if (err.message === "SKIP_PROXY") return next();
     res.status(500).send("代理服务器出错");
-  }
-
-  updateConfig(newConfig) {
-    const newEnvList = this.udpateEnvList(newConfig);
-    const envConfig = {
-      ...newConfig,
-      envList: newEnvList,
-    };
-    this.manageRouter.envConfig = envConfig;
-
-    this.preProxyServer.envConfig = envConfig;
   }
 
   udpateEnvList(newConfig) {

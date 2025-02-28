@@ -130,9 +130,23 @@ class ManageRouter {
       return res.status(400).json({ error: "devServer 不存在，请刷新" });
     }
 
-    env.devServerName = devServerName;
+    this.updateDateDevserverName(req.body);
+
     return res.json({
       message: `环境 【${name}】 在端口 【${port}】 已经切换到 【${selectedDevServer.name}】`,
+    });
+  }
+
+  updateDateDevserverName(reqBody) {
+    const { devServerName, name, port } = reqBody;
+
+    const bodyKey = `${name}+${port}`;
+
+    this.envConfig.envList.forEach((item) => {
+      const rowKey = `${item.name}+${item.port}`;
+      if (bodyKey === rowKey) {
+        item.devServerName = devServerName;
+      }
     });
   }
 
