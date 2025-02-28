@@ -142,14 +142,12 @@ class PostProxyServer {
   initPostServer() {
     const postApp = express();
 
+    postApp.use(this.createPostProxyMiddleware());
+
     // 挂载管理页面的静态路由
-    postApp.use(
-      this.envConfig.basePath,
-      expressStaticGzip(path.join(__dirname, "client"))
-    );
+    postApp.use(expressStaticGzip(path.join(__dirname, "client")));
 
     // 挂载代理中间件
-    postApp.use(this.createPostProxyMiddleware());
 
     // 错误处理
     postApp.use((err, req, res, next) => {
