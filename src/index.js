@@ -8,7 +8,7 @@ const PreProxyServer = require("./PreProxyServer");
 const PostProxyServer = require("./PostProxyServer");
 
 class EnvManage {
-  configCacheBuster = 0; // 缓存破坏者
+  configFileCacheBuster = 0; // 缓存破坏者
 
   constructor(options = {}) {
     this.options = options;
@@ -42,7 +42,7 @@ class EnvManage {
 
         const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
 
-        const urlWithCacheBuster = `${fileUrl}?v=${this.configCacheBuster++}`;
+        const urlWithCacheBuster = `${fileUrl}?v=${this.configFileCacheBuster++}`;
         const module = await import(urlWithCacheBuster);
         envConfig = module.default || module;
       } else {
@@ -51,7 +51,6 @@ class EnvManage {
       }
     } catch (error) {
       console.error(`Failed to load module at ${modulePath}:`, error);
-      process.exit(1);
     }
 
     const {

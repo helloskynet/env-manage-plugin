@@ -103,29 +103,15 @@ class PreProxyServer {
         return;
       }
 
-      this.appMap[port].getConnections((err, count) => {
-        if (err) {
-          console.error("Error getting connections:", err);
-        } else {
-          console.log(`Active connections: ${count}`);
-        }
-        if (count > 0) {
-          // 强制关闭所有活动的连接
-          for (const socket of this.appMap[port].x_sockets) {
-            socket.destroy(); // 强制关闭连接
-          }
-          console.log("Connection destroyed");
-        }
+      for (const socket of this.appMap[port].x_sockets) {
+        socket.destroy();
+      }
 
-        this.appMap[port].close((err) => {
-          this.appMap[port].x_sockets.forEach((socket) => {
-            socket.removeAllListeners();
-          });
+      this.appMap[port].close((err) => {
+        delete this.appMap[port];
 
-          console.log(`Server on port ${port} 已关闭`, err || "");
-          delete this.appMap[port];
-          resolve();
-        });
+        console.log(`Server on port ${port} 已关闭`, err || "");
+        resolve();
       });
     });
   }
