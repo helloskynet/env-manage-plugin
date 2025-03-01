@@ -9,8 +9,6 @@ const ManageRouter = require("./ManageRouter");
  * 后置代理服务器---同时也是管理页面的服务器
  */
 class PostProxyServer {
-  static envList = [];
-
   get envConfig() {
     return this.manageRouter.envConfig;
   }
@@ -83,28 +81,7 @@ class PostProxyServer {
     const { envList: newEnvList, indexPage, devServerList } = newConfig;
     const { envList: oldEnvList = [] } = this.envConfig;
 
-    const tempNewList = Utils.removeEnvDuplicates(newEnvList).map((item) => {
-      item.indexPage = `${item.port}${item.indexPage || indexPage || ""}`;
-      return item;
-    });
-
-    const envList = this.updateAndCleanEnvConfig(
-      tempNewList,
-      oldEnvList,
-      devServerList
-    );
-
-    return envList;
-  }
-
-  /**
-   * 重新加载环境配置之后，对比新旧环境配置，关闭已经删除的环境
-   * @param {Array} newEnvList - 新的环境配置
-   * @param {Array} oldEnvList - 旧的环境配置
-   * @returns {Array}
-   */
-  updateAndCleanEnvConfig(newEnvList, oldEnvList, devServerList) {
-    const newEnvMap = Utils.generateMap(newEnvList); // 生成端口号到环境配置的映射
+    const newListAfter = Utils.removeEnvDuplicates(newEnvList);
 
     const oldEnvMap = Utils.generateMap(oldEnvList); // 生成端口号到环境配置的映射
 
@@ -112,32 +89,23 @@ class PostProxyServer {
 
     const defautlDevserverName = devServerList[0]?.name ?? "";
 
-    // 关闭已经删除的环境
-    oldEnvList.forEach((item) => {
-      if (
-        !newEnvMap[`${item.name}+${item.port}`] &&
-        this.manageRouter.getAppStatus(item.port, item.name) === "running"
-      ) {
-        this.preProxyServer.stopServer(item.port);
-      }
-    });
-
     // 返回新的环境配置
-    const newList = newEnvList.map((item) => {
+    const newList = newListAfter.map((item) => {
       const rowKey = `${item.name}+${item.port}`;
-      const oldItem = oldEnvMap[rowKey] || {};
 
-      const newItem = {
-        ...item,
-        status: this.manageRouter.getAppStatus(item.port, item.name),
-        devServerName: oldItem.devServerName || item.devServerName,
-      };
+      let devServerName =
+        oldEnvMap?.[rowKey]?.devServerName || item.devServerName;
 
-      if (!devServerMap[newItem.devServerName]) {
-        newItem.devServerName = defautlDevserverName;
+      if (!devServerMap[devServerName]) {
+        devServerName = defautlDevserverName;
       }
 
-      return newItem;
+      return {
+        ...item,
+        indexPage: `${item.port}${item.indexPage || indexPage || ""}`,
+        status: this.manageRouter.getAppStatus(item.port, item.name),
+        devServerName,
+      };
     });
 
     return newList;

@@ -52,7 +52,11 @@ class PreProxyServer {
     Object.values(this.appMap).forEach((item) => {
       const envItem = item.x_env;
       const rowKey = `${envItem.name}+${envItem.port}`;
-      envItem.x_env = envMapWithNamAndPort[rowKey];
+      if (envMapWithNamAndPort[rowKey]) {
+        envItem.x_env = envMapWithNamAndPort[rowKey];
+      } else {
+        this.stopServer(envItem.port);
+      }
     });
   }
 
@@ -99,16 +103,6 @@ class PreProxyServer {
         return;
       }
 
-      this.appMap[port].close((err) => {
-        this.appMap[port].x_sockets.forEach((socket) => {
-          socket.removeAllListeners();
-        });
-
-        console.log(`Server on port ${port} 已关闭`, err || "");
-        delete this.appMap[port];
-        resolve();
-      });
-
       this.appMap[port].getConnections((err, count) => {
         if (err) {
           console.error("Error getting connections:", err);
@@ -122,6 +116,16 @@ class PreProxyServer {
           }
           console.log("Connection destroyed");
         }
+
+        this.appMap[port].close((err) => {
+          this.appMap[port].x_sockets.forEach((socket) => {
+            socket.removeAllListeners();
+          });
+
+          console.log(`Server on port ${port} 已关闭`, err || "");
+          delete this.appMap[port];
+          resolve();
+        });
       });
     });
   }
