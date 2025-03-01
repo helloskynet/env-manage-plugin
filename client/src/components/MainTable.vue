@@ -1,5 +1,5 @@
 <template>
-  <el-button type="success" @click="getEnvList();getDevServerList()" :loading="refreshLoading">刷新</el-button>
+  <el-button type="success" @click="refreshList" :loading="refreshLoading">刷新</el-button>
   <el-table :data="tableData" style="width: 100%">
     <el-table-column prop="name" label="环境名称" width="100" />
     <el-table-column prop="target" label="环境代理详情" width="180" />
@@ -28,7 +28,7 @@
           @change="(value) => updateSelectedDevServer(value, scope.row)"
         >
           <el-radio
-            v-for="(item) in devServerList"
+            v-for="item in devServerList"
             :key="item.name"
             :value="`${item.name}`"
             :title="item.target"
@@ -85,14 +85,19 @@ const getEnvList = () => {
     })
     .then((res) => {
       console.log(res)
-      tableData.value = res.list
+      tableData.value = res.list.map((item) => {
+        return {
+          ...item,
+          index: `${location.protocol}//${location.hostname}:${item.port}${item.indexPage}`,
+        }
+      })
     })
     .finally(() => {
       refreshLoading.value = false
     })
 }
 /**
- * 获取环境列表
+ * 获取开发服务器列表
  *
  */
 const getDevServerList = () => {
@@ -182,5 +187,10 @@ const updateSelectedDevServer = (devServerName, rowData) => {
       }
       getEnvList()
     })
+}
+
+const refreshList = () => {
+  getEnvList()
+  getDevServerList()
 }
 </script>

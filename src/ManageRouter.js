@@ -1,6 +1,5 @@
 // ManageRouter.js
 const express = require("express");
-const Utils = require("./Utils");
 
 class ManageRouter {
   constructor(preProxyServer, envConfig) {
@@ -46,7 +45,7 @@ class ManageRouter {
 
     const env = this.findEnvByNameAndPort(name, port);
     if (!env) {
-      return res.status(400).json({ error: "环境不存在" });
+      return res.status(400).json({ error: "环境不存在，请刷新" });
     }
 
     switch (action) {
@@ -89,12 +88,8 @@ class ManageRouter {
 
   // 处理获取列表
   handleGetList(req, res) {
-    const { protocol, hostname } = req;
-    const ipAdress = `${protocol}://${hostname}`;
-
     const list = this.envConfig.envList.map((item) => ({
       ...item,
-      index: `${ipAdress}:${item.indexPage}`,
       status: this.getAppStatus(item.port, item.name),
     }));
 
@@ -119,7 +114,7 @@ class ManageRouter {
 
     const env = this.findEnvByNameAndPort(name, port);
     if (!env) {
-      return res.status(400).json({ error: "环境不存在" });
+      return res.status(400).json({ error: "环境不存在，请刷新" });
     }
 
     const selectedDevServer = this.findDevServerByName(devServerName);

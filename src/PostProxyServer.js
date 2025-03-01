@@ -102,8 +102,7 @@ class PostProxyServer {
 
       return {
         ...item,
-        indexPage: `${item.port}${item.indexPage || indexPage || ""}`,
-        status: this.manageRouter.getAppStatus(item.port, item.name),
+        indexPage: `${item.indexPage || indexPage || ""}`,
         devServerName,
       };
     });
