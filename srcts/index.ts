@@ -14,9 +14,34 @@ import PreProxyServer from "./PreProxyServer";
 // 导入本地的 PostProxyServer 模块
 import PostProxyServer from "./PostProxyServer";
 
-interface AppConfig {
+/**
+ * 应用启动配置
+ */
+interface AppOptions {
   config?: string;
 }
+
+type DevServerItem = {
+  name: string;
+  target: string;
+};
+
+type RouterFunction = (req: unknown, env: EnvItem) => string;
+
+type EnvItem = {
+  name: string;
+  port: number;
+  target: string;
+  router?: RouterFunction;
+};
+
+type EnvConfig = {
+  port: number;
+  basePath: string;
+  indexPage: string;
+  devServerList: Array<DevServerItem>;
+  envList: Array<EnvItem>;
+};
 
 class EnvManage {
   /**
@@ -25,9 +50,9 @@ class EnvManage {
   configFileCacheBuster = 0;
 
   /**
-   * 配置选项
+   * 应用启动配置
    */
-  options: AppConfig;
+  options: AppOptions;
 
   /**
    * 配置文件地址
@@ -35,9 +60,19 @@ class EnvManage {
   configPath: string;
 
   /**
+   * 应用配置
+   */
+  envConfig: EnvConfig;
+
+  /**
    * 后置地理服务器 和 管理服务器
    */
   manageServer: PostProxyServer | null;
+
+  /**
+   * 前置代理服务器
+   */
+  preProxyServer: PreProxyServer;
 
   constructor(options = {}) {
     this.options = options;
@@ -63,7 +98,7 @@ class EnvManage {
       envList: [],
       devServerList: [],
       indexPage: "",
-    };
+    } as EnvConfig;
     try {
       // 清除缓存（仅对 CommonJS 有效）
       delete require.cache[require.resolve(modulePath)];
@@ -109,7 +144,7 @@ class EnvManage {
   async startIndependent() {
     await this.getEnvPluginConfig();
 
-    this.preProxyServer = new PreProxyServer(this.envConfig);
+    this.preProxyServer = new PreProxyServer();
 
     this.manageServer = new PostProxyServer(
       this.envConfig,
@@ -130,7 +165,7 @@ class EnvManage {
       persistent: true,
     });
 
-    let debounceTimer;
+    let debounceTimer: NodeJS.Timeout;
     watcher.on("change", () => {
       console.log("Config file changed");
       clearTimeout(debounceTimer);
