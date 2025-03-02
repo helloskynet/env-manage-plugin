@@ -1,11 +1,41 @@
-// ManageRouter.js
-const express = require("express");
+// 导入 express 模块
+import express, { Request, Response } from "express";
+import PreProxyServer from "./PreProxyServer";
+import { Config, EnvItem } from "./Config";
+import Utils from "./Utils";
+
+// 定义请求体的类型
+interface ManageServerRequest {
+  action: string;
+  name: string;
+  port?: number; // 如果 port 是可选的
+}
 
 class ManageRouter {
-  constructor(preProxyServer, envConfig) {
+  router: express.Router;
+
+  preProxyServer: PreProxyServer;
+
+  config: Config;
+
+  activeDevServer: Record<string, EnvItem>;
+
+  /**
+   * 保存运行中的环境
+   */
+  runningApplication: {
+    [key: string]: Boolean;
+  };
+
+  get envConfig() {
+    return this.config.envConfig;
+  }
+
+  constructor(preProxyServer: PreProxyServer) {
+    this.config = new Config();
+
     this.router = express.Router();
     this.preProxyServer = preProxyServer;
-    this.envConfig = envConfig;
 
     this.initializeRoutes();
   }
@@ -36,7 +66,7 @@ class ManageRouter {
   }
 
   // 处理服务器管理请求
-  handleManageServer(req, res) {
+  handleManageServer(req: Request<{}, {}, ManageServerRequest>, res: Response) {
     const { action, name, port } = req.body;
 
     if (!action || !name) {
@@ -59,10 +89,10 @@ class ManageRouter {
   }
 
   // 处理启动服务器
-  handleStartServer(env, res) {
+  handleStartServer(env: EnvItem, res: Response) {
     const port = env.port;
     if (this.preProxyServer.appMap[port]) {
-      this.preProxyServer.appMap[port].x_env = env;
+      this.preProxyServer.appMap[port].x_name = env.name;
     } else {
       this.preProxyServer.startServer(env);
     }
@@ -72,7 +102,7 @@ class ManageRouter {
   }
 
   // 处理停止服务器
-  handleStopServer(env, res) {
+  handleStopServer(env: EnvItem, res: Response) {
     return this.preProxyServer
       .stopServer(env.port)
       .then(() => {
@@ -87,23 +117,29 @@ class ManageRouter {
   }
 
   // 处理获取列表
-  handleGetList(req, res) {
-    const list = this.envConfig.envList.map((item) => ({
-      ...item,
-      status: this.getAppStatus(item.port, item.name),
-    }));
+  handleGetList(req: Request, res: Response) {
+    const list = this.envConfig.envList.map((item) => {
+      const rowKey = Utils.getRowKey(item);
+      const devServerName =
+        this.config.envToDevServerMap[rowKey] || item.devServerName;
+      return {
+        ...item,
+        devServerName,
+        status: this.getAppStatus(item.name, item.port),
+      };
+    });
 
     return res.json({ list });
   }
 
   // 处理获取开发服务器列表
-  handleGetDevServerList(req, res) {
+  handleGetDevServerList(req: Request, res: Response) {
     const enableList = this.envConfig.devServerList;
     return res.json({ list: enableList });
   }
 
   // 处理更新开发服务器ID
-  handleUpdateDevServerId(req, res) {
+  handleUpdateDevServerId(req: Request<{}, {}, EnvItem>, res: Response) {
     const { devServerName, name, port } = req.body;
 
     if (!devServerName || !name || !port) {
@@ -122,39 +158,32 @@ class ManageRouter {
       return res.status(400).json({ error: "devServer 不存在，请刷新" });
     }
 
-    this.updateDateDevserverName(req.body);
+    const rowKey = Utils.getRowKey(req.body);
+    this.config.envToDevServerMap[rowKey] = devServerName;
 
     return res.json({
       message: `环境 【${name}】 在端口 【${port}】 已经切换到 【${selectedDevServer.name}】`,
     });
   }
 
-  updateDateDevserverName(reqBody) {
-    const { devServerName, name, port } = reqBody;
-
-    const bodyKey = `${name}+${port}`;
-
-    this.envConfig.envList.forEach((item) => {
-      const rowKey = `${item.name}+${item.port}`;
-      if (bodyKey === rowKey) {
-        item.devServerName = devServerName;
-      }
+  // Helper methods
+  findEnvByNameAndPort(name: string, port: number) {
+    const targetKey = Utils.getRowKey({
+      name,
+      port,
+    });
+    return this.envConfig.envList.find((item) => {
+      const rowKey = Utils.getRowKey(item);
+      return rowKey === targetKey;
     });
   }
 
-  // Helper methods
-  findEnvByNameAndPort(name, port) {
-    return this.envConfig.envList.find(
-      (item) => item.name === name && item.port == port
-    );
-  }
-
-  findDevServerByName(name) {
+  findDevServerByName(name: string) {
     return this.envConfig.devServerList.find((item) => item.name === name);
   }
 
-  getAppStatus(port, name) {
-    return this.preProxyServer.appMap[port]?.x_env?.name === name
+  getAppStatus(name: string, port: number) {
+    return this.preProxyServer.appMap[port]?.x_name === name
       ? "running"
       : "stop";
   }
@@ -164,4 +193,4 @@ class ManageRouter {
   }
 }
 
-module.exports = ManageRouter;
+export default ManageRouter;
