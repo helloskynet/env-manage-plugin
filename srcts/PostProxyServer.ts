@@ -1,10 +1,17 @@
-const path = require("path");
-const express = require("express");
-const expressStaticGzip = require("express-static-gzip");
-const { createProxyMiddleware } = require("http-proxy-middleware");
+// 导入 path 模块
+import * as path from "path";
+// 导入 express 模块
+import express from "express";
+// 导入 express-static-gzip 模块
+import expressStaticGzip from "express-static-gzip";
+// 从 http-proxy-middleware 模块导入 createProxyMiddleware 函数
+import { createProxyMiddleware } from "http-proxy-middleware";
 
-const Utils = require("./Utils");
-const ManageRouter = require("./ManageRouter");
+// 导入本地的 Utils 模块
+import Utils from "./Utils";
+// 导入本地的 ManageRouter 模块
+import ManageRouter from "./ManageRouter";
+
 /**
  * 后置代理服务器---同时也是管理页面的服务器
  */
@@ -122,4 +129,4 @@ class PostProxyServer {
   }
 }
 
-module.exports = PostProxyServer;
+export default PostProxyServer;

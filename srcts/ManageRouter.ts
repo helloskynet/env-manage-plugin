@@ -1,5 +1,5 @@
-// ManageRouter.js
-const express = require("express");
+// 导入 express 模块
+import express from "express";
 
 class ManageRouter {
   constructor(preProxyServer, envConfig) {
@@ -164,4 +164,4 @@ class ManageRouter {
   }
 }
 
-module.exports = ManageRouter;
+export default ManageRouter;

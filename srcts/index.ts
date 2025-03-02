@@ -1,14 +1,43 @@
-const fs = require("fs");
-const path = require("path");
-const chokidar = require("chokidar");
-const { pathToFileURL } = require("url");
+// 导入 path 模块
+import * as path from "path";
+// 导入 fs 模块
+import * as fs from "fs";
+// 导入 chokidar 模块
+import chokidar from "chokidar";
+// 从 url 模块导入 pathToFileURL 函数
+import { pathToFileURL } from "url";
 
-const Utils = require("./Utils");
-const PreProxyServer = require("./PreProxyServer");
-const PostProxyServer = require("./PostProxyServer");
+// 导入本地的 Utils 模块
+import Utils from "./Utils";
+// 导入本地的 PreProxyServer 模块
+import PreProxyServer from "./PreProxyServer";
+// 导入本地的 PostProxyServer 模块
+import PostProxyServer from "./PostProxyServer";
+
+interface AppConfig {
+  config?: string;
+}
 
 class EnvManage {
-  configFileCacheBuster = 0; // 缓存破坏者
+  /**
+   * 缓存破坏者,用于清除 Es Module 的缓存，重新加载配置文件
+   */
+  configFileCacheBuster = 0;
+
+  /**
+   * 配置选项
+   */
+  options: AppConfig;
+
+  /**
+   * 配置文件地址
+   */
+  configPath: string;
+
+  /**
+   * 后置地理服务器 和 管理服务器
+   */
+  manageServer: PostProxyServer | null;
 
   constructor(options = {}) {
     this.options = options;
@@ -16,19 +45,25 @@ class EnvManage {
     const configPath = this.options?.config || "./env.config.js";
     this.configPath = path.resolve(process.cwd(), configPath);
 
-    this.manageServer = {};
+    this.manageServer = null;
   }
 
-  apply(compiler) {
-    compiler.hooks.afterPlugins.tap("EnvManagePlugin", (compilation) => {
-      this.startIndependent();
-    });
-  }
+  // apply(compiler) {
+  //   compiler.hooks.afterPlugins.tap("EnvManagePlugin", (compilation) => {
+  //     this.startIndependent();
+  //   });
+  // }
 
   async getEnvPluginConfig() {
     const modulePath = this.configPath;
 
-    let envConfig = {};
+    let envConfig = {
+      port: 0,
+      basePath: "/dev-manage-api",
+      envList: [],
+      devServerList: [],
+      indexPage: "",
+    };
     try {
       // 清除缓存（仅对 CommonJS 有效）
       delete require.cache[require.resolve(modulePath)];
@@ -148,4 +183,4 @@ class EnvManage {
   }
 }
 
-module.exports = EnvManage;
+export default EnvManage;

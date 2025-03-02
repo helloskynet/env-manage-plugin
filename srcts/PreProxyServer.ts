@@ -1,6 +1,9 @@
-const { createProxyMiddleware } = require("http-proxy-middleware");
-const express = require("express");
-const Utils = require("./Utils");
+// 从 http-proxy-middleware 模块中导入 createProxyMiddleware 函数
+import { createProxyMiddleware } from "http-proxy-middleware";
+// 导入 express 模块
+import express from "express";
+// 导入本地的 Utils 模块
+import Utils from "./Utils";
 
 class PreProxyServer {
   _envConfig = {};
@@ -117,4 +120,4 @@ class PreProxyServer {
   }
 }
 
-module.exports = PreProxyServer;
+export default PreProxyServer;

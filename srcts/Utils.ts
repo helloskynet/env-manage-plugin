@@ -1,5 +1,7 @@
-const fs = require("fs");
-const path = require("path");
+// 导入 path 模块
+import * as path from "path";
+// 导入 fs 模块
+import * as fs from "fs";
 
 class Utils {
   /**
@@ -84,4 +86,4 @@ class Utils {
   }
 }
 
-module.exports = Utils;
+export default Utils;
