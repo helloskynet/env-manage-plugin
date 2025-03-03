@@ -14,6 +14,8 @@ import PreProxyServer from "./PreProxyServer";
 // 导入本地的 PostProxyServer 模块
 import PostProxyServer from "./PostProxyServer";
 
+import { Config } from "./Config";
+
 /**
  * 应用启动配置
  */
@@ -21,17 +23,19 @@ interface AppOptions {
   config?: string;
 }
 
-type DevServerItem = {
+export type DevServerItem = {
   name: string;
   target: string;
 };
 
 type RouterFunction = (req: unknown, env: EnvItem) => string;
 
-type EnvItem = {
+export type EnvItem = {
   name: string;
   port: number;
   target: string;
+  indexPage?: string;
+  devServerName: string;
   router?: RouterFunction;
 };
 
@@ -74,11 +78,10 @@ class EnvManage {
    */
   preProxyServer: PreProxyServer;
 
+  config: Config;
+
   constructor(options = {}) {
     this.options = options;
-
-    const configPath = this.options?.config || "./env.config.js";
-    this.configPath = path.resolve(process.cwd(), configPath);
 
     this.manageServer = null;
   }
@@ -89,96 +92,22 @@ class EnvManage {
   //   });
   // }
 
-  async getEnvPluginConfig() {
-    const modulePath = this.configPath;
-
-    let envConfig = {
-      port: 0,
-      basePath: "/dev-manage-api",
-      envList: [],
-      devServerList: [],
-      indexPage: "",
-    } as EnvConfig;
-    try {
-      // 清除缓存（仅对 CommonJS 有效）
-      delete require.cache[require.resolve(modulePath)];
-
-      // 判断文件类型
-      if (
-        modulePath.endsWith(".mjs") ||
-        (modulePath.endsWith(".js") && Utils.isESModule(modulePath))
-      ) {
-        // 动态加载 ES Module
-
-        const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
-
-        const urlWithCacheBuster = `${fileUrl}?v=${this.configFileCacheBuster++}`;
-        const module = await import(urlWithCacheBuster);
-        envConfig = module.default || module;
-      } else {
-        // 使用 require 加载 CommonJS
-        envConfig = require(modulePath);
-      }
-    } catch (error) {
-      console.error(`Failed to load module at ${modulePath}:`, error);
-    }
-
-    const {
-      port = 3099,
-      basePath = "/dev-manage-api",
-      envList = [],
-      devServerList = [],
-      indexPage = "",
-    } = envConfig;
-
-    this.envConfig = {
-      port,
-      basePath,
-      envList,
-      devServerList,
-      indexPage,
-    };
-    console.log("Config file loaded");
+  getEnvPluginConfig() {
+    return this.config.initConfig(this.options.config).then((result) => {
+      console.log("Config file loaded");
+    });
   }
 
   async startIndependent() {
+    this.config = new Config();
+
     await this.getEnvPluginConfig();
+
+    this.envConfig = this.config.envConfig;
 
     this.preProxyServer = new PreProxyServer();
 
-    this.manageServer = new PostProxyServer(
-      this.envConfig,
-      this.preProxyServer
-    );
-
-    this.updatePostProxyServerConfig();
-
-    this.watchConfig();
-  }
-
-  updatePostProxyServerConfig() {
-    this.manageServer.envConfig = this.envConfig;
-  }
-
-  watchConfig() {
-    const watcher = chokidar.watch(this.configPath, {
-      persistent: true,
-    });
-
-    let debounceTimer: NodeJS.Timeout;
-    watcher.on("change", () => {
-      console.log("Config file changed");
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        this.getEnvPluginConfig()
-          .then(() => {
-            this.updatePostProxyServerConfig();
-          })
-          .catch((error) => {
-            console.error("Error updating config:", error);
-          });
-      }, 500);
-    });
+    this.manageServer = new PostProxyServer(this.preProxyServer);
   }
 
   /**

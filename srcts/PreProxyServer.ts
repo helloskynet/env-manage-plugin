@@ -1,21 +1,31 @@
 // 从 http-proxy-middleware 模块中导入 createProxyMiddleware 函数
 import { createProxyMiddleware } from "http-proxy-middleware";
 // 导入 express 模块
-import express from "express";
+import express, { Application, Request } from "express";
+import { Server } from "http";
+import { Socket } from "net";
 // 导入本地的 Utils 模块
 import Utils from "./Utils";
+import { Config } from "./Config";
+import { EnvConfig, EnvItem } from ".";
+
+type MyApplication = Server & {
+  x_env: EnvItem;
+  x_sockets: Set<Socket>;
+};
 
 class PreProxyServer {
-  _envConfig = {};
+  app: Application;
 
-  set envConfig(newConfig) {
-    this.updateXenvOnApp(newConfig);
-    this._envConfig = newConfig;
-  }
-  get envConfig() {
-    return this._envConfig;
-  }
+  appMap: {
+    [key: string]: MyApplication;
+  };
+
+  config: Config;
+
   constructor() {
+    this.appMap = {};
+    this.config = new Config();
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
   }
@@ -27,15 +37,15 @@ class PreProxyServer {
       ws: true,
       router: (req) => {
         const devServerName =
-          this.appMap[req.socket.localPort]?.x_env?.devServerName;
+          this.appMap[`${req.socket.localPort}`]?.x_env?.devServerName;
 
-        const devServerConfig = this.findDevServerByName(devServerName);
+        const devServerConfig = this.config.findDevServerByName(devServerName);
 
         // 默认转发到 Webpack 开发服务器
         return devServerConfig.target;
       },
       on: {
-        proxyReq(proxyReq, req, res) {
+        proxyReq(proxyReq, req: Request, res) {
           if (!req.path.includes("dev-manage-api")) {
             proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
           }
@@ -44,26 +54,20 @@ class PreProxyServer {
     });
   }
 
-  appMap = {};
-
-  findDevServerByName(name) {
-    return this.envConfig.devServerList.find((item) => item.name === name);
-  }
-
-  updateXenvOnApp(newConfig) {
+  updateXenvOnApp(newConfig: EnvConfig) {
     let envMapWithNamAndPort = Utils.generateMap(newConfig.envList);
     Object.values(this.appMap).forEach((item) => {
       const envItem = item.x_env;
       const rowKey = `${envItem.name}+${envItem.port}`;
       if (envMapWithNamAndPort[rowKey]) {
-        envItem.x_env = envMapWithNamAndPort[rowKey];
+        item.x_env = envMapWithNamAndPort[rowKey];
       } else {
         this.stopServer(envItem.port);
       }
     });
   }
 
-  startServer(envConfig) {
+  startServer(envConfig: EnvItem) {
     const { port } = envConfig;
     if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
@@ -72,7 +76,7 @@ class PreProxyServer {
 
     const server = this.app.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
-    });
+    }) as MyApplication;
 
     server.x_env = envConfig;
 
@@ -98,7 +102,7 @@ class PreProxyServer {
     this.appMap[port] = server;
   }
 
-  stopServer(port) {
+  stopServer(port: number) {
     return new Promise((resolve, reject) => {
       if (!this.appMap[port]) {
         console.log(`端口 ${port} 未启动`);
@@ -114,7 +118,7 @@ class PreProxyServer {
         delete this.appMap[port];
 
         console.log(`Server on port ${port} 已关闭`, err || "");
-        resolve();
+        resolve(1);
       });
     });
   }

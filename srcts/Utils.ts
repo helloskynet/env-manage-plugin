@@ -9,9 +9,11 @@ class Utils {
    * @param {Array} envList - 环境配置列表
    * @returns {Array} - 去重后的环境配置列表
    */
-  static removeEnvDuplicates = (envList) => {
+  static removeEnvDuplicates = <T extends { name: string; port: number }>(
+    envList: T[]
+  ): T[] => {
     const uniqueMap = new Map();
-    const result = [];
+    const result: T[] = [];
 
     envList.forEach((item) => {
       const key = `${item.name}-${item.port}`;
@@ -30,46 +32,22 @@ class Utils {
    * @param {*} keys
    * @returns
    */
-  static generateMap(list, keys = ["name", "port"]) {
-    const keyGenerator = (item) => {
-      return keys
-        .map((e) => {
-          return `${item[e]}`;
-        })
-        .join("+");
+  static generateMap<T extends Record<K, any>, K extends string>(
+    // 传入的数组，元素类型为 T
+    list: T[],
+    // keys 数组，其元素为 K 类型，默认值为 ["name", "port"]
+    keys: K[] = ["name", "port"] as K[]
+  ): { [key: string]: T } {
+    // 定义 keyGenerator 函数，用于生成唯一键
+    const keyGenerator = (item: T): string => {
+      return keys.map((e) => `${item[e]}`).join("+");
     };
-    return list.reduce((map, item) => {
+
+    // 使用 reduce 方法将数组元素存入对象
+    return list.reduce((map: { [key: string]: T }, item: T) => {
       map[keyGenerator(item)] = item;
       return map;
     }, {});
-  }
-
-  /**
-   * 判断文件是否是 ES Module
-   * @param {string} filePath - 文件路径
-   * @returns {boolean}
-   */
-  static isESModule(filePath) {
-    try {
-      // 检查文件扩展名
-      if (filePath.endsWith(".mjs")) return true;
-      if (filePath.endsWith(".cjs")) return false;
-
-      // 检查 package.json 的 type 字段
-
-      const isESModule = Utils.isESModuleByPackageJson();
-
-      if (isESModule !== "") {
-        return isESModule;
-      }
-
-      // 检查文件内容
-      const content = fs.readFileSync(filePath, "utf8");
-      return content.includes("export default") || content.includes("export ");
-    } catch (error) {
-      console.error(`Failed to check module type at ${filePath}:`, error);
-      return false;
-    }
   }
 
   static isESModuleByPackageJson() {
