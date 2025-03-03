@@ -35,7 +35,7 @@ type EnvItem = {
   router?: RouterFunction;
 };
 
-type EnvConfig = {
+export type EnvConfig = {
   port: number;
   basePath: string;
   indexPage: string;

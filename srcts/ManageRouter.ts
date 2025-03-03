@@ -1,8 +1,19 @@
 // 导入 express 模块
-import express from "express";
+import * as express from "express";
+import PreProxyServer from "./PreProxyServer";
+import { EnvConfig } from ".";
+
+
+// console.log(express,'eeeeeeeeeee')
 
 class ManageRouter {
-  constructor(preProxyServer, envConfig) {
+  router: express.Router;
+
+  preProxyServer: PreProxyServer;
+
+  envConfig: EnvConfig;
+
+  constructor(preProxyServer: PreProxyServer, envConfig: EnvConfig) {
     this.router = express.Router();
     this.preProxyServer = preProxyServer;
     this.envConfig = envConfig;
