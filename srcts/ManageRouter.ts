@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import PreProxyServer from "./PreProxyServer";
 import { DevServerItem, EnvConfig, EnvItem } from ".";
 import { Config } from "./Config";
+import Utils from "./Utils";
 
 // console.log(express,'eeeeeeeeeee')
 
@@ -19,6 +20,8 @@ class ManageRouter {
   preProxyServer: PreProxyServer;
 
   config: Config;
+
+  activeDevServer: Record<string, EnvItem>;
 
   /**
    * 保存运行中的环境
@@ -92,7 +95,7 @@ class ManageRouter {
   handleStartServer(env: EnvItem, res: Response) {
     const port = env.port;
     if (this.preProxyServer.appMap[port]) {
-      this.preProxyServer.appMap[port].x_env = env;
+      this.preProxyServer.appMap[port].x_name = env.name;
     } else {
       this.preProxyServer.startServer(env);
     }
@@ -160,23 +163,21 @@ class ManageRouter {
   }
 
   updateDateDevserverName(reqBody: EnvItem) {
-    const { devServerName, name, port } = reqBody;
+    const rowKey = Utils.getRowKey(reqBody);
 
-    const bodyKey = `${name}+${port}`;
-
-    this.envConfig.envList.forEach((item) => {
-      const rowKey = `${item.name}+${item.port}`;
-      if (bodyKey === rowKey) {
-        item.devServerName = devServerName;
-      }
-    });
+    this.config.modifyDevServerNameMap[rowKey] = reqBody.devServerName;
   }
 
   // Helper methods
   findEnvByNameAndPort(name: string, port: number) {
-    return this.envConfig.envList.find(
-      (item) => item.name === name && item.port == port
-    );
+    const targetKey = Utils.getRowKey({
+      name,
+      port,
+    });
+    return this.envConfig.envList.find((item) => {
+      const rowKey = Utils.getRowKey(item);
+      return rowKey === targetKey;
+    });
   }
 
   findDevServerByName(name: string) {
@@ -184,7 +185,7 @@ class ManageRouter {
   }
 
   getAppStatus(name: string, port: number) {
-    return this.preProxyServer.appMap[port]?.x_env?.name === name
+    return this.preProxyServer.appMap[port]?.x_name === name
       ? "running"
       : "stop";
   }

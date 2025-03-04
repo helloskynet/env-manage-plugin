@@ -9,7 +9,7 @@ class Utils {
    * @param {Array} envList - 环境配置列表
    * @returns {Array} - 去重后的环境配置列表
    */
-  static removeEnvDuplicates = <T extends { name: string; port: number }>(
+  static removeEnvDuplicates = <T extends { name: string; port?: number }>(
     envList: T[]
   ): T[] => {
     const uniqueMap = new Map();
@@ -61,6 +61,12 @@ class Utils {
     }
 
     return "";
+  }
+
+  static getRowKey<T extends { name: string; port?: string | number }>(
+    rowData: T
+  ): string {
+    return `${rowData.name}+${rowData.port}`;
   }
 }
 

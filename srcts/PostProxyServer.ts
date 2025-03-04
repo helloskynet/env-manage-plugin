@@ -60,12 +60,18 @@ class PostProxyServer {
       ws: true,
       router: (req) => {
         if (req.headers["x-api-server"]) {
-          const port = req.headers["x-api-server"];
+          const port = req.headers["x-api-server"] as string;
 
-          const env = this.preProxyServer.appMap[`${port}`].x_env;
+          const envName = this.preProxyServer.appMap[`${port}`].x_name;
 
-          if (env?.router) return env.router(req, env);
-          if (env?.target) return env.target;
+          const env = this.config.findEnvByNameAndPort(envName, port);
+
+          if (env?.router) {
+            return env.router(req, env);
+          }
+          if (env?.target) {
+            return env.target;
+          }
         }
         throw new Error("SKIP_PROXY");
       },
@@ -91,7 +97,7 @@ class PostProxyServer {
 
     // 返回新的环境配置
     const newList = newListAfter.map((item) => {
-      const rowKey = `${item.name}+${item.port}`;
+      const rowKey = Utils.getRowKey(item);
 
       let devServerName =
         oldEnvMap?.[rowKey]?.devServerName || item.devServerName;

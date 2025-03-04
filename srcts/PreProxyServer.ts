@@ -10,7 +10,7 @@ import { Config } from "./Config";
 import { EnvConfig, EnvItem } from ".";
 
 type MyApplication = Server & {
-  x_env: EnvItem;
+  x_name: string;
   x_sockets: Set<Socket>;
 };
 
@@ -36,13 +36,17 @@ class PreProxyServer {
       changeOrigin: true,
       ws: true,
       router: (req) => {
-        const devServerName =
-          this.appMap[`${req.socket.localPort}`]?.x_env?.devServerName;
+        const port = `${req.socket.localPort}`;
+        const name = this.appMap[port]?.x_name;
+
+        const envItem = this.config.findEnvByNameAndPort(name, port);
+
+        const devServerName = envItem?.devServerName;
 
         const devServerConfig = this.config.findDevServerByName(devServerName);
 
         // 默认转发到 Webpack 开发服务器
-        return devServerConfig.target;
+        return devServerConfig?.target;
       },
       on: {
         proxyReq(proxyReq, req: Request, res) {
@@ -56,19 +60,21 @@ class PreProxyServer {
 
   updateXenvOnApp(newConfig: EnvConfig) {
     let envMapWithNamAndPort = Utils.generateMap(newConfig.envList);
-    Object.values(this.appMap).forEach((item) => {
-      const envItem = item.x_env;
-      const rowKey = `${envItem.name}+${envItem.port}`;
+    Object.entries(this.appMap).forEach(([port, item]) => {
+      const rowKey = Utils.getRowKey({
+        name: item.x_name,
+        port,
+      });
       if (envMapWithNamAndPort[rowKey]) {
-        item.x_env = envMapWithNamAndPort[rowKey];
+        item.x_name = envMapWithNamAndPort[rowKey].name;
       } else {
-        this.stopServer(envItem.port);
+        this.stopServer(port);
       }
     });
   }
 
   startServer(envConfig: EnvItem) {
-    const { port } = envConfig;
+    const { port, name } = envConfig;
     if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;
@@ -78,7 +84,7 @@ class PreProxyServer {
       console.log(`Server is running on http://localhost:${port}`);
     }) as MyApplication;
 
-    server.x_env = envConfig;
+    server.x_name = name;
 
     // 保存所有活动的 socket 连接
     server.x_sockets = new Set();
@@ -102,7 +108,7 @@ class PreProxyServer {
     this.appMap[port] = server;
   }
 
-  stopServer(port: number) {
+  stopServer(port: number | string) {
     return new Promise((resolve, reject) => {
       if (!this.appMap[port]) {
         console.log(`端口 ${port} 未启动`);

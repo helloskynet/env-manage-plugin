@@ -3,7 +3,7 @@ import path from "path";
 import chokidar from "chokidar";
 
 import { cosmiconfig, CosmiconfigResult, PublicExplorer } from "cosmiconfig";
-import { EnvConfig, EnvItem } from ".";
+import { DevServerItem, EnvConfig, EnvItem } from ".";
 import Utils from "./Utils";
 
 // type CosmiconfigResult2 = {
@@ -27,6 +27,8 @@ class Config {
    */
   envConfig: EnvConfig;
 
+  modifyDevServerNameMap: Record<string, string> = {};
+
   constructor() {
     if (Config.instance) {
       return Config.instance;
@@ -49,13 +51,23 @@ class Config {
           indexPage = "",
         } = result.config;
 
+        devServerList = Utils.removeEnvDuplicates<DevServerItem>(devServerList);
+
+        const defaultDevServerName = devServerList[0]?.name;
+
         envList = Utils.removeEnvDuplicates<EnvItem>(envList).map((item) => {
+          const rowKey = Utils.getRowKey(item);
+
+          let devServerName = `${this.modifyDevServerNameMap[rowKey] || item?.devServerName}`;
+          if (!this.findDevServerByName(devServerName, devServerList)) {
+            devServerName = defaultDevServerName;
+          }
           return {
             ...item,
             indexPage: `${item.indexPage || indexPage || ""}`,
+            devServerName,
           };
         });
-        devServerList = Utils.removeEnvDuplicates(devServerList);
 
         Object.assign(result.config, {
           port,
@@ -133,8 +145,17 @@ class Config {
    * @param name
    * @returns
    */
-  findDevServerByName(name: string) {
-    return this.envConfig.devServerList.find((item) => item.name === name);
+  findDevServerByName(name: string, devServerList?: DevServerItem[]) {
+    const list = devServerList || this.envConfig.devServerList;
+    return list.find((item) => item.name === name);
+  }
+
+  findEnvByNameAndPort(name: string, port: number | string) {
+    const findKey = `${name}+${port}`;
+    return this.envConfig.envList.find((item) => {
+      const rowKey = `${item.name}+${item.port}`;
+      return findKey === rowKey;
+    });
   }
 }
 
