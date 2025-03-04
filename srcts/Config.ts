@@ -3,7 +3,7 @@ import path from "path";
 import chokidar from "chokidar";
 
 import { cosmiconfig, CosmiconfigResult, PublicExplorer } from "cosmiconfig";
-import { EnvConfig } from ".";
+import { EnvConfig, EnvItem } from ".";
 import Utils from "./Utils";
 
 // type CosmiconfigResult2 = {
@@ -49,7 +49,12 @@ class Config {
           indexPage = "",
         } = result.config;
 
-        envList = Utils.removeEnvDuplicates(envList);
+        envList = Utils.removeEnvDuplicates<EnvItem>(envList).map((item) => {
+          return {
+            ...item,
+            indexPage: `${item.indexPage || indexPage || ""}`,
+          };
+        });
         devServerList = Utils.removeEnvDuplicates(devServerList);
 
         Object.assign(result.config, {
