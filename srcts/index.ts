@@ -23,36 +23,7 @@ interface AppOptions {
   config?: string;
 }
 
-export type DevServerItem = {
-  name: string;
-  target: string;
-};
-
-type RouterFunction = (req: unknown, env: EnvItem) => string;
-
-export type EnvItem = {
-  name: string;
-  port: number;
-  target: string;
-  indexPage?: string;
-  devServerName: string;
-  router?: RouterFunction;
-};
-
-export type EnvConfig = {
-  port: number;
-  basePath: string;
-  indexPage: string;
-  devServerList: Array<DevServerItem>;
-  envList: Array<EnvItem>;
-};
-
 class EnvManage {
-  /**
-   * 缓存破坏者,用于清除 Es Module 的缓存，重新加载配置文件
-   */
-  configFileCacheBuster = 0;
-
   /**
    * 应用启动配置
    */
@@ -62,11 +33,6 @@ class EnvManage {
    * 配置文件地址
    */
   configPath: string;
-
-  /**
-   * 应用配置
-   */
-  envConfig: EnvConfig;
 
   /**
    * 后置地理服务器 和 管理服务器
@@ -102,8 +68,6 @@ class EnvManage {
     this.config = new Config();
 
     await this.getEnvPluginConfig();
-
-    this.envConfig = this.config.envConfig;
 
     this.preProxyServer = new PreProxyServer();
 

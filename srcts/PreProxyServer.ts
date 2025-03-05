@@ -6,17 +6,26 @@ import { Server } from "http";
 import { Socket } from "net";
 // 导入本地的 Utils 模块
 import Utils from "./Utils";
-import { Config } from "./Config";
-import { EnvConfig, EnvItem } from ".";
+import { Config, EnvConfig, EnvItem } from "./Config";
 
 type MyApplication = Server & {
+  /**
+   * 绑定的环境名称
+   */
   x_name: string;
+
+  /**
+   * 相关的socket链接，用于在关闭服务器的时候，提断开相关链接
+   */
   x_sockets: Set<Socket>;
 };
 
 class PreProxyServer {
   app: Application;
 
+  /**
+   * 保存启动的环境实例
+   */
   appMap: {
     [key: string]: MyApplication;
   };
@@ -39,12 +48,7 @@ class PreProxyServer {
         const port = `${req.socket.localPort}`;
         const name = this.appMap[port]?.x_name;
 
-        const envItem = this.config.findEnvByNameAndPort(name, port);
-
-        const devServerName = envItem?.devServerName;
-
-        const devServerConfig = this.config.findDevServerByName(devServerName);
-
+        const devServerConfig = this.config.findDevServerForEnv(name, port);
         // 默认转发到 Webpack 开发服务器
         return devServerConfig?.target;
       },

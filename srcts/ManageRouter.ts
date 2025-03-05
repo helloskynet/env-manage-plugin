@@ -1,8 +1,7 @@
 // 导入 express 模块
 import express, { Request, Response } from "express";
 import PreProxyServer from "./PreProxyServer";
-import { DevServerItem, EnvConfig, EnvItem } from ".";
-import { Config } from "./Config";
+import { Config, EnvItem } from "./Config";
 import Utils from "./Utils";
 
 // console.log(express,'eeeeeeeeeee')
@@ -155,17 +154,12 @@ class ManageRouter {
       return res.status(400).json({ error: "devServer 不存在，请刷新" });
     }
 
-    this.updateDateDevserverName(req.body);
+    const rowKey = Utils.getRowKey(req.body);
+    this.config.envToDevServerMap[rowKey] = devServerName;
 
     return res.json({
       message: `环境 【${name}】 在端口 【${port}】 已经切换到 【${selectedDevServer.name}】`,
     });
-  }
-
-  updateDateDevserverName(reqBody: EnvItem) {
-    const rowKey = Utils.getRowKey(reqBody);
-
-    this.config.modifyDevServerNameMap[rowKey] = reqBody.devServerName;
   }
 
   // Helper methods

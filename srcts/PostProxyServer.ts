@@ -11,9 +11,8 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import Utils from "./Utils";
 // 导入本地的 ManageRouter 模块
 import ManageRouter from "./ManageRouter";
-import { Config } from "./Config";
+import { Config, EnvConfig } from "./Config";
 import PreProxyServer from "./PreProxyServer";
-import { EnvConfig } from ".";
 import { NextFunction } from "http-proxy-middleware/dist/types";
 
 /**
