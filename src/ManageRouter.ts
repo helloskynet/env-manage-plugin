@@ -118,10 +118,16 @@ class ManageRouter {
 
   // 处理获取列表
   handleGetList(req: Request, res: Response) {
-    const list = this.envConfig.envList.map((item) => ({
-      ...item,
-      status: this.getAppStatus(item.name, item.port),
-    }));
+    const list = this.envConfig.envList.map((item) => {
+      const rowKey = Utils.getRowKey(item);
+      const devServerName =
+        this.config.envToDevServerMap[rowKey] || item.devServerName;
+      return {
+        ...item,
+        devServerName,
+        status: this.getAppStatus(item.name, item.port),
+      };
+    });
 
     return res.json({ list });
   }

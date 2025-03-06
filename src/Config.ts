@@ -52,7 +52,7 @@ class Config {
   /**
    * 用于清除 import 缓存
    */
-  configFileCacheBuster: 0;
+  configFileCacheBuster = 0;
 
   /**
    * 配置文件地址
@@ -111,54 +111,6 @@ class Config {
   }
 
   /**
-   * 转换读取到的配置，设置默认值，去除重复数据
-   * @param resolveDConfig
-   * @returns
-   */
-  resolveConfig(resolveDConfig: EnvConfig) {
-    let {
-      port = 3099,
-      basePath = "/dev-manage-api",
-      envList = [],
-      devServerList = [],
-      indexPage = "",
-    } = resolveDConfig;
-
-    devServerList = Utils.removeEnvDuplicates<DevServerItem>(devServerList);
-
-    const defaultDevServerName = devServerList[0]?.name;
-
-    const envToDevServerMap: typeof this.envToDevServerMap = {};
-
-    envList = Utils.removeEnvDuplicates<EnvItem>(envList).map((item) => {
-      const rowKey = Utils.getRowKey(item);
-
-      let devServerName = `${this.envToDevServerMap[rowKey] || item?.devServerName}`;
-      if (!this.findDevServerByName(devServerName, devServerList)) {
-        devServerName = defaultDevServerName;
-      } else {
-        envToDevServerMap[rowKey] = this.envToDevServerMap[rowKey];
-      }
-      return {
-        ...item,
-        indexPage: `${item.indexPage || indexPage || ""}`,
-        devServerName,
-      };
-    });
-
-    this.envToDevServerMap = envToDevServerMap;
-
-    this.envConfig = {
-      ...resolveDConfig,
-      port,
-      basePath,
-      envList,
-      devServerList,
-      indexPage,
-    };
-  }
-
-  /**
    * 重新加载配置文件
    */
   loadConfig() {
@@ -194,6 +146,56 @@ class Config {
     } catch (error) {
       console.error(`配置文件加载失败 ${modulePath}:`, error);
     }
+  }
+
+  /**
+   * 转换读取到的配置，设置默认值，去除重复数据
+   * @param resolveDConfig
+   * @returns
+   */
+  resolveConfig(resolveDConfig: EnvConfig) {
+    let {
+      port = 3099,
+      basePath = "/dev-manage-api",
+      envList = [],
+      devServerList = [],
+      indexPage = "",
+    } = resolveDConfig;
+
+    devServerList = Utils.removeEnvDuplicates<DevServerItem>(devServerList);
+
+    const defaultDevServerName = devServerList[0]?.name;
+
+    const envToDevServerMap: typeof this.envToDevServerMap = {};
+
+    envList = Utils.removeEnvDuplicates<EnvItem>(envList).map((item) => {
+      const rowKey = Utils.getRowKey(item);
+
+      let devServerName = `${this.envToDevServerMap[rowKey] || item?.devServerName}`;
+      if (this.findDevServerByName(devServerName, devServerList)) {
+        if (this.envToDevServerMap[rowKey]) {
+          envToDevServerMap[rowKey] = this.envToDevServerMap[rowKey];
+        }
+      } else {
+        devServerName = defaultDevServerName;
+      }
+      return {
+        ...item,
+        indexPage: `${item.indexPage || indexPage || ""}`,
+        devServerName,
+      };
+    });
+
+    this.envToDevServerMap = envToDevServerMap;
+
+    this.envConfig = {
+      ...resolveDConfig,
+      port,
+      basePath,
+      envList,
+      devServerList,
+      indexPage,
+    };
   }
 
   watchConfig() {

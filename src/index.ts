@@ -81,7 +81,7 @@ class EnvManage {
   static initConfig(force = false) {
     const FILE_EXT = Utils.isESModuleByPackageJson() ? ".mjs" : ".js";
 
-    const CONFIG_FILE_NAME = `env.config${FILE_EXT}`;
+    const CONFIG_FILE_NAME = `envm.config${FILE_EXT}`;
     // 模板文件路径
     const TEMPLATE_PATH = path.join(
       __dirname,
@@ -106,7 +106,7 @@ class EnvManage {
         `${CONFIG_FILE_NAME} ${isTargetExist ? "overwritten" : "created"} successfully!`
       );
     } catch (err) {
-      console.error("Failed to initialize env.config.js:", err);
+      console.error("Failed to initialize envm.config.js:", err);
     }
   }
 }

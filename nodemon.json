@@ -1,5 +1,5 @@
 {
-  "watch": ["src"],
+  "watch": ["dist"],
   "ignore": ["src/client"],
   "ext": "js,json"
 }

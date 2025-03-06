@@ -9,7 +9,7 @@
     "rootDir": "src",
     "declaration": true,
     "declarationDir": "./types", // 指定类型声明文件的输出目录
-    "sourceMap": true
+    // "sourceMap": true
   },
   "include": [
     "src/**/*.ts"
