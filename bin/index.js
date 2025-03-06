@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const { program } = require("commander");
-const EnvManagePlugin = require("../src/index");
+const { EnvManage } = require("../dist/index");
 const packageJson = require("../package.json");
 
 program
@@ -12,10 +12,10 @@ program
 // 添加默认命令
 program
   .command("default", { isDefault: true }) // 默认命令
-  .description("Start EnvManagePlugin")
+  .description("Start EnvManage")
   .action(() => {
     const options = program.opts();
-    const envMangePlugin = new EnvManagePlugin({
+    const envMangePlugin = new EnvManage({
       config: options.config,
     });
 
@@ -28,7 +28,7 @@ program
   .description("Init config file 初始化配置文件")
   .option("-f, --force", "force init config file 强制初始化配置文件")
   .action((options) => {
-    EnvManagePlugin.initConfig(options.force);
+    EnvManage.initConfig(options.force);
   });
 
 program.parse();

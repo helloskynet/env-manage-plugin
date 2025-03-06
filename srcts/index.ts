@@ -111,4 +111,4 @@ class EnvManage {
   }
 }
 
-export default EnvManage;
+export { EnvManage };

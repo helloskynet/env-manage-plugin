@@ -7,10 +7,6 @@ const { pathToFileURL } = require("url");
 
 import Utils from "./Utils";
 
-// type CosmiconfigResult2 = {
-//   Config: EnvConfig;
-// } & Omit<CosmiconfigResult, "config">;
-
 /**
  * 开发服务器配置
  */

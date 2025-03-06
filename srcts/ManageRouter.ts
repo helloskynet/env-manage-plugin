@@ -4,8 +4,6 @@ import PreProxyServer from "./PreProxyServer";
 import { Config, EnvItem } from "./Config";
 import Utils from "./Utils";
 
-// console.log(express,'eeeeeeeeeee')
-
 // 定义请求体的类型
 interface ManageServerRequest {
   action: string;
