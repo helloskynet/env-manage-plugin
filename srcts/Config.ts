@@ -132,12 +132,16 @@ class Config {
 
     const defaultDevServerName = devServerList[0]?.name;
 
+    const envToDevServerMap: typeof this.envToDevServerMap = {};
+
     envList = Utils.removeEnvDuplicates<EnvItem>(envList).map((item) => {
       const rowKey = Utils.getRowKey(item);
 
       let devServerName = `${this.envToDevServerMap[rowKey] || item?.devServerName}`;
       if (!this.findDevServerByName(devServerName, devServerList)) {
         devServerName = defaultDevServerName;
+      } else {
+        envToDevServerMap[rowKey] = this.envToDevServerMap[rowKey];
       }
       return {
         ...item,
@@ -146,7 +150,7 @@ class Config {
       };
     });
 
-    this.envToDevServerMap = {};
+    this.envToDevServerMap = envToDevServerMap;
 
     this.envConfig = {
       ...resolveDConfig,
