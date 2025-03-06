@@ -1,6 +1,6 @@
 {
   "name": "env-manage-plugin",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "A dev env plugin that integrates an Express server with request proxying capabilities.",
   "workspaces": [
     "client"
