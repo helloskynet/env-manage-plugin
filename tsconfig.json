@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "ESNext",
+    "module": "CommonJS",
     "noImplicitAny": true,
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "outDir": "./dist",
-    "rootDir": "./srcts",
+    "rootDir": "src",
     "declaration": true,
     "declarationDir": "./types", // 指定类型声明文件的输出目录
     "sourceMap": true
   },
   "include": [
-    "srcts/**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"
