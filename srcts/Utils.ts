@@ -63,6 +63,45 @@ class Utils {
     return "";
   }
 
+  static isESModule(filepath: string) {
+    const ext = path.extname(filepath);
+    // 检查文件扩展名
+    if (ext === ".mjs") {
+      return true;
+    } else if (ext === ".cjs") {
+      return false;
+    } else if (ext === ".js") {
+      // 查找最近的 package.json 文件
+      let currentDir = path.dirname(filepath);
+      while (currentDir) {
+        const packageJsonPath = path.join(currentDir, "package.json");
+        if (fs.existsSync(packageJsonPath)) {
+          try {
+            const packageJson = JSON.parse(
+              fs.readFileSync(packageJsonPath, "utf8")
+            );
+            if (packageJson.type === "module") {
+              return true;
+            } else {
+              return false;
+            }
+          } catch (error) {
+            break;
+          }
+        }
+        const parentDir = path.dirname(currentDir);
+        if (parentDir === currentDir) {
+          break;
+        }
+        currentDir = parentDir;
+      }
+      // 如果没有找到 package.json，默认使用 CommonJS
+      return false;
+    }
+    // 对于其他扩展名，默认使用 CommonJS
+    return false;
+  }
+
   static getRowKey<T extends { name: string; port?: string | number }>(
     rowData: T
   ): string {

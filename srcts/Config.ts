@@ -1,8 +1,9 @@
+import fs from "fs";
 import path from "path";
 // 导入 chokidar 模块
 import chokidar from "chokidar";
 
-import { cosmiconfig, CosmiconfigResult, PublicExplorer } from "cosmiconfig";
+const { pathToFileURL } = require("url");
 
 import Utils from "./Utils";
 
@@ -51,10 +52,11 @@ class Config {
    * 单例模式
    */
   static instance: Config;
+
   /**
-   * 配置文件加载器
+   * 用于清除 import 缓存
    */
-  explorer: PublicExplorer;
+  configFileCacheBuster: 0;
 
   /**
    * 配置文件地址
@@ -84,97 +86,113 @@ class Config {
    * @returns
    */
   initConfig(configPath: string) {
-    if (configPath) {
-      this.filePath = path.resolve(process.cwd(), configPath);
+    let localConfigPath = configPath;
+    if (!configPath) {
+      localConfigPath = this.checkFileExists(process.cwd(), "envm.config");
     }
-    this.explorer = cosmiconfig("envm", {
-      searchStrategy: "none",
-      transform: async (result) => {
-        if (!result) {
-          return result;
-        }
-        let {
-          port = 3099,
-          basePath = "/dev-manage-api",
-          envList = [],
-          devServerList = [],
-          indexPage = "",
-        } = result.config;
-
-        devServerList = Utils.removeEnvDuplicates<DevServerItem>(devServerList);
-
-        const defaultDevServerName = devServerList[0]?.name;
-
-        envList = Utils.removeEnvDuplicates<EnvItem>(envList).map((item) => {
-          const rowKey = Utils.getRowKey(item);
-
-          let devServerName = `${this.envToDevServerMap[rowKey] || item?.devServerName}`;
-          if (!this.findDevServerByName(devServerName, devServerList)) {
-            devServerName = defaultDevServerName;
-          }
-          return {
-            ...item,
-            indexPage: `${item.indexPage || indexPage || ""}`,
-            devServerName,
-          };
-        });
-
-        this.envToDevServerMap = {};
-
-        Object.assign(result.config, {
-          port,
-          basePath,
-          envList,
-          devServerList,
-          indexPage,
-        });
-        return result;
-      },
+    this.filePath = path.resolve(process.cwd(), localConfigPath);
+    return this.loadConfig().then(() => {
+      this.watchConfig();
     });
-    return this.loadConfig();
+  }
+
+  checkFileExists(folderPath: string, targetFileName: string) {
+    try {
+      // 读取指定文件夹下的所有文件和文件夹
+      const files = fs.readdirSync(folderPath);
+      for (const file of files) {
+        // 获取文件名（不包含扩展名）
+        const baseName = path.basename(file, path.extname(file));
+        if (baseName.toLowerCase() === targetFileName.toLowerCase()) {
+          return file;
+        }
+      }
+      throw new Error("Not Found");
+    } catch (error) {
+      console.error("读取文件夹时出错:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 转换读取到的配置，设置默认值，去除重复数据
+   * @param resolveDConfig
+   * @returns
+   */
+  resolveConfig(resolveDConfig: EnvConfig) {
+    let {
+      port = 3099,
+      basePath = "/dev-manage-api",
+      envList = [],
+      devServerList = [],
+      indexPage = "",
+    } = resolveDConfig;
+
+    devServerList = Utils.removeEnvDuplicates<DevServerItem>(devServerList);
+
+    const defaultDevServerName = devServerList[0]?.name;
+
+    envList = Utils.removeEnvDuplicates<EnvItem>(envList).map((item) => {
+      const rowKey = Utils.getRowKey(item);
+
+      let devServerName = `${this.envToDevServerMap[rowKey] || item?.devServerName}`;
+      if (!this.findDevServerByName(devServerName, devServerList)) {
+        devServerName = defaultDevServerName;
+      }
+      return {
+        ...item,
+        indexPage: `${item.indexPage || indexPage || ""}`,
+        devServerName,
+      };
+    });
+
+    this.envToDevServerMap = {};
+
+    this.envConfig = {
+      ...resolveDConfig,
+      port,
+      basePath,
+      envList,
+      devServerList,
+      indexPage,
+    };
   }
 
   /**
    * 重新加载配置文件
    */
   loadConfig() {
-    let explorer = Promise.resolve();
-    if (this.filePath) {
-      explorer = this.explorer.load(this.filePath).then((result) => {
-        this.resolveConfig(result);
-      });
-    } else {
-      explorer = this.explorer
-        .search()
-        .then((result) => {
-          this.resolveConfig(result);
-        })
-        .then(() => {
-          this.watchConfig();
-        });
-    }
-    explorer.catch((err: Error) => {
-      if (err.message === "Not Found") {
-        console.error(
-          "未找到配置文件，请运行 npm/yarn envm init 初始化配置文件！"
-        );
-      } else {
-        console.log("配置文件加载异常");
-      }
-    });
-    return explorer;
-  }
+    const modulePath = this.filePath;
 
-  /**
-   * 根据加载结果解析
-   * @param result
-   */
-  resolveConfig(result: CosmiconfigResult) {
-    if (result) {
-      this.filePath = result.filepath;
-      this.envConfig = result.config;
-    } else {
-      throw new Error("Not Found");
+    try {
+      // 清除缓存（仅对 CommonJS 有效）
+      delete require.cache[require.resolve(modulePath)];
+
+      // 判断文件类型
+      if (
+        modulePath.endsWith(".mjs") ||
+        (modulePath.endsWith(".js") && Utils.isESModule(modulePath))
+      ) {
+        // 动态加载 ES Module
+
+        const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
+
+        const urlWithCacheBuster = `${fileUrl}?v=${this.configFileCacheBuster++}`;
+        return import(urlWithCacheBuster)
+          .then((module) => {
+            return module.default || module;
+          })
+          .then((res) => {
+            this.resolveConfig(res);
+          });
+      } else {
+        // 使用 require 加载 CommonJS
+        const envConfig = require(modulePath);
+        this.resolveConfig(envConfig);
+        return Promise.resolve();
+      }
+    } catch (error) {
+      console.error(`配置文件加载失败 ${modulePath}:`, error);
     }
   }
 
@@ -188,13 +206,9 @@ class Config {
       console.log("Config file changed");
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        this.loadConfig()
-          .then(() => {
-            // this.updatePostProxyServerConfig();
-          })
-          .catch((error) => {
-            console.error("Error updating config:", error);
-          });
+        this.loadConfig().catch((error) => {
+          console.error("Error updating config:", error);
+        });
       }, 500);
     });
   }
