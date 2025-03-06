@@ -32,7 +32,6 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - run: npx tsc
       - run: npm run build:client
       - run: npm publish
         env:
