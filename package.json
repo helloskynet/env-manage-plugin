@@ -15,7 +15,7 @@
     "dev:proxy": "nodemon bin/index.js --config=./test/envm.config.js",
     "dev:client": "cd client && npm run dev",
     "dev:server": "node test/server.js",
-    "prebuild:ts": "tsc",
+    "prebuild:client": "tsc",
     "build:client": "cd client && npm run build",
     "test:installed": "concurrently --prefix \"[{name}]\" --names \"Client,TestServer\" \"npm run dev:client\" \"npm run dev:server\"",
     "start": "node src/index.js"
