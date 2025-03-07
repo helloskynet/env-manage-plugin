@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const { program } = require("commander");
-const { EnvManage } = require("../dist/index");
-const packageJson = require("../package.json");
+import { program } from "commander";
+import { EnvManage } from "../dist/index.js";
+import packageJson from "../package.json" with { type: "json" };
 
 program
   .name("envm")

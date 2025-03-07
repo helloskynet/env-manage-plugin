@@ -1,4 +1,5 @@
-const express = require("express");
+
+import express from "express";
 
 const createServer = (port, second) => {
   const app = express();

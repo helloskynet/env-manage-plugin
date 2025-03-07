@@ -3,9 +3,12 @@ import path from "path";
 // 导入 chokidar 模块
 import chokidar from "chokidar";
 
-const { pathToFileURL } = require("url");
+import { pathToFileURL } from "url";
 
-import Utils from "./Utils";
+import Utils from "./Utils.js";
+
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 
 /**
  * 开发服务器配置
@@ -116,36 +119,20 @@ class Config {
   loadConfig() {
     const modulePath = this.filePath;
 
-    try {
-      // 清除缓存（仅对 CommonJS 有效）
-      delete require.cache[require.resolve(modulePath)];
+    delete require.cache[require.resolve(modulePath)];
 
-      // 判断文件类型
-      if (
-        modulePath.endsWith(".mjs") ||
-        (modulePath.endsWith(".js") && Utils.isESModule(modulePath))
-      ) {
-        // 动态加载 ES Module
-
-        const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
-
-        const urlWithCacheBuster = `${fileUrl}?v=${this.configFileCacheBuster++}`;
-        return import(urlWithCacheBuster)
-          .then((module) => {
-            return module.default || module;
-          })
-          .then((res) => {
-            this.resolveConfig(res);
-          });
-      } else {
-        // 使用 require 加载 CommonJS
-        const envConfig = require(modulePath);
-        this.resolveConfig(envConfig);
-        return Promise.resolve();
-      }
-    } catch (error) {
-      console.error(`配置文件加载失败 ${modulePath}:`, error);
-    }
+    const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
+    const urlWithCacheBuster = `${fileUrl}?v=${this.configFileCacheBuster++}`;
+    return import(urlWithCacheBuster)
+      .then((module) => {
+        return module.default || module;
+      })
+      .then((res) => {
+        this.resolveConfig(res);
+      })
+      .catch((err) => {
+        console.error(`配置文件加载失败 ${modulePath}:`, err);
+      });
   }
 
   /**

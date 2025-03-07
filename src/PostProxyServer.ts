@@ -8,11 +8,11 @@ import expressStaticGzip from "express-static-gzip";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
 // 导入本地的 Utils 模块
-import Utils from "./Utils";
+import Utils from "./Utils.js";
 // 导入本地的 ManageRouter 模块
-import ManageRouter from "./ManageRouter";
-import { Config, EnvConfig } from "./Config";
-import PreProxyServer from "./PreProxyServer";
+import ManageRouter from "./ManageRouter.js";
+import { Config, EnvConfig } from "./Config.js";
+import PreProxyServer from "./PreProxyServer.js";
 import { NextFunction } from "http-proxy-middleware/dist/types";
 
 /**
@@ -48,7 +48,7 @@ class PostProxyServer {
     app.use(this.errorHandler);
 
     // 静态资源
-    app.use(expressStaticGzip(path.join(__dirname, "client"), {}));
+    app.use(expressStaticGzip(path.join(import.meta.url, "client"), {}));
 
     return app;
   }

@@ -1,8 +1,8 @@
 // 导入 express 模块
 import express, { Request, Response } from "express";
-import PreProxyServer from "./PreProxyServer";
-import { Config, EnvItem } from "./Config";
-import Utils from "./Utils";
+import PreProxyServer from "./PreProxyServer.js";
+import { Config, EnvItem } from "./Config.js";
+import Utils from "./Utils.js";
 
 // 定义请求体的类型
 interface ManageServerRequest {

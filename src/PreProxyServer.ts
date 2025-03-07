@@ -5,8 +5,8 @@ import express, { Application, Request } from "express";
 import { Server } from "http";
 import { Socket } from "net";
 // 导入本地的 Utils 模块
-import Utils from "./Utils";
-import { Config, EnvConfig, EnvItem } from "./Config";
+import Utils from "./Utils.js";
+import { Config, EnvConfig, EnvItem } from "./Config.js";
 
 type MyApplication = Server & {
   /**
