@@ -44,6 +44,7 @@ export default defineConfig({
     proxy: {
       '/dev-manage-api': {
         target: 'http://localhost:3099',
+        ws: true,
       },
       '/simple': {
         target: 'http://localhost:3099',

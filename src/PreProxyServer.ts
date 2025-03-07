@@ -58,6 +58,11 @@ class PreProxyServer {
             proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
           }
         },
+        proxyReqWs(proxyReq, req: Request, res) {
+          if (!req.path?.includes("dev-manage-api")) {
+            proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
+          }
+        },
       },
     });
   }

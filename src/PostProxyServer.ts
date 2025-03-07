@@ -75,13 +75,19 @@ class PostProxyServer {
             return env.target;
           }
         }
-        throw new Error("SKIP_PROXY");
+        if (req.headers.upgrade) {
+          throw new Error("SKIP_PROXY_UPGRADE");
+        } else {
+          throw new Error("SKIP_PROXY");
+        }
       },
     });
   }
 
   errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
-    if (err.message === "SKIP_PROXY") return next();
+    if (err.message === "SKIP_PROXY") {
+      return next();
+    }
     res.status(500).send("代理服务器出错");
   }
 
