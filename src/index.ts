@@ -1,7 +1,9 @@
 // 导入 path 模块
-import * as path from "path";
+import { dirname, join } from "path";
 // 导入 fs 模块
 import * as fs from "fs";
+
+import { fileURLToPath } from "url";
 
 // 导入本地的 Utils 模块
 import Utils from "./Utils.js";
@@ -74,17 +76,23 @@ class EnvManage {
    * 初始化配置文件
    * @param {boolean} force - 是否强制覆盖
    */
-  static initConfig(force = false) {
-    const FILE_EXT = Utils.isESModuleByPackageJson() ? ".mjs" : ".js";
+  static async initConfig(force = false) {
+    const isESModule = await Utils.isESModuleByPackageJson();
+
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+
+    const FILE_EXT = isESModule ? ".mjs" : ".js";
 
     const CONFIG_FILE_NAME = `envm.config${FILE_EXT}`;
     // 模板文件路径
-    const TEMPLATE_PATH = path.join(
+    const TEMPLATE_PATH = join(
       __dirname,
-      `../templates/${CONFIG_FILE_NAME}`
+      `..`,
+      `templates`,
+      `${CONFIG_FILE_NAME}`
     );
     // 目标文件路径
-    const TARGET_PATH = path.join(process.cwd(), CONFIG_FILE_NAME);
+    const TARGET_PATH = join(process.cwd(), CONFIG_FILE_NAME);
     try {
       // 检查目标文件是否存在
       const isTargetExist = fs.existsSync(TARGET_PATH);

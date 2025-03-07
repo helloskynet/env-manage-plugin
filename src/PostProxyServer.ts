@@ -1,5 +1,5 @@
-// 导入 path 模块
-import * as path from "path";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 // 导入 express 模块
 import express, { Application, Request, Response } from "express";
 // 导入 express-static-gzip 模块
@@ -48,7 +48,10 @@ class PostProxyServer {
     app.use(this.errorHandler);
 
     // 静态资源
-    app.use(expressStaticGzip(path.join(import.meta.url, "client"), {}));
+    // 获取当前模块的目录路径
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+
+    app.use(expressStaticGzip(join(__dirname, "client"), {}));
 
     return app;
   }

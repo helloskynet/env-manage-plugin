@@ -2,6 +2,7 @@
 import * as path from "path";
 // 导入 fs 模块
 import * as fs from "fs";
+import { pathToFileURL } from "url";
 
 class Utils {
   /**
@@ -54,13 +55,20 @@ class Utils {
     const packageJsonPath = path.resolve(process.cwd(), "package.json");
 
     if (fs.existsSync(packageJsonPath)) {
-      const packageJson = require(packageJsonPath);
-      if (Object.hasOwnProperty.call(packageJson, "type")) {
-        return packageJson.type === "module";
-      }
+      const fileUrl = pathToFileURL(packageJsonPath).href;
+      return import(fileUrl, { with: { type: "json" } })
+        .then((packageJson) => {
+          if (Object.hasOwnProperty.call(packageJson.default, "type")) {
+            return packageJson.default.type === "module";
+          }
+          return false;
+        })
+        .catch(() => {
+          return false;
+        });
     }
 
-    return "";
+    return Promise.resolve(false);
   }
 
   static isESModule(filepath: string) {
