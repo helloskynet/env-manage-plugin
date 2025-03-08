@@ -21,7 +21,7 @@ import { createProxyMiddleware, RequestHandler } from "http-proxy-middleware";
 import Utils from "./Utils.js";
 // 导入本地的 ManageRouter 模块
 import ManageRouter from "./ManageRouter.js";
-import { Config, EnvConfig } from "./Config.js";
+import { Config, EnvConfig, FILE_CHANGE_EVENT } from "./Config.js";
 import PreProxyServer from "./PreProxyServer.js";
 
 /**
@@ -129,7 +129,7 @@ class PostProxyServer {
       });
     });
 
-    this.config.bus.on("configFileChanged", (data) => {
+    this.config.bus.on(FILE_CHANGE_EVENT, (data) => {
       const message = JSON.stringify(data);
       this.wsClients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {

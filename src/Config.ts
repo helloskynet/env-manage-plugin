@@ -11,6 +11,7 @@ import Utils from "./Utils.js";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
+export const FILE_CHANGE_EVENT = "filechange";
 /**
  * 开发服务器配置
  */
@@ -202,7 +203,7 @@ class Config {
       debounceTimer = setTimeout(() => {
         this.loadConfig()
           .then(() => {
-            this.bus.emit("configFileChanged", {
+            this.bus.emit(FILE_CHANGE_EVENT, {
               action: "filechange",
             });
           })

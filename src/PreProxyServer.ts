@@ -6,7 +6,7 @@ import { Server } from "http";
 import { Socket } from "net";
 // 导入本地的 Utils 模块
 import Utils from "./Utils.js";
-import { Config, EnvConfig, EnvItem } from "./Config.js";
+import { Config, EnvItem, FILE_CHANGE_EVENT } from "./Config.js";
 
 type MyApplication = Server & {
   /**
@@ -37,9 +37,10 @@ class PreProxyServer {
     this.config = new Config();
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
-    this.config.bus.on("configFileChanged", () => {
-      this.updateAppMapAfterConfigFileChange();
-    });
+    this.config.bus.on(
+      FILE_CHANGE_EVENT,
+      this.updateAppMapAfterConfigFileChange
+    );
   }
 
   createPreProxyMiddleware() {
