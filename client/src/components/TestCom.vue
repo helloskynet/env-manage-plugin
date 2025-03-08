@@ -68,6 +68,7 @@ onMounted(() => {
   // 接收到消息时触发
   socket.addEventListener('message', (event) => {
     console.log('收到消息:', event.data)
+    document.getElementById('console').innerHTML += event.data + '<br>'
   })
 
   // 连接出错时触发
