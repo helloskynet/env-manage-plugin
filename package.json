@@ -3,13 +3,24 @@
   "version": "0.4.5",
   "type": "module",
   "description": "A dev env plugin that integrates an Express server with request proxying capabilities.",
+  "keywords": [
+    "proxy",
+    "devServer",
+    "Development environment management",
+    "webpack-plugin",
+    "rollup-plugin",
+    "vite-plugin"
+  ],
   "workspaces": [
     "client"
   ],
   "bin": {
     "envm": "bin/index.js"
   },
-  "main": "src/index.js",
+  "main": "./dist/plugin.js",
+  "exports": {
+    ".": "./dist/Plugin.js"
+  },
   "scripts": {
     "dev": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"npm run dev:*\" ",
     "dev:ts": "tsc --watch",
@@ -31,6 +42,7 @@
     "express": "^4.21.2",
     "express-static-gzip": "^2.2.0",
     "http-proxy-middleware": "^3.0.3",
+    "unplugin": "^2.2.0",
     "ws": "^8.18.1"
   },
   "devDependencies": {

@@ -12,7 +12,7 @@ import { Config } from "./Config.js";
 /**
  * 应用启动配置
  */
-interface AppOptions {
+export interface AppOptions {
   config?: string;
 }
 
@@ -30,7 +30,7 @@ class EnvManage {
   /**
    * 后置地理服务器 和 管理服务器
    */
-  manageServer: PostProxyServer | null;
+  manageServer: PostProxyServer | null = null;
 
   /**
    * 前置代理服务器
@@ -41,8 +41,6 @@ class EnvManage {
 
   constructor(options = {}) {
     this.options = options;
-
-    this.manageServer = null;
   }
 
   // apply(compiler) {
