@@ -54,14 +54,10 @@ class PreProxyServer {
       },
       on: {
         proxyReq(proxyReq, req: Request, res) {
-          if (!req.path.includes("dev-manage-api")) {
-            proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
-          }
+          proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
         },
         proxyReqWs(proxyReq, req: Request, res) {
-          if (!req.path?.includes("dev-manage-api")) {
-            proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
-          }
+          proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
         },
       },
     });
