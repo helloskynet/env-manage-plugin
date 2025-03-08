@@ -29,9 +29,11 @@ export default defineConfig({
     vueDevTools(),
     AutoImport({
       resolvers: [ElementPlusResolver()],
+      dts: false,
     }),
     Components({
       resolvers: [ElementPlusResolver()],
+      dts: false,
     }),
     ElementPlus(),
     viteCompression({
