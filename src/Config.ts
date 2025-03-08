@@ -93,6 +93,12 @@ class Config {
     if (!configPath) {
       localConfigPath = this.checkFileExists(process.cwd(), "envm.config");
     }
+    if (!fs.existsSync(localConfigPath)) {
+      console.log(
+        "无法找到配置文件，请使用 npm/yarn envm init 初始化配置文件！或者通过 --config 指定配置文件！"
+      );
+      process.exit(1);
+    }
     this.filePath = path.resolve(process.cwd(), localConfigPath);
     return this.loadConfig().then(() => {
       this.watchConfig();
@@ -100,21 +106,16 @@ class Config {
   }
 
   checkFileExists(folderPath: string, targetFileName: string) {
-    try {
-      // 读取指定文件夹下的所有文件和文件夹
-      const files = fs.readdirSync(folderPath);
-      for (const file of files) {
-        // 获取文件名（不包含扩展名）
-        const baseName = path.basename(file, path.extname(file));
-        if (baseName.toLowerCase() === targetFileName.toLowerCase()) {
-          return file;
-        }
+    // 读取指定文件夹下的所有文件和文件夹
+    const files = fs.readdirSync(folderPath);
+    for (const file of files) {
+      // 获取文件名（不包含扩展名）
+      const baseName = path.basename(file, path.extname(file));
+      if (baseName.toLowerCase() === targetFileName.toLowerCase()) {
+        return file;
       }
-      throw new Error("Not Found");
-    } catch (error) {
-      console.error("读取文件夹时出错:", error);
-      throw error;
     }
+    return "";
   }
 
   /**
