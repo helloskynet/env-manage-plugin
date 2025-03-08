@@ -194,7 +194,12 @@ const refreshList = () => {
   getEnvList()
   getDevServerList()
 }
-
+const reconnect = () => {
+  setTimeout(() => {
+    console.log(`尝试重新连接ing...`)
+    startWs()
+  }, 2000)
+}
 const startWs = () => {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
   const host = window.location.host
@@ -207,10 +212,12 @@ const startWs = () => {
   // 连接建立时触发
   socket.addEventListener('open', () => {
     console.log('WebSocket 连接已建立')
+    refreshList()
 
     // 当 WebSocket 连接关闭时，清除定时器
     socket.addEventListener('close', () => {
       console.log('WebSocket 连接已关闭')
+      reconnect()
     })
   })
 
@@ -224,8 +231,9 @@ const startWs = () => {
   })
 
   // 连接出错时触发
-  socket.addEventListener('error', (event) => {
-    console.error('WebSocket 连接出错:', event)
+  socket.addEventListener('error', () => {
+    // console.error('WebSocket 连接出错:', event)
+    reconnect()
   })
 }
 </script>

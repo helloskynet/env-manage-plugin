@@ -74,13 +74,15 @@ class Config {
    */
   envToDevServerMap: Record<string, string> = {};
 
-  bus: EventEmitter;
+  /**
+   * 事件总线
+   */
+  bus: EventEmitter = new EventEmitter();
 
   constructor() {
     if (Config.instance) {
       return Config.instance;
     }
-    this.bus = new EventEmitter();
     Config.instance = this;
   }
 
@@ -106,6 +108,12 @@ class Config {
     });
   }
 
+  /**
+   * 检查文件夹中的指定文件是否存在
+   * @param folderPath
+   * @param targetFileName
+   * @returns
+   */
   checkFileExists(folderPath: string, targetFileName: string) {
     // 读取指定文件夹下的所有文件和文件夹
     const files = fs.readdirSync(folderPath);
@@ -206,6 +214,7 @@ class Config {
             this.bus.emit(FILE_CHANGE_EVENT, {
               action: "filechange",
             });
+            console.log("Config file reloaded");
           })
           .catch((error) => {
             console.error("Error updating config:", error);

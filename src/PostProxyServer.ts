@@ -125,7 +125,6 @@ class PostProxyServer {
       // 处理客户端断开连接
       ws.on("close", () => {
         this.wsClients.delete(ws);
-        console.log("客户端已断开 WebSocket 连接");
       });
     });
 

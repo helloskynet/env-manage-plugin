@@ -37,10 +37,9 @@ class PreProxyServer {
     this.config = new Config();
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
-    this.config.bus.on(
-      FILE_CHANGE_EVENT,
-      this.updateAppMapAfterConfigFileChange
-    );
+    this.config.bus.on(FILE_CHANGE_EVENT, () => {
+      this.updateAppMapAfterConfigFileChange();
+    });
   }
 
   createPreProxyMiddleware() {
