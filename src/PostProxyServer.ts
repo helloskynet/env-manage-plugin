@@ -1,4 +1,6 @@
-import { Server } from "http";
+import Stream from "stream";
+import { Socket } from "net";
+import { IncomingMessage, Server } from "http";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import WebSocket, { WebSocketServer } from "ws";
@@ -13,7 +15,7 @@ import express, {
 // 导入 express-static-gzip 模块
 import expressStaticGzip from "express-static-gzip";
 // 从 http-proxy-middleware 模块导入 createProxyMiddleware 函数
-import { createProxyMiddleware } from "http-proxy-middleware";
+import { createProxyMiddleware, RequestHandler } from "http-proxy-middleware";
 
 // 导入本地的 Utils 模块
 import Utils from "./Utils.js";
@@ -30,6 +32,7 @@ class PostProxyServer {
   config: Config;
   preProxyServer: PreProxyServer;
 
+  postMiddware: RequestHandler;
   wsClients: Set<WebSocket> = new Set();
 
   constructor(preProxyServer: PreProxyServer) {
@@ -60,9 +63,9 @@ class PostProxyServer {
   initializeServer() {
     const app = express();
 
-    const excludeRegex = new RegExp(`^(?!${this.config.envConfig.basePath}).*`);
     // 代理中间件
-    app.use(excludeRegex, this.createPostProxyMiddleware());
+    this.postMiddware = this.createPostProxyMiddleware();
+    app.use(this.postMiddware);
     // 无需代理的数据继续下一个中间件
     app.use(this.errorHandler);
 
@@ -80,7 +83,34 @@ class PostProxyServer {
    * @param server
    */
   registerWs(server: Server) {
-    const wss = new WebSocketServer({ server });
+    const wss = new WebSocketServer({ noServer: true });
+    // 拦截指定 URL 的 WebSocket 请求
+    const handleSpecificWs = (
+      request: IncomingMessage,
+      socket: Stream.Duplex,
+      head: Buffer<ArrayBufferLike>
+    ) => {
+      if (request.url.startsWith(this.config.envConfig.basePath)) {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          wss.emit("connection", ws, request);
+          // ws.on("message", (message) => {
+          //   ws.send(`Server received on /specific-url: ${message}`);
+          // });
+          // ws.on("close", () => {
+          //   console.log("Client disconnected from /specific-url WebSocket.");
+          // });
+        });
+        return true;
+      }
+      return false;
+    };
+
+    server.on("upgrade", (request, socket, head) => {
+      if (!handleSpecificWs(request, socket, head)) {
+        // 如果不是指定 URL，交给代理中间件处理
+        this.postMiddware.upgrade(request, socket as Socket, head);
+      }
+    });
 
     wss.on("connection", (ws) => {
       this.wsClients.add(ws);
@@ -110,7 +140,12 @@ class PostProxyServer {
   }
 
   createPostProxyMiddleware() {
+    // 定义路径过滤函数，排除 管理url
+    const pathFilter = (path: string, req: Request) => {
+      return !!req.headers["x-api-server"];
+    };
     return createProxyMiddleware({
+      pathFilter,
       changeOrigin: true,
       ws: true,
       router: (req) => {
