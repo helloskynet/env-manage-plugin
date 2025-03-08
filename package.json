@@ -11,15 +11,17 @@
   },
   "main": "src/index.js",
   "scripts": {
-    "devts": "tsc --watch",
-    "dev": "concurrently --prefix \"[{name}]\" --names \"Proxy,Client,TestServer\" \"npm run dev:proxy\" \"npm run dev:client\" \"npm run dev:server\"",
+    "dev": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"npm run dev:*\" ",
+    "dev:ts": "tsc --watch",
     "dev:proxy": "nodemon bin/index.js --config=./test/envm.config.js",
     "dev:client": "cd client && npm run dev",
     "dev:server": "node test/server.js",
-    "prebuild:client": "tsc",
-    "build:client": "cd client && npm run build",
-    "test:installed": "concurrently --prefix \"[{name}]\" --names \"Client,TestServer\" \"npm run dev:client\" \"npm run dev:server\"",
-    "start": "node src/index.js"
+    "build": "tsc",
+    "postbuild": "npm --prefix client run build",
+    "test": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"npm run test:*\" ",
+    "test:envm": "npx envm --config=./test/envm.config.js",
+    "test:client": "npm run dev:client",
+    "test:server": "npm run dev:server"
   },
   "author": "lcn",
   "license": "MIT",
