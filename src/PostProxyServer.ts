@@ -129,7 +129,7 @@ class PostProxyServer {
       });
     });
 
-    this.config.bus.on("message", (data) => {
+    this.config.bus.on("configFileChanged", (data) => {
       const message = JSON.stringify(data);
       this.wsClients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {

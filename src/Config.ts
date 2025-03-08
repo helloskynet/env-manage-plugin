@@ -202,7 +202,7 @@ class Config {
       debounceTimer = setTimeout(() => {
         this.loadConfig()
           .then(() => {
-            this.bus.emit("message", {
+            this.bus.emit("configFileChanged", {
               action: "filechange",
             });
           })

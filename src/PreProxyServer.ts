@@ -37,6 +37,9 @@ class PreProxyServer {
     this.config = new Config();
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
+    this.config.bus.on("configFileChanged", () => {
+      this.updateAppMapAfterConfigFileChange();
+    });
   }
 
   createPreProxyMiddleware() {
@@ -62,17 +65,20 @@ class PreProxyServer {
       },
     });
   }
+  /**
+   * 配置文件变更 检查再配置中已经不存在的环境，并关闭改环境
+   * @param newConfig
+   */
+  updateAppMapAfterConfigFileChange() {
+    const envList = this.config.envConfig.envList;
+    const envMapWithNamAndPort = Utils.generateMap(envList);
 
-  updateXenvOnApp(newConfig: EnvConfig) {
-    let envMapWithNamAndPort = Utils.generateMap(newConfig.envList);
     Object.entries(this.appMap).forEach(([port, item]) => {
       const rowKey = Utils.getRowKey({
         name: item.x_name,
         port,
       });
-      if (envMapWithNamAndPort[rowKey]) {
-        item.x_name = envMapWithNamAndPort[rowKey].name;
-      } else {
+      if (!envMapWithNamAndPort[rowKey]) {
         this.stopServer(port);
       }
     });
