@@ -1,7 +1,5 @@
-// 导入 path 模块
-import * as path from "path";
-// 导入 fs 模块
 import * as fs from "fs";
+import * as path from "path";
 import { pathToFileURL } from "url";
 
 class Utils {

@@ -1,8 +1,6 @@
 import fs from "fs";
 import path from "path";
-// 导入 chokidar 模块
 import chokidar from "chokidar";
-
 import { pathToFileURL } from "url";
 import { EventEmitter } from "events";
 
@@ -12,6 +10,7 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
 export const FILE_CHANGE_EVENT = "filechange";
+
 /**
  * 开发服务器配置
  */

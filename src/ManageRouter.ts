@@ -1,4 +1,3 @@
-// 导入 express 模块
 import express, { Request, Response } from "express";
 import PreProxyServer from "./PreProxyServer.js";
 import { Config, EnvItem } from "./Config.js";
@@ -8,7 +7,7 @@ import Utils from "./Utils.js";
 interface ManageServerRequest {
   action: string;
   name: string;
-  port?: number; // 如果 port 是可选的
+  port?: number;
 }
 
 class ManageRouter {
