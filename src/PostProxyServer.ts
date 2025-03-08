@@ -1,7 +1,15 @@
+import { Server } from "http";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import WebSocket, { WebSocketServer } from "ws";
 // 导入 express 模块
-import express, { Application, Request, Response } from "express";
+import express, {
+  Application,
+  Errback,
+  Request,
+  Response,
+  NextFunction,
+} from "express";
 // 导入 express-static-gzip 模块
 import expressStaticGzip from "express-static-gzip";
 // 从 http-proxy-middleware 模块导入 createProxyMiddleware 函数
@@ -13,7 +21,6 @@ import Utils from "./Utils.js";
 import ManageRouter from "./ManageRouter.js";
 import { Config, EnvConfig } from "./Config.js";
 import PreProxyServer from "./PreProxyServer.js";
-import { NextFunction } from "http-proxy-middleware/dist/types";
 
 /**
  * 后置代理服务器---同时也是管理页面的服务器
@@ -22,6 +29,8 @@ class PostProxyServer {
   app: Application;
   config: Config;
   preProxyServer: PreProxyServer;
+
+  wsClients: Set<WebSocket> = new Set();
 
   constructor(preProxyServer: PreProxyServer) {
     this.config = new Config();
@@ -34,16 +43,26 @@ class PostProxyServer {
     const manageRouter = new ManageRouter(preProxyServer);
     this.app.use(this.config.envConfig.basePath, manageRouter.getRouter());
 
+    // 全局错误处理中间件
+    this.app.use(
+      (err: Errback, req: Request, res: Response, next: NextFunction) => {
+        console.error("未捕获的错误:", err);
+        res.status(500).send("服务器内部错误");
+      }
+    );
+
     // 启动服务器
-    this.startServer();
+    const server = this.startServer();
+
+    this.registerWs(server);
   }
 
   initializeServer() {
     const app = express();
 
+    const excludeRegex = new RegExp(`^(?!${this.config.envConfig.basePath}).*`);
     // 代理中间件
-    app.use(this.createPostProxyMiddleware());
-
+    app.use(excludeRegex, this.createPostProxyMiddleware());
     // 无需代理的数据继续下一个中间件
     app.use(this.errorHandler);
 
@@ -54,6 +73,40 @@ class PostProxyServer {
     app.use(expressStaticGzip(join(__dirname, "client"), {}));
 
     return app;
+  }
+
+  /**
+   * 注册ws服务用于通知客户端更新
+   * @param server
+   */
+  registerWs(server: Server) {
+    const wss = new WebSocketServer({ server });
+
+    wss.on("connection", (ws) => {
+      this.wsClients.add(ws);
+
+      // 处理客户端发送的消息
+      ws.on("message", (message) => {
+        console.log(`接收到 WebSocket 消息: ${message}`);
+        // 向客户端发送响应消息
+        ws.send(`服务器已收到 WebSocket 消息: ${message}`);
+      });
+
+      // 处理客户端断开连接
+      ws.on("close", () => {
+        this.wsClients.delete(ws);
+        console.log("客户端已断开 WebSocket 连接");
+      });
+    });
+
+    this.config.bus.on("message", (data) => {
+      const message = JSON.stringify(data);
+      this.wsClients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(message);
+        }
+      });
+    });
   }
 
   createPostProxyMiddleware() {
@@ -75,11 +128,7 @@ class PostProxyServer {
             return env.target;
           }
         }
-        if (req.headers.upgrade) {
-          throw new Error("SKIP_PROXY_UPGRADE");
-        } else {
-          throw new Error("SKIP_PROXY");
-        }
+        throw new Error("SKIP_PROXY");
       },
     });
   }
@@ -128,7 +177,7 @@ class PostProxyServer {
    * 启动服务
    */
   startServer() {
-    this.app.listen(this.config.envConfig.port, () => {
+    return this.app.listen(this.config.envConfig.port, () => {
       console.log(
         `Post Proxy Middleware is running on http://localhost:${this.config.envConfig.port}`
       );

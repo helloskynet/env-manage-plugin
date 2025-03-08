@@ -4,6 +4,7 @@ import path from "path";
 import chokidar from "chokidar";
 
 import { pathToFileURL } from "url";
+import { EventEmitter } from "events";
 
 import Utils from "./Utils.js";
 
@@ -72,10 +73,13 @@ class Config {
    */
   envToDevServerMap: Record<string, string> = {};
 
+  bus: EventEmitter;
+
   constructor() {
     if (Config.instance) {
       return Config.instance;
     }
+    this.bus = new EventEmitter();
     Config.instance = this;
   }
 
@@ -195,9 +199,15 @@ class Config {
       console.log("Config file changed");
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        this.loadConfig().catch((error) => {
-          console.error("Error updating config:", error);
-        });
+        this.loadConfig()
+          .then(() => {
+            this.bus.emit("message", {
+              action: "filechange",
+            });
+          })
+          .catch((error) => {
+            console.error("Error updating config:", error);
+          });
       }, 500);
     });
   }

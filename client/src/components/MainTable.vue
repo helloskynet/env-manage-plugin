@@ -114,6 +114,7 @@ const getDevServerList = () => {
 onMounted(() => {
   getEnvList()
   getDevServerList()
+  startWs()
 })
 
 const handleStart = (rowData) => {
@@ -192,5 +193,39 @@ const updateSelectedDevServer = (devServerName, rowData) => {
 const refreshList = () => {
   getEnvList()
   getDevServerList()
+}
+
+const startWs = () => {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const host = window.location.host
+
+  // 构建 WebSocket 连接的 URL
+  const socketUrl = `${protocol}//${host}/${apiPrefix}`
+
+  const socket = new WebSocket(socketUrl)
+
+  // 连接建立时触发
+  socket.addEventListener('open', () => {
+    console.log('WebSocket 连接已建立')
+
+    // 当 WebSocket 连接关闭时，清除定时器
+    socket.addEventListener('close', () => {
+      console.log('WebSocket 连接已关闭')
+    })
+  })
+
+  // 接收到消息时触发
+  socket.addEventListener('message', (event) => {
+    console.log('收到消息:', event.data)
+    const data = JSON.parse(event.data)
+    if (data.action === 'filechange') {
+      refreshList()
+    }
+  })
+
+  // 连接出错时触发
+  socket.addEventListener('error', (event) => {
+    console.error('WebSocket 连接出错:', event)
+  })
 }
 </script>
