@@ -99,6 +99,8 @@ export default {
 };
 ```
 
+> router 配置同 [http-proxy-middleware 的 router 选项](https://www.npmjs.com/package/http-proxy-middleware#router-objectfunction)，不过不支持对象形式，为函数会额外传递第二个参数，代表当前envItem
+
 **envList**
 
 envList 的主键组合为 name 和 port 。若数据完全相同，则后一条数据会被忽略。对于 port 相同的情况，系统会自动进行互斥处理，即启动其中一个后，再尝试启动其他相同 port 的实例时，系统会自动关闭已启动的实例，避免冲突。

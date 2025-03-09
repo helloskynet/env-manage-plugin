@@ -142,7 +142,7 @@ class PostProxyServer {
       pathFilter,
       changeOrigin: true,
       ws: true,
-      router: (req) => {
+      router: async (req) => {
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"] as string;
 
@@ -151,7 +151,7 @@ class PostProxyServer {
           const env = this.config.findEnvByNameAndPort(envName, port);
 
           if (env?.router) {
-            return env.router(req, env);
+            return await env.router(req, env);
           }
           if (env?.target) {
             return env.target;
