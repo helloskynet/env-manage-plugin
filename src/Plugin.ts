@@ -22,14 +22,14 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (
   };
 };
 
-export const envmPlugin = /* #__PURE__ */ createUnplugin(unpluginFactory);
+export const unpluginEnvm = /* #__PURE__ */ createUnplugin(unpluginFactory);
 
-export default envmPlugin;
+export default unpluginEnvm;
 
-export const envmVitePlugin = envmPlugin.vite;
-export const envmRollupPlugin = envmPlugin.rollup;
-export const envmRolldownPlugin = envmPlugin.rolldown;
-export const envmWebpackPlugin = envmPlugin.webpack;
-export const envmRspackPlugin = envmPlugin.rspack;
-export const envmEsbuildPlugin = envmPlugin.esbuild;
-export const envmFarmPlugin = envmPlugin.farm;
+export const envmVitePlugin = unpluginEnvm.vite;
+export const envmRollupPlugin = unpluginEnvm.rollup;
+export const envmRolldownPlugin = unpluginEnvm.rolldown;
+export const envmWebpackPlugin = unpluginEnvm.webpack;
+export const envmRspackPlugin = unpluginEnvm.rspack;
+export const envmEsbuildPlugin = unpluginEnvm.esbuild;
+export const envmFarmPlugin = unpluginEnvm.farm;

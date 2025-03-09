@@ -49,9 +49,9 @@ npm i -g env-manage-plugin
 
 ### 配置
 
-在项目根目录下创建 `envm.config.js` 文件，根据实际需求定义开发环境和开发服务器列表。以下是各配置属性的详细说明
+在项目根目录下创建 `envm.config.js` 文件，根据实际需求定义开发环境和开发服务器列表。
 
-> 还可以使用 `npx envm init` 来初始化一个配置文件。
+> 可以使用 `npx envm init` 命令快速初始化配置文件。
 
 **配置文件示例**
 
@@ -152,7 +152,7 @@ export default defineConfig({
 });
 ```
 
-### 启动
+### 独立启动
 
 运行以下命令启动管理服务器：
 
@@ -166,7 +166,45 @@ npx envm
 npx envm --config ./path/to/envm.config.js
 ```
 
+> 未指定 config 时，默认搜索当前文件夹下的 `envm.config.[m]js`
+
 访问管理页面 [http://localhost:3099/](http://localhost:3099/) 对各个代理服务进行管理。
+
+### 作为插件启动
+
+`env-manage-plugin` 使用 [Unplugin](https://unplugin.unjs.io) 为各种构建工具提供统一插件，作为插件启动。
+
+#### webpack
+
+```js
+// webpack.config.js
+import { envmWebpackPlugin } from "env-manage-plugin";
+
+export default {
+  plugins: [
+    envmWebpackPlugin({
+      config: "./envm.config.mjs",
+    }),
+  ],
+  // .... 其它配置
+};
+```
+
+#### vite
+
+```js
+// vite.config.js
+import { defineConfig } from "vite";
+import { envmVitePlugin } from "env-manage-plugin";
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [envmVitePlugin()],
+  // ... 其它配置
+});
+```
+
+> 支持工具 vite,rollup,rolldown,webpack,rspack,esbuild,farm
 
 ### 配置文件热更新
 

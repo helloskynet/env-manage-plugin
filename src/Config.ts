@@ -102,7 +102,7 @@ class Config {
     }
     if (!fs.existsSync(localConfigPath)) {
       let message =
-        "无法找到配置文件，请使用 npm/yarn envm init 初始化默认配置文件！";
+        "无法找到配置文件，请使用 npm/yarn envm init 初始化配置文件！";
       if (this.isPlugin) {
         message += "或者在插件配置中指定配置文件！";
       } else {
