@@ -78,11 +78,16 @@ class Config {
    */
   bus: EventEmitter = new EventEmitter();
 
-  constructor() {
+  /**
+   * 是否通过 plugin 模式启动，用于控制提示信息
+   */
+  isPlugin: boolean;
+  constructor(isPlugin = false) {
     if (Config.instance) {
       return Config.instance;
     }
     Config.instance = this;
+    this.isPlugin = isPlugin;
   }
 
   /**
@@ -96,9 +101,14 @@ class Config {
       localConfigPath = this.checkFileExists(process.cwd(), "envm.config");
     }
     if (!fs.existsSync(localConfigPath)) {
-      console.log(
-        "无法找到配置文件，请使用 npm/yarn envm init 初始化配置文件！或者通过 --config 指定配置文件！"
-      );
+      let message =
+        "无法找到配置文件，请使用 npm/yarn envm init 初始化默认配置文件！";
+      if (this.isPlugin) {
+        message += "或者在插件配置中指定配置文件！";
+      } else {
+        message += "或者通过 --config 指定配置文件！";
+      }
+      console.log(message);
       process.exit(1);
     }
     this.filePath = path.resolve(process.cwd(), localConfigPath);

@@ -43,20 +43,14 @@ class EnvManage {
     this.options = options;
   }
 
-  // apply(compiler) {
-  //   compiler.hooks.afterPlugins.tap("EnvManagePlugin", (compilation) => {
-  //     this.startIndependent();
-  //   });
-  // }
-
   getEnvPluginConfig() {
     return this.config.initConfig(this.options.config).then((result) => {
       console.log("Config file loaded");
     });
   }
 
-  async startIndependent() {
-    this.config = new Config();
+  async startIndependent(isPlugin: boolean = false) {
+    this.config = new Config(isPlugin);
 
     await this.getEnvPluginConfig();
 

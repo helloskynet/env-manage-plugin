@@ -4,25 +4,32 @@ import { AppOptions, EnvManage } from "./index.js";
 
 export interface Options extends AppOptions {}
 
+let hasBeenCalled = false;
 export const unpluginFactory: UnpluginFactory<Options | undefined> = (
   options
-) => ({
-  name: "unplugin-envm",
-  buildStart() {
-    const envMangePlugin = new EnvManage(options);
+) => {
+  const envMangePlugin = new EnvManage(options);
 
-    envMangePlugin.startIndependent();
-  },
-});
+  return {
+    name: "unplugin-envm",
+    buildStart() {
+      if (hasBeenCalled) {
+        return;
+      }
+      hasBeenCalled = true;
+      envMangePlugin.startIndependent(true);
+    },
+  };
+};
 
 export const envmPlugin = /* #__PURE__ */ createUnplugin(unpluginFactory);
 
 export default envmPlugin;
 
-export const vitePlugin = envmPlugin.vite;
-export const rollupPlugin = envmPlugin.rollup;
-export const rolldownPlugin = envmPlugin.rolldown;
-export const webpackPlugin = envmPlugin.webpack;
-export const rspackPlugin = envmPlugin.rspack;
-export const esbuildPlugin = envmPlugin.esbuild;
-export const farmPlugin = envmPlugin.farm;
+export const envmVitePlugin = envmPlugin.vite;
+export const envmRollupPlugin = envmPlugin.rollup;
+export const envmRolldownPlugin = envmPlugin.rolldown;
+export const envmWebpackPlugin = envmPlugin.webpack;
+export const envmRspackPlugin = envmPlugin.rspack;
+export const envmEsbuildPlugin = envmPlugin.esbuild;
+export const envmFarmPlugin = envmPlugin.farm;
