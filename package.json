@@ -17,9 +17,13 @@
   "bin": {
     "envm": "bin/index.js"
   },
-  "main": "./dist/plugin.js",
+  "main": "./dist/Plugin.js",
+  "types": "./dist/types.d.ts",
   "exports": {
-    ".": "./dist/Plugin.js"
+    ".": {
+      "import": "./dist/Plugin.js",
+      "types": "./dist/types.d.ts"
+    }
   },
   "scripts": {
     "dev": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"npm run dev:*\" ",

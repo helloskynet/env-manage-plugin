@@ -4,7 +4,8 @@ import express, { Application, Request } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
 import Utils from "./Utils.js";
-import { Config, EnvItem, FILE_CHANGE_EVENT } from "./Config.js";
+import { Config, FILE_CHANGE_EVENT } from "./Config.js";
+import { EnvItem } from "./types.js";
 
 type MyApplication = Server & {
   /**
@@ -43,8 +44,8 @@ class PreProxyServer {
   createPreProxyMiddleware() {
     // 前置转发：将请求转发到 Webpack 开发服务器
     return createProxyMiddleware({
-      changeOrigin: true,
       ws: true,
+      changeOrigin: true,
       router: (req) => {
         const port = `${req.socket.localPort}`;
         const name = this.appMap[port]?.x_name;

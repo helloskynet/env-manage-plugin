@@ -14,10 +14,9 @@ import express, {
 import expressStaticGzip from "express-static-gzip";
 import { createProxyMiddleware, RequestHandler } from "http-proxy-middleware";
 
-import Utils from "./Utils.js";
 import ManageRouter from "./ManageRouter.js";
 import PreProxyServer from "./PreProxyServer.js";
-import { Config, EnvConfig, FILE_CHANGE_EVENT } from "./Config.js";
+import { Config, FILE_CHANGE_EVENT } from "./Config.js";
 
 /**
  * 后置代理服务器---同时也是管理页面的服务器
@@ -140,8 +139,8 @@ class PostProxyServer {
     };
     return createProxyMiddleware({
       pathFilter,
-      changeOrigin: true,
       ws: true,
+      changeOrigin: true,
       router: async (req) => {
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"] as string;
@@ -167,39 +166,6 @@ class PostProxyServer {
       return next();
     }
     res.status(500).send("代理服务器出错");
-  }
-
-  udpateEnvList(newConfig: EnvConfig) {
-    const { envList: newEnvList, indexPage, devServerList } = newConfig;
-    const { envList: oldEnvList = [] } = this.config.envConfig;
-
-    const newListAfter = Utils.removeEnvDuplicates(newEnvList);
-
-    const oldEnvMap = Utils.generateMap(oldEnvList); // 生成端口号到环境配置的映射
-
-    const devServerMap = Utils.generateMap(devServerList, ["name"]);
-
-    const defautlDevserverName = devServerList[0]?.name ?? "";
-
-    // 返回新的环境配置
-    const newList = newListAfter.map((item) => {
-      const rowKey = Utils.getRowKey(item);
-
-      let devServerName =
-        oldEnvMap?.[rowKey]?.devServerName || item.devServerName;
-
-      if (!devServerMap[devServerName]) {
-        devServerName = defautlDevserverName;
-      }
-
-      return {
-        ...item,
-        indexPage: `${item.indexPage || indexPage || ""}`,
-        devServerName,
-      };
-    });
-
-    return newList;
   }
 
   /**

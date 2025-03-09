@@ -7,45 +7,10 @@ import { EventEmitter } from "events";
 import Utils from "./Utils.js";
 
 import { createRequire } from "module";
+import { DevServerItem, EnvConfig, EnvItem } from "./types.js";
 const require = createRequire(import.meta.url);
 
 export const FILE_CHANGE_EVENT = "filechange";
-
-/**
- * 开发服务器配置
- */
-export type DevServerItem = {
-  name: string;
-  target: string;
-};
-
-/**
- * 转发路由配置
- */
-type RouterFunction = (req: unknown, env: EnvItem) => string;
-
-/**
- * 环境配置
- */
-export type EnvItem = {
-  name: string;
-  port: number;
-  target: string;
-  indexPage?: string;
-  devServerName: string;
-  router?: RouterFunction;
-};
-
-/**
- * 应用配置
- */
-export type EnvConfig = {
-  port: number;
-  basePath: string;
-  indexPage: string;
-  devServerList: Array<DevServerItem>;
-  envList: Array<EnvItem>;
-};
 
 class Config {
   /**

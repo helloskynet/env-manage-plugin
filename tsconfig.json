@@ -9,7 +9,7 @@
     "rootDir": "./src",
     "skipLibCheck": true, // 跳过声明文件.d.ts的检查
     "declaration": true,
-    "declarationDir": "./types", // 指定类型声明文件的输出目录
+    "declarationDir": "./dist", // 指定类型声明文件的输出目录
   },
   "include": [
     "src/**/*.ts"

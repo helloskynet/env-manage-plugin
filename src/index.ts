@@ -8,19 +8,14 @@ import PreProxyServer from "./PreProxyServer.js";
 import PostProxyServer from "./PostProxyServer.js";
 
 import { Config } from "./Config.js";
+import { Options } from "./types.js";
 
-/**
- * 应用启动配置
- */
-export interface AppOptions {
-  config?: string;
-}
 
 class EnvManage {
   /**
    * 应用启动配置
    */
-  options: AppOptions;
+  options: Options;
 
   /**
    * 配置文件地址
@@ -39,7 +34,7 @@ class EnvManage {
 
   config: Config;
 
-  constructor(options = {}) {
+  constructor(options: Options = {}) {
     this.options = options;
   }
 
