@@ -3,12 +3,13 @@ import path from "path";
 import chokidar from "chokidar";
 import { pathToFileURL } from "url";
 import { EventEmitter } from "events";
-
-import Utils from "./Utils.js";
+import { Options } from "http-proxy-middleware";
 
 import { createRequire } from "module";
 import { DevServerItem, EnvConfig, EnvItem } from "./types.js";
 const require = createRequire(import.meta.url);
+
+import Utils from "./Utils.js";
 
 export const FILE_CHANGE_EVENT = "filechange";
 

@@ -155,6 +155,7 @@ class PostProxyServer {
           if (env?.target) {
             return env.target;
           }
+          return env?.target;
         }
         throw new Error("SKIP_PROXY");
       },
