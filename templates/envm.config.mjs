@@ -1,3 +1,4 @@
+/** @type {import('env-manage-plugin').Config} */
 export default {
   indexPage: "/",
   devServerList: [
