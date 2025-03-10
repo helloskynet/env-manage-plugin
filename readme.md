@@ -235,7 +235,7 @@ export default defineConfig({
 
 感谢使用 `EnvManage`！如果你有任何问题或建议，请随时联系我们。
 
-[npm]: https://img.shields.io/npm/v/env-manage-plugin.svg
+[npm]: https://img.shields.io/npm/v/env-manage-plugin.svg?logo=npm
 [npm-url]: https://npmjs.com/package/env-manage-plugin
-[node]: https://img.shields.io/node/v/env-manage-plugin.svg
+[node]: https://img.shields.io/node/v/env-manage-plugin.svg?logo=node.js
 [node-url]: https://nodejs.org
