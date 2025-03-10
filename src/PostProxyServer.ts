@@ -27,7 +27,6 @@ class PostProxyServer {
   preProxyServer: PreProxyServer;
 
   postMiddware: RequestHandler;
-  wsClients: Set<WebSocket> = new Set();
 
   constructor(preProxyServer: PreProxyServer) {
     this.config = new Config();
@@ -78,53 +77,16 @@ class PostProxyServer {
    */
   registerWs(server: Server) {
     const wss = new WebSocketServer({ noServer: true });
-    // 拦截指定 URL 的 WebSocket 请求
-    const handleSpecificWs = (
-      request: IncomingMessage,
-      socket: Stream.Duplex,
-      head: Buffer<ArrayBufferLike>
-    ) => {
-      if (request.url.startsWith(this.config.envConfig.basePath)) {
-        wss.handleUpgrade(request, socket, head, (ws) => {
-          wss.emit("connection", ws, request);
-          // ws.on("message", (message) => {
-          //   ws.send(`Server received on /specific-url: ${message}`);
-          // });
-          // ws.on("close", () => {
-          //   console.log("Client disconnected from /specific-url WebSocket.");
-          // });
-        });
-        return true;
-      }
-      return false;
-    };
 
     server.on("upgrade", (request, socket, head) => {
-      if (!handleSpecificWs(request, socket, head)) {
-        // 如果不是指定 URL，交给代理中间件处理
-        this.postMiddware.upgrade(request, socket as Socket, head);
+      if (request.url.startsWith(this.config.envConfig.basePath)) {
+        wss.handleUpgrade(request, socket, head, (ws) => {});
       }
-    });
-
-    wss.on("connection", (ws) => {
-      this.wsClients.add(ws);
-
-      // 处理客户端发送的消息
-      ws.on("message", (message) => {
-        console.log(`接收到 WebSocket 消息: ${message}`);
-        // 向客户端发送响应消息
-        ws.send(`服务器已收到 WebSocket 消息: ${message}`);
-      });
-
-      // 处理客户端断开连接
-      ws.on("close", () => {
-        this.wsClients.delete(ws);
-      });
     });
 
     this.config.bus.on(FILE_CHANGE_EVENT, (data) => {
       const message = JSON.stringify(data);
-      this.wsClients.forEach((client) => {
+      wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(message);
         }
@@ -139,7 +101,7 @@ class PostProxyServer {
     };
     return createProxyMiddleware({
       pathFilter,
-      ws: true,
+      // ws: true,
       changeOrigin: true,
       router: async (req) => {
         if (req.headers["x-api-server"]) {

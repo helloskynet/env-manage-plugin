@@ -44,7 +44,7 @@ class PreProxyServer {
   createPreProxyMiddleware() {
     // 前置转发：将请求转发到 Webpack 开发服务器
     return createProxyMiddleware({
-      ws: true,
+      // ws: true,
       changeOrigin: true,
       router: (req) => {
         const port = `${req.socket.localPort}`;
