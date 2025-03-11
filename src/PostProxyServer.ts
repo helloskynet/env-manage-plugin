@@ -25,8 +25,6 @@ class PostProxyServer {
   app: Application;
   config: Config;
 
-  postMiddware: RequestHandler;
-
   constructor() {
     this.config = new Config();
 
@@ -55,8 +53,7 @@ class PostProxyServer {
     const app = express();
 
     // 代理中间件
-    this.postMiddware = this.createPostProxyMiddleware();
-    app.use(this.postMiddware);
+    app.use(this.createPostProxyMiddleware());
     // 无需代理的数据继续下一个中间件
     app.use(this.errorHandler);
 
@@ -92,6 +89,10 @@ class PostProxyServer {
     });
   }
 
+  /**
+   * 创建后置服务器 代理转发中间件
+   * @returns
+   */
   createPostProxyMiddleware() {
     // 定义路径过滤函数，排除 管理url
     const pathFilter = (path: string, req: Request) => {

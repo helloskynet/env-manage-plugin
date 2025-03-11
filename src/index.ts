@@ -21,10 +21,13 @@ class EnvManage {
   configPath: string;
 
   /**
-   * 后置地理服务器 和 管理服务器
+   * 后置代理服务器 和 管理服务器
    */
   manageServer: PostProxyServer | null = null;
 
+  /**
+   * 配置信息
+   */
   config: Config;
 
   constructor(options: Options = {}) {

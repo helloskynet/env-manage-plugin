@@ -91,8 +91,7 @@ class ManageRouter {
     if (PreProxyServer.appMap[port]) {
       PreProxyServer.appMap[port].x_name = env.name;
     } else {
-      const temp = new PreProxyServer();
-      temp.startServer(env);
+      PreProxyServer.create(env);
     }
     return res.json({
       message: `环境 【${env.name}】 在端口 【${port}】 已启动`,

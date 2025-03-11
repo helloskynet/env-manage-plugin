@@ -29,17 +29,34 @@ class PreProxyServer {
     [key: string]: MyApplication;
   } = {};
 
-  config: Config;
+  static config: Config = new Config();
 
-  constructor() {
-    this.config = new Config();
-    this.app = express();
-    this.app.use(this.createPreProxyMiddleware());
-    this.config.bus.on(FILE_CHANGE_EVENT, () => {
-      this.updateAppMapAfterConfigFileChange();
+  static {
+    PreProxyServer.config.bus.on(FILE_CHANGE_EVENT, () => {
+      PreProxyServer.updateAppMapAfterConfigFileChange();
     });
   }
 
+  static create(envConfig: EnvItem) {
+    const { port } = envConfig;
+    if (PreProxyServer.appMap[port]) {
+      console.log(`端口 ${port} 已经启动`);
+      return null;
+    }
+
+    return new PreProxyServer(envConfig);
+  }
+
+  constructor(envConfig: EnvItem) {
+    this.app = express();
+    this.app.use(this.createPreProxyMiddleware());
+    this.startServer(envConfig);
+  }
+
+  /**
+   * 生成代理中间件
+   * @returns
+   */
   createPreProxyMiddleware() {
     // 前置转发：将请求转发到 Webpack 开发服务器
     return createProxyMiddleware({
@@ -49,7 +66,10 @@ class PreProxyServer {
         const port = `${req.socket.localPort}`;
         const name = PreProxyServer.appMap[port]?.x_name;
 
-        const devServerConfig = this.config.findDevServerForEnv(name, port);
+        const devServerConfig = PreProxyServer.config.findDevServerForEnv(
+          name,
+          port
+        );
         // 默认转发到 Webpack 开发服务器
         return devServerConfig?.target;
       },
@@ -63,25 +83,12 @@ class PreProxyServer {
       },
     });
   }
+
   /**
-   * 配置文件变更 检查再配置中已经不存在的环境，并关闭改环境
-   * @param newConfig
+   * 启动服务
+   * @param envConfig
+   * @returns
    */
-  updateAppMapAfterConfigFileChange() {
-    const envList = this.config.envConfig.envList;
-    const envMapWithNamAndPort = Utils.generateMap(envList);
-
-    Object.entries(PreProxyServer.appMap).forEach(([port, item]) => {
-      const rowKey = Utils.getRowKey({
-        name: item.x_name,
-        port,
-      });
-      if (!envMapWithNamAndPort[rowKey]) {
-        PreProxyServer.stopServer(port);
-      }
-    });
-  }
-
   startServer(envConfig: EnvItem) {
     const { port, name } = envConfig;
     if (PreProxyServer.appMap[port]) {
@@ -135,6 +142,25 @@ class PreProxyServer {
         console.log(`Server on port ${port} 已关闭`, err || "");
         resolve(1);
       });
+    });
+  }
+
+  /**
+   * 配置文件变更 检查再配置中已经不存在的环境，并关闭改环境
+   * @param newConfig
+   */
+  static updateAppMapAfterConfigFileChange() {
+    const envList = PreProxyServer.config.envConfig.envList;
+    const envMapWithNamAndPort = Utils.generateMap(envList);
+
+    Object.entries(PreProxyServer.appMap).forEach(([port, item]) => {
+      const rowKey = Utils.getRowKey({
+        name: item.x_name,
+        port,
+      });
+      if (!envMapWithNamAndPort[rowKey]) {
+        PreProxyServer.stopServer(port);
+      }
     });
   }
 }
