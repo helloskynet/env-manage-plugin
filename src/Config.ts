@@ -3,7 +3,6 @@ import path from "path";
 import chokidar from "chokidar";
 import { pathToFileURL } from "url";
 import { EventEmitter } from "events";
-import { Options } from "http-proxy-middleware";
 
 import { createRequire } from "module";
 import { DevServerItem, EnvConfig, EnvItem } from "./types.js";

@@ -29,7 +29,7 @@ class PreProxyServer {
     [key: string]: MyApplication;
   } = {};
 
-  static config: Config = new Config();
+  static config = new Config();
 
   static {
     PreProxyServer.config.bus.on(FILE_CHANGE_EVENT, () => {
