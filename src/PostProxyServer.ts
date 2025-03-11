@@ -24,19 +24,17 @@ import { Config, FILE_CHANGE_EVENT } from "./Config.js";
 class PostProxyServer {
   app: Application;
   config: Config;
-  preProxyServer: PreProxyServer;
 
   postMiddware: RequestHandler;
 
-  constructor(preProxyServer: PreProxyServer) {
+  constructor() {
     this.config = new Config();
-    this.preProxyServer = preProxyServer;
 
     // 初始化服务器
     this.app = this.initializeServer();
 
     // 初始化管理路由
-    const manageRouter = new ManageRouter(preProxyServer);
+    const manageRouter = new ManageRouter();
     this.app.use(this.config.envConfig.basePath, manageRouter.getRouter());
 
     // 全局错误处理中间件
@@ -101,13 +99,13 @@ class PostProxyServer {
     };
     return createProxyMiddleware({
       pathFilter,
-      // ws: true,
+      ws: true,
       changeOrigin: true,
       router: async (req) => {
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"] as string;
 
-          const envName = this.preProxyServer.appMap[`${port}`].x_name;
+          const envName = PreProxyServer.appMap[`${port}`].x_name;
 
           const env = this.config.findEnvByNameAndPort(envName, port);
 

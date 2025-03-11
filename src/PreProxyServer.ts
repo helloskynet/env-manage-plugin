@@ -25,14 +25,13 @@ class PreProxyServer {
   /**
    * 保存启动的环境实例
    */
-  appMap: {
+  static appMap: {
     [key: string]: MyApplication;
-  };
+  } = {};
 
   config: Config;
 
   constructor() {
-    this.appMap = {};
     this.config = new Config();
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
@@ -44,11 +43,11 @@ class PreProxyServer {
   createPreProxyMiddleware() {
     // 前置转发：将请求转发到 Webpack 开发服务器
     return createProxyMiddleware({
-      // ws: true,
+      ws: true,
       changeOrigin: true,
       router: (req) => {
         const port = `${req.socket.localPort}`;
-        const name = this.appMap[port]?.x_name;
+        const name = PreProxyServer.appMap[port]?.x_name;
 
         const devServerConfig = this.config.findDevServerForEnv(name, port);
         // 默认转发到 Webpack 开发服务器
@@ -72,20 +71,20 @@ class PreProxyServer {
     const envList = this.config.envConfig.envList;
     const envMapWithNamAndPort = Utils.generateMap(envList);
 
-    Object.entries(this.appMap).forEach(([port, item]) => {
+    Object.entries(PreProxyServer.appMap).forEach(([port, item]) => {
       const rowKey = Utils.getRowKey({
         name: item.x_name,
         port,
       });
       if (!envMapWithNamAndPort[rowKey]) {
-        this.stopServer(port);
+        PreProxyServer.stopServer(port);
       }
     });
   }
 
   startServer(envConfig: EnvItem) {
     const { port, name } = envConfig;
-    if (this.appMap[port]) {
+    if (PreProxyServer.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;
     }
@@ -115,23 +114,23 @@ class PreProxyServer {
       });
     });
 
-    this.appMap[port] = server;
+    PreProxyServer.appMap[port] = server;
   }
 
-  stopServer(port: number | string) {
+  static stopServer(port: number | string) {
     return new Promise((resolve, reject) => {
-      if (!this.appMap[port]) {
+      if (!PreProxyServer.appMap[port]) {
         console.log(`端口 ${port} 未启动`);
         reject(`端口 【${port}】 未启动`);
         return;
       }
 
-      for (const socket of this.appMap[port].x_sockets) {
+      for (const socket of PreProxyServer.appMap[port].x_sockets) {
         socket.destroy();
       }
 
-      this.appMap[port].close((err) => {
-        delete this.appMap[port];
+      PreProxyServer.appMap[port].close((err) => {
+        delete PreProxyServer.appMap[port];
 
         console.log(`Server on port ${port} 已关闭`, err || "");
         resolve(1);

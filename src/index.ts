@@ -4,12 +4,10 @@ import * as fs from "fs";
 import { fileURLToPath } from "url";
 
 import Utils from "./Utils.js";
-import PreProxyServer from "./PreProxyServer.js";
 import PostProxyServer from "./PostProxyServer.js";
 
 import { Config } from "./Config.js";
 import { Options } from "./types.js";
-
 
 class EnvManage {
   /**
@@ -26,11 +24,6 @@ class EnvManage {
    * 后置地理服务器 和 管理服务器
    */
   manageServer: PostProxyServer | null = null;
-
-  /**
-   * 前置代理服务器
-   */
-  preProxyServer: PreProxyServer;
 
   config: Config;
 
@@ -49,9 +42,7 @@ class EnvManage {
 
     await this.getEnvPluginConfig();
 
-    this.preProxyServer = new PreProxyServer();
-
-    this.manageServer = new PostProxyServer(this.preProxyServer);
+    this.manageServer = new PostProxyServer();
   }
 
   /**

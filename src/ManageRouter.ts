@@ -14,8 +14,6 @@ interface ManageServerRequest {
 class ManageRouter {
   router: express.Router;
 
-  preProxyServer: PreProxyServer;
-
   config: Config;
 
   activeDevServer: Record<string, EnvItem>;
@@ -31,11 +29,10 @@ class ManageRouter {
     return this.config.envConfig;
   }
 
-  constructor(preProxyServer: PreProxyServer) {
+  constructor() {
     this.config = new Config();
 
     this.router = express.Router();
-    this.preProxyServer = preProxyServer;
 
     this.initializeRoutes();
   }
@@ -91,10 +88,11 @@ class ManageRouter {
   // 处理启动服务器
   handleStartServer(env: EnvItem, res: Response) {
     const port = env.port;
-    if (this.preProxyServer.appMap[port]) {
-      this.preProxyServer.appMap[port].x_name = env.name;
+    if (PreProxyServer.appMap[port]) {
+      PreProxyServer.appMap[port].x_name = env.name;
     } else {
-      this.preProxyServer.startServer(env);
+      const temp = new PreProxyServer();
+      temp.startServer(env);
     }
     return res.json({
       message: `环境 【${env.name}】 在端口 【${port}】 已启动`,
@@ -103,8 +101,7 @@ class ManageRouter {
 
   // 处理停止服务器
   handleStopServer(env: EnvItem, res: Response) {
-    return this.preProxyServer
-      .stopServer(env.port)
+    return PreProxyServer.stopServer(env.port)
       .then(() => {
         return res.json({
           message: `环境 【${env.name}】 在端口 【${env.port}】 已关闭`,
@@ -183,9 +180,7 @@ class ManageRouter {
   }
 
   getAppStatus(name: string, port: number) {
-    return this.preProxyServer.appMap[port]?.x_name === name
-      ? "running"
-      : "stop";
+    return PreProxyServer.appMap[port]?.x_name === name ? "running" : "stop";
   }
 
   getRouter() {
