@@ -1,6 +1,6 @@
 <template>
   <el-button type="success" @click="refreshList" :loading="refreshLoading">刷新</el-button>
-  <el-table :data="tableData" style="width: 100%">
+  <el-table :data="tableData" style="width: 100%" stripe>
     <el-table-column prop="name" label="环境名称" width="100" />
     <el-table-column prop="target" label="环境代理详情" width="180" />
     <el-table-column prop="index" label="首页地址" show-overflow-tooltip>

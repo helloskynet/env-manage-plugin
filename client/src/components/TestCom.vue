@@ -31,7 +31,10 @@ onMounted(() => {
   }
   setInterval(timer, 5000)
   timer()
+  testFunc()
+})
 
+const testFunc = () => {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
   const host = window.location.host
 
@@ -48,7 +51,7 @@ onMounted(() => {
     const sendMessagePeriodically = () => {
       if (socket.readyState === WebSocket.OPEN) {
         // 要发送的消息
-        const message = '这是定时发送的消息'
+        const message = '这是定时发送的消息' + host
         // 发送消息
         socket.send(message)
         console.log('消息已发送:', message)
@@ -75,5 +78,5 @@ onMounted(() => {
   socket.addEventListener('error', (event) => {
     console.error('WebSocket 连接出错:', event)
   })
-})
+}
 </script>
