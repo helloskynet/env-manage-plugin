@@ -32,14 +32,14 @@ class PreProxyServer {
   static config = new Config();
 
   static {
-    PreProxyServer.config.bus.on(FILE_CHANGE_EVENT, () => {
-      PreProxyServer.updateAppMapAfterConfigFileChange();
+    this.config.bus.on(FILE_CHANGE_EVENT, () => {
+      this.updateAppMapAfterConfigFileChange();
     });
   }
 
   static create(envConfig: EnvItem) {
     const { port } = envConfig;
-    if (PreProxyServer.appMap[port]) {
+    if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return null;
     }
@@ -47,7 +47,7 @@ class PreProxyServer {
     return new PreProxyServer(envConfig);
   }
 
-  constructor(envConfig: EnvItem) {
+  private constructor(envConfig: EnvItem) {
     this.app = express();
     this.app.use(this.createPreProxyMiddleware());
     this.startServer(envConfig);
@@ -126,18 +126,18 @@ class PreProxyServer {
 
   static stopServer(port: number | string) {
     return new Promise((resolve, reject) => {
-      if (!PreProxyServer.appMap[port]) {
+      if (!this.appMap[port]) {
         console.log(`端口 ${port} 未启动`);
         reject(`端口 【${port}】 未启动`);
         return;
       }
 
-      for (const socket of PreProxyServer.appMap[port].x_sockets) {
+      for (const socket of this.appMap[port].x_sockets) {
         socket.destroy();
       }
 
-      PreProxyServer.appMap[port].close((err) => {
-        delete PreProxyServer.appMap[port];
+      this.appMap[port].close((err) => {
+        delete this.appMap[port];
 
         console.log(`Server on port ${port} 已关闭`, err || "");
         resolve(1);

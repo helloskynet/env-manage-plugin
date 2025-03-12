@@ -99,7 +99,7 @@ export default {
 };
 ```
 
-> router 配置同 [http-proxy-middleware 的 router 选项](https://www.npmjs.com/package/http-proxy-middleware#router-objectfunction)，不过不支持对象形式，为函数会额外传递第二个参数，代表当前envItem
+> router 配置同 [http-proxy-middleware 的 router 选项](https://www.npmjs.com/package/http-proxy-middleware#router-objectfunction)，不过不支持对象形式，函数会额外传递第二个参数，代表当前envItem
 
 **envList**
 
