@@ -1,14 +1,10 @@
 import fs from "fs";
 import path from "path";
 import chokidar from "chokidar";
-import { pathToFileURL } from "url";
 import { EventEmitter } from "events";
 
-import { createRequire } from "module";
-import { DevServerItem, EnvConfig, EnvItem } from "./types.js";
-const require = createRequire(import.meta.url);
-
 import Utils from "./Utils.js";
+import { DevServerItem, EnvConfig, EnvItem } from "./types.js";
 
 export const FILE_CHANGE_EVENT = "filechange";
 
@@ -109,9 +105,9 @@ class Config {
 
     delete require.cache[require.resolve(modulePath)];
 
-    const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
-    const urlWithCacheBuster = `${fileUrl}?v=${this.configFileCacheBuster++}`;
-    return import(urlWithCacheBuster)
+    // const fileUrl = pathToFileURL(path.resolve(modulePath)).href;
+    // const urlWithCacheBuster = `${fileUrl}?v=${this.configFileCacheBuster++}`;
+    return import(modulePath)
       .then((module) => {
         return module.default || module;
       })

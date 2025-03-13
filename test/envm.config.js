@@ -1,4 +1,5 @@
-export default {
+/** @type {import('env-manage-plugin').Config} */
+module.exports = {
   port: 3099,
   // basePath: '/dev-manage-api',
   indexPage: "/Test",

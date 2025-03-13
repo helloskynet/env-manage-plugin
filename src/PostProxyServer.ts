@@ -1,8 +1,5 @@
-import Stream from "stream";
-import { Socket } from "net";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-import { IncomingMessage, Server } from "http";
+import { join } from "path";
+import { Server } from "http";
 import WebSocket, { WebSocketServer } from "ws";
 import express, {
   Application,
@@ -12,7 +9,7 @@ import express, {
   NextFunction,
 } from "express";
 import expressStaticGzip from "express-static-gzip";
-import { createProxyMiddleware, RequestHandler } from "http-proxy-middleware";
+import { createProxyMiddleware } from "http-proxy-middleware";
 
 import ManageRouter from "./ManageRouter.js";
 import PreProxyServer from "./PreProxyServer.js";
@@ -59,7 +56,7 @@ class PostProxyServer {
 
     // 静态资源
     // 获取当前模块的目录路径
-    const __dirname = dirname(fileURLToPath(import.meta.url));
+    // const __dirname = dirname(fileURLToPath(import.meta.url));
 
     app.use(expressStaticGzip(join(__dirname, "client"), {}));
 

@@ -1,13 +1,10 @@
-import { dirname, join } from "path";
 import * as fs from "fs";
-
-import { fileURLToPath } from "url";
+import { join } from "path";
 
 import Utils from "./Utils.js";
-import PostProxyServer from "./PostProxyServer.js";
-
 import { Config } from "./Config.js";
 import { Options } from "./types.js";
+import PostProxyServer from "./PostProxyServer.js";
 
 class EnvManage {
   /**
@@ -55,7 +52,7 @@ class EnvManage {
   static async initConfig(force = false) {
     const isESModule = await Utils.isESModuleByPackageJson();
 
-    const __dirname = dirname(fileURLToPath(import.meta.url));
+    // const __dirname = dirname(fileURLToPath(import.meta.url));
 
     const FILE_EXT = isESModule ? ".mjs" : ".js";
 

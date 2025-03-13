@@ -4,8 +4,8 @@ import express, { Application, Request } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
 import Utils from "./Utils.js";
-import { Config, FILE_CHANGE_EVENT } from "./Config.js";
 import { EnvItem } from "./types.js";
+import { Config, FILE_CHANGE_EVENT } from "./Config.js";
 
 type MyApplication = Server & {
   /**
