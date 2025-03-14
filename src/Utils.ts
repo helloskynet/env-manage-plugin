@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import * as path from "path";
-import { pathToFileURL } from "url";
 
 class Utils {
   /**
@@ -53,8 +52,7 @@ class Utils {
     const packageJsonPath = path.resolve(process.cwd(), "package.json");
 
     if (fs.existsSync(packageJsonPath)) {
-      const fileUrl = pathToFileURL(packageJsonPath).href;
-      return import(fileUrl, { with: { type: "json" } })
+      return import(packageJsonPath)
         .then((packageJson) => {
           if (Object.hasOwnProperty.call(packageJson.default, "type")) {
             return packageJson.default.type === "module";
