@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   port: 3099,
   // basePath: '/dev-manage-api',
   indexPage: "/Test",
