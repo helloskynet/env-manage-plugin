@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import portfinder from "portfinder";
 
 class Utils {
   /**
@@ -110,6 +111,25 @@ class Utils {
     rowData: T
   ): string {
     return `${rowData.name}+${rowData.port}`;
+  }
+
+  /**
+   * 查询指定端口是否被占用
+   * @param port
+   * @returns
+   */
+  static isPortOccupied(port: number) {
+    return portfinder
+      .getPortPromise({
+        port: port,
+        stopPort: port,
+      })
+      .then(() => {
+        return false;
+      })
+      .catch(() => {
+        return true;
+      });
   }
 }
 

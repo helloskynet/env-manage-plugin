@@ -31,8 +31,12 @@ class EnvManage {
     this.options = options;
   }
 
+  /**
+   * 加载插件配置
+   * @returns
+   */
   getEnvPluginConfig() {
-    return this.config.initConfig(this.options.config).then((result) => {
+    return this.config.initConfig(this.options.config).then(() => {
       console.log("Config file loaded");
     });
   }
@@ -40,9 +44,13 @@ class EnvManage {
   async startIndependent(isPlugin: boolean = false) {
     this.config = new Config(isPlugin);
 
-    await this.getEnvPluginConfig();
-
-    this.manageServer = new PostProxyServer();
+    this.getEnvPluginConfig()
+      .then(() => {
+        this.manageServer = new PostProxyServer();
+      })
+      .catch(() => {
+        // todo 错误处理
+      });
   }
 
   /**

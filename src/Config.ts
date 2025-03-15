@@ -1,4 +1,5 @@
 import fs from "fs";
+import http from "http";
 import path from "path";
 import chokidar from "chokidar";
 import { EventEmitter } from "events";
@@ -73,9 +74,13 @@ class Config {
       process.exit(1);
     }
     this.filePath = path.resolve(process.cwd(), localConfigPath);
-    return this.loadConfig().then(() => {
-      this.watchConfig();
-    });
+    return this.loadConfig()
+      .then(() => {
+        return this.checkPortAsync();
+      })
+      .then(() => {
+        this.watchConfig();
+      });
   }
 
   /**
@@ -232,6 +237,61 @@ class Config {
       devServerName = envItem.devServerName;
     }
     return this.findDevServerByName(devServerName);
+  }
+
+  /**
+   * 判断端口是否被占用，如果被占用的，查询是否已经启动
+   * @returns
+   */
+  checkPortAsync() {
+    return Utils.isPortOccupied(this.envConfig.port).then((result) => {
+      if (result) {
+        return this.checkIsRunning().then((res: Config) => {
+          console.log(
+            `服务已启动在端口 ${this.envConfig.port} 配置文件地址为 ${res.filePath} 请检查`
+          );
+          throw new Error("服务已经启动");
+        });
+      }
+    });
+  }
+
+  /**
+   * 查询端口，中启动的服务是否为 envm
+   * @returns
+   */
+  checkIsRunning() {
+    const options = {
+      hostname: "127.0.0.1",
+      port: this.envConfig.port,
+      path: `${this.envConfig.basePath}/are-you-ok`,
+      method: "GET",
+    };
+
+    return new Promise((resolve, reject) => {
+      const req = http.request(options, (res) => {
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          reject(new Error(`请求失败，状态码: ${res.statusCode}`));
+          return;
+        }
+        let responseData = "";
+
+        res.on("data", (chunk) => {
+          responseData += chunk;
+        });
+
+        res.on("end", () => {
+          const result = JSON.parse(responseData);
+          resolve(result);
+        });
+      });
+
+      req.on("error", (error) => {
+        reject(error);
+      });
+
+      req.end();
+    });
   }
 }
 
