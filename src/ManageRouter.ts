@@ -61,6 +61,11 @@ class ManageRouter {
       express.json(),
       this.handleUpdateDevServerId.bind(this)
     );
+
+    // 用于检查是否重复启动
+    this.router.get("/are-you-ok", (req, res) => {
+      res.send(JSON.stringify(this.config));
+    });
   }
 
   // 处理服务器管理请求
