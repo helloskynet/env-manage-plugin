@@ -71,7 +71,7 @@ class Config {
         message += "或者通过 --config 指定配置文件！";
       }
       console.log(message);
-      process.exit(1);
+      throw new Error("配置文件不存在");
     }
     this.filePath = path.resolve(process.cwd(), localConfigPath);
     return this.loadConfig()
