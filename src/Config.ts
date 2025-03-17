@@ -13,10 +13,10 @@ class Config {
   /**
    * 单例模式
    */
-  static instance: Config;
+  private static instance: Config;
 
   /**
-   * 用于清除 import 缓存
+   * 用于清除 require 缓存
    */
   configFileCacheBuster = 0;
 
@@ -44,6 +44,7 @@ class Config {
    * 是否通过 plugin 模式启动，用于控制提示信息
    */
   isPlugin: boolean;
+
   constructor(isPlugin = false) {
     if (Config.instance) {
       return Config.instance;
@@ -57,49 +58,45 @@ class Config {
    * @param configPath
    * @returns
    */
-  initConfig(configPath: string) {
-    let localConfigPath = configPath;
-    if (!configPath) {
-      localConfigPath = this.checkFileExists(process.cwd(), "envm.config");
-    }
-    if (!fs.existsSync(localConfigPath)) {
-      let message =
-        "无法找到配置文件，请使用 npm/yarn envm init 初始化配置文件！";
-      if (this.isPlugin) {
-        message += "或者在插件配置中指定配置文件！";
-      } else {
-        message += "或者通过 --config 指定配置文件！";
-      }
-      console.log(message);
-      throw new Error("配置文件不存在");
-    }
+  async initConfig(configPath: string) {
+    const localConfigPath = this.resolveAndValidateConfigPath(configPath);
     this.filePath = path.resolve(process.cwd(), localConfigPath);
-    return this.loadConfig()
-      .then(() => {
-        return this.checkPortAsync();
-      })
-      .then(() => {
-        this.watchConfig();
-      });
+
+    await this.loadConfig();
+    await this.checkPortAsync();
+    this.watchConfig();
   }
 
   /**
-   * 检查文件夹中的指定文件是否存在
-   * @param folderPath
-   * @param targetFileName
-   * @returns
+   * 解析并验证配置文件路径
+   * @param configPath 配置文件路径（可选）
+   * @returns 配置文件路径
    */
-  checkFileExists(folderPath: string, targetFileName: string) {
-    // 读取指定文件夹下的所有文件和文件夹
-    const files = fs.readdirSync(folderPath);
-    for (const file of files) {
-      // 获取文件名（不包含扩展名）
-      const baseName = path.basename(file, path.extname(file));
-      if (baseName.toLowerCase() === targetFileName.toLowerCase()) {
-        return file;
+  resolveAndValidateConfigPath(configPath: string) {
+    const finalConfigPath = configPath || this.resolveDefaultConfigFilePath();
+    if (!fs.existsSync(finalConfigPath)) {
+      const message = this.isPlugin
+        ? "无法找到配置文件，请在插件配置中指定配置文件！"
+        : "无法找到配置文件，请使用 npx envm init 初始化配置文件！或者通过 --config 指定配置文件！";
+      console.error(message);
+      throw new Error("配置文件不存在");
+    }
+    return finalConfigPath;
+  }
+
+  /**
+   * 解析默认的配置文件路径
+   * @returns 配置文件路径或 null
+   */
+  resolveDefaultConfigFilePath() {
+    const exts = [".js", ".cjs", ".mjs"];
+    for (const ext of exts) {
+      const configFilePath = path.resolve(process.cwd(), `envm.config${ext}`);
+      if (fs.existsSync(configFilePath)) {
+        return configFilePath;
       }
     }
-    return "";
+    return null;
   }
 
   /**
