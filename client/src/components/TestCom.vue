@@ -1,4 +1,5 @@
 <template>
+  <button @click="setCookie">set-cookie</button>
   <div id="console"></div>
 </template>
 
@@ -33,6 +34,19 @@ onMounted(() => {
   timer()
   testFunc()
 })
+
+const setCookie = () => {
+  fetch('/login')
+      .then((res) => {
+        return res.json()
+      })
+      .then((item) => {
+        document.getElementById('console').innerHTML += item.message + '<br>'
+      })
+      .catch(() => {
+        document.getElementById('console').innerHTML += 'error /simple <br>'
+      })
+}
 
 const testFunc = () => {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'

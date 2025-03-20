@@ -56,6 +56,10 @@ export default defineConfig({
         target: 'http://localhost:3099',
         changeOrigin: true,
       },
+      '/login': {
+        target: 'http://localhost:3099',
+        changeOrigin: true,
+      },
       '/test': {
         target: 'http://localhost:3099',
         ws: true,

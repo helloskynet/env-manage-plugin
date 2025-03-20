@@ -13,7 +13,19 @@ const createServer = (port, second) => {
   });
 
   app.get("/simple", (req, res) => {
-    res.send({ message: "this response from -- simple" + port });
+    res.send({
+      message: "this response from -- simple" + port + req.headers.cookie,
+    });
+  });
+  app.get("/login", (req, res) => {
+    res.cookie("sessionID", "12345" + port + new Date().getTime(), {
+      maxAge: 900000, // Cookie 有效期（毫秒，示例为 15 分钟）
+      httpOnly: true, // 仅允许 HTTP 访问（防止 XSS 攻击）
+      secure: false, // 仅通过 HTTPS 传输（开发环境可设为 false）
+      domain: "localhost", // 限制域名（可选，根据需求设置）
+      path: "/", // 限制路径（可选，根据需求设置）
+    });
+    res.send({ message: "this response from -- login" + port });
   });
   if (second) {
     app.get("/two", (req, res) => {
