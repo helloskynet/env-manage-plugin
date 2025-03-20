@@ -131,6 +131,7 @@ class Config {
       envList = [],
       devServerList = [],
       indexPage = "",
+      isEnableCookieProxy = true,
     } = resolveDConfig;
 
     devServerList = Utils.removeEnvDuplicates<DevServerItem>(devServerList);
@@ -142,7 +143,9 @@ class Config {
     envList = Utils.removeEnvDuplicates<EnvItem>(envList).map((item) => {
       const rowKey = Utils.getRowKey(item);
 
-      let devServerName = `${this.envToDevServerMap[rowKey] || item?.devServerName}`;
+      let devServerName = `${
+        this.envToDevServerMap[rowKey] || item?.devServerName
+      }`;
       if (this.findDevServerByName(devServerName, devServerList)) {
         if (this.envToDevServerMap[rowKey]) {
           envToDevServerMap[rowKey] = this.envToDevServerMap[rowKey];
@@ -152,7 +155,8 @@ class Config {
       }
       return {
         ...item,
-        indexPage: `${item.indexPage || indexPage || ""}`,
+        indexPage: `${item?.indexPage ?? indexPage}`,
+        isEnableCookieProxy: item?.isEnableCookieProxy ?? isEnableCookieProxy,
         devServerName,
       };
     });
@@ -162,10 +166,11 @@ class Config {
     this.envConfig = {
       ...resolveDConfig,
       port,
-      basePath,
       envList,
-      devServerList,
+      basePath,
       indexPage,
+      devServerList,
+      isEnableCookieProxy,
     };
   }
 
@@ -210,9 +215,12 @@ class Config {
    * @returns
    */
   findEnvByNameAndPort(name: string, port: number | string) {
-    const findKey = `${name}+${port}`;
+    const findKey = Utils.getRowKey({
+      name,
+      port,
+    });
     return this.envConfig.envList.find((item) => {
-      const rowKey = `${item.name}+${item.port}`;
+      const rowKey = Utils.getRowKey(item);
       return findKey === rowKey;
     });
   }

@@ -1,5 +1,5 @@
 import { Socket } from "net";
-import { Server } from "http";
+import { IncomingMessage, Server } from "http";
 import express, { Application, Request } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
@@ -21,6 +21,13 @@ type MyApplication = Server & {
 
 class PreProxyServer {
   app: Application;
+
+  /**
+   * 保存cookie
+   * 因为同主机的不同端口会共享 cookie
+   * 所以如果在同一个主机的不同端口，登录同一个应用的不同的环境会导致 cookie 被覆盖
+   */
+  cookie: string;
 
   /**
    * 保存启动的环境实例
@@ -53,6 +60,14 @@ class PreProxyServer {
     this.startServer(envConfig);
   }
 
+  getEnvItem(req: IncomingMessage) {
+    const port = `${req.socket.localPort}`;
+    const name = PreProxyServer.appMap[port]?.x_name;
+
+    const envItem = PreProxyServer.config.findEnvByNameAndPort(name, port);
+    return envItem;
+  }
+
   /**
    * 生成代理中间件
    * @returns
@@ -74,8 +89,27 @@ class PreProxyServer {
         return devServerConfig?.target;
       },
       on: {
-        proxyReq(proxyReq, req: Request, res) {
+        proxyReq: (proxyReq, req) => {
           proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
+
+          const envItem = this.getEnvItem(req);
+
+          if (envItem.isEnableCookieProxy) {
+            if (this.cookie) {
+              proxyReq.setHeader("cookie", this.cookie);
+            } else {
+              this.cookie = req.headers.cookie;
+            }
+          }
+        },
+        proxyRes: (proxyRes, req, res) => {
+          const envItem = this.getEnvItem(req);
+          if (envItem.isEnableCookieProxy) {
+            const setCookie = proxyRes.headers["set-cookie"];
+            if (setCookie) {
+              this.cookie = "";
+            }
+          }
         },
         proxyReqWs(proxyReq, req: Request, res) {
           proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);

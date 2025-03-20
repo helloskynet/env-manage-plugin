@@ -44,6 +44,15 @@ export type EnvItem = {
    * @default '/'
    */
   indexPage?: string;
+
+  /**
+   * 是否启用 前置代理的 cookie 换成替换,
+   * 前置代理的 cookie 缓存替换，是为了解决，浏览器中登录时，同主机不同端口的cookie会共享的问题
+   *
+   * @default true
+   */
+  isEnableCookieProxy?: boolean;
+
   /**
    * 当前环境使用的开发服务器名称。
    *
@@ -108,9 +117,18 @@ export interface EnvConfig {
    */
   indexPage: string;
   /**
+   * 是否启用 前置代理的 cookie 缓存,
+   * 前置代理的 cookie 缓存替换，是为了解决，浏览器中登录时，同主机不同端口的cookie会共享的问题
+   *
+   * @default true
+   */
+  isEnableCookieProxy?: boolean;
+
+  /**
    * 开发服务器列表，包含多个开发服务器的配置信息
    */
   devServerList: Array<DevServerItem>;
+
   /**
    * 开发环境列表，包含多个开发环境的配置信息
    */
