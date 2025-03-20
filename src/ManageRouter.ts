@@ -76,7 +76,7 @@ class ManageRouter {
       return res.status(400).json({ error: "缺少 action 或 name 参数" });
     }
 
-    const env = this.findEnvByNameAndPort(name, port);
+    const env = this.config.findEnvByNameAndPort(name, port);
     if (!env) {
       return res.status(400).json({ error: "环境不存在，请刷新" });
     }
@@ -150,12 +150,12 @@ class ManageRouter {
       });
     }
 
-    const env = this.findEnvByNameAndPort(name, port);
+    const env = this.config.findEnvByNameAndPort(name, port);
     if (!env) {
       return res.status(400).json({ error: "环境不存在，请刷新" });
     }
 
-    const selectedDevServer = this.findDevServerByName(devServerName);
+    const selectedDevServer = this.config.findDevServerByName(devServerName);
     if (!selectedDevServer) {
       return res.status(400).json({ error: "devServer 不存在，请刷新" });
     }
@@ -166,22 +166,6 @@ class ManageRouter {
     return res.json({
       message: `环境 【${name}】 在端口 【${port}】 已经切换到 【${selectedDevServer.name}】`,
     });
-  }
-
-  // Helper methods
-  findEnvByNameAndPort(name: string, port: number) {
-    const targetKey = Utils.getRowKey({
-      name,
-      port,
-    });
-    return this.envConfig.envList.find((item) => {
-      const rowKey = Utils.getRowKey(item);
-      return rowKey === targetKey;
-    });
-  }
-
-  findDevServerByName(name: string) {
-    return this.envConfig.devServerList.find((item) => item.name === name);
   }
 
   getAppStatus(name: string, port: number) {
