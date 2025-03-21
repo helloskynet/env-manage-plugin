@@ -2,6 +2,7 @@
 
 const { program } = require("commander");
 const { EnvManage } = require("../dist/index.js");
+const { initConfig } = require("../dist/initConfig.js");
 const packageJson = require("../package.json");
 
 program
@@ -28,7 +29,7 @@ program
   .description("Init config file 初始化配置文件")
   .option("-f, --force", "force init config file 强制初始化配置文件")
   .action((options) => {
-    EnvManage.initConfig(options.force);
+    initConfig(options.force);
   });
 
 program.parse();

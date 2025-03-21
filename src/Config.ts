@@ -16,11 +16,6 @@ class Config {
   private static instance: Config;
 
   /**
-   * 用于清除 require 缓存
-   */
-  configFileCacheBuster = 0;
-
-  /**
    * 配置文件地址
    */
   filePath: string;
