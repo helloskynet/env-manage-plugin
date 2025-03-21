@@ -72,11 +72,14 @@ class ManageRouter {
   handleManageServer(req: Request<{}, {}, ManageServerRequest>, res: Response) {
     const { action, name, port } = req.body;
 
-    if (!action || !name) {
-      return res.status(400).json({ error: "缺少 action 或 name 参数" });
+    if (!action || !name || !port) {
+      return res
+        .status(400)
+        .json({ error: "缺少 action 或 name 或 port 参数" });
     }
 
-    const env = this.config.findEnvByNameAndPort(name, port);
+    const envKey = Utils.getRowKey(req.body);
+    const env = this.config.envMap.get(envKey);
     if (!env) {
       return res.status(400).json({ error: "环境不存在，请刷新" });
     }
@@ -92,13 +95,13 @@ class ManageRouter {
   }
 
   // 处理启动服务器
-  handleStartServer(env: EnvItem, res: Response) {
+  async handleStartServer(env: EnvItem, res: Response) {
     const port = env.port;
     if (PreProxyServer.appMap[port]) {
-      PreProxyServer.appMap[port].x_name = env.name;
-    } else {
-      PreProxyServer.create(env);
+      await PreProxyServer.stopServer(env.port);
     }
+    PreProxyServer.create(env);
+
     return res.json({
       message: `环境 【${env.name}】 在端口 【${port}】 已启动`,
     });
@@ -118,26 +121,16 @@ class ManageRouter {
       });
   }
 
-  // 处理获取列表
+  // 处理获取环境列表
   handleGetList(req: Request, res: Response) {
-    const list = this.envConfig.envList.map((item) => {
-      const rowKey = Utils.getRowKey(item);
-      const devServerName =
-        this.config.envToDevServerMap[rowKey] || item.devServerName;
-      return {
-        ...item,
-        devServerName,
-        status: this.getAppStatus(item.name, item.port),
-      };
-    });
-
+    const list = Array.from(this.config.envMap.values());
     return res.json({ list });
   }
 
   // 处理获取开发服务器列表
   handleGetDevServerList(req: Request, res: Response) {
-    const enableList = this.envConfig.devServerList;
-    return res.json({ list: enableList });
+    const list = Array.from(this.config.devServerMap.values());
+    return res.json({ list });
   }
 
   // 处理更新开发服务器ID
@@ -150,26 +143,23 @@ class ManageRouter {
       });
     }
 
-    const env = this.config.findEnvByNameAndPort(name, port);
-    if (!env) {
+    const envKey = Utils.getRowKey(req.body);
+    const envItem = this.config.envMap.get(envKey);
+    if (!envItem) {
       return res.status(400).json({ error: "环境不存在，请刷新" });
     }
 
-    const selectedDevServer = this.config.findDevServerByName(devServerName);
-    if (!selectedDevServer) {
+    const devServerKey = Utils.getRowKey({ name: devServerName });
+    const devServerItem = this.config.devServerMap.get(devServerKey);
+    if (!devServerItem) {
       return res.status(400).json({ error: "devServer 不存在，请刷新" });
     }
 
-    const rowKey = Utils.getRowKey(req.body);
-    this.config.envToDevServerMap[rowKey] = devServerName;
+    envItem.devServerName = devServerName;
 
     return res.json({
-      message: `环境 【${name}】 在端口 【${port}】 已经切换到 【${selectedDevServer.name}】`,
+      message: `环境 【${name}】 在端口 【${port}】 已经切换到 【${devServerItem.name}】`,
     });
-  }
-
-  getAppStatus(name: string, port: number) {
-    return PreProxyServer.appMap[port]?.x_name === name ? "running" : "stop";
   }
 
   getRouter() {

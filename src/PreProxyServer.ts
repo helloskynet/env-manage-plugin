@@ -4,20 +4,8 @@ import express, { Application, Request } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
 import Utils from "./Utils.js";
-import { EnvItem } from "./types.js";
+import { APP_STATUS, EnvItem, KeyObj } from "./types.js";
 import { Config, FILE_CHANGE_EVENT } from "./Config.js";
-
-type MyApplication = Server & {
-  /**
-   * 绑定的环境名称
-   */
-  x_name: string;
-
-  /**
-   * 相关的socket链接，用于在关闭服务器的时候，提断开相关链接
-   */
-  x_sockets: Set<Socket>;
-};
 
 class PreProxyServer {
   app: Application;
@@ -30,10 +18,22 @@ class PreProxyServer {
   cookie: string;
 
   /**
+   * 代理服务器
+   */
+  server: Server;
+
+  sockets: Set<Socket>;
+
+  /**
+   * 绑定的环境信息
+   */
+  envKey: string;
+
+  /**
    * 保存启动的环境实例
    */
   static appMap: {
-    [key: string]: MyApplication;
+    [key: string]: PreProxyServer;
   } = {};
 
   static config = new Config();
@@ -56,15 +56,13 @@ class PreProxyServer {
 
   private constructor(envConfig: EnvItem) {
     this.app = express();
+    this.envKey = Utils.getRowKey(envConfig);
     this.app.use(this.createPreProxyMiddleware());
     this.startServer(envConfig);
   }
 
   getEnvItem(req: IncomingMessage) {
-    const port = `${req.socket.localPort}`;
-    const name = PreProxyServer.appMap[port]?.x_name;
-
-    const envItem = PreProxyServer.config.findEnvByNameAndPort(name, port);
+    const envItem = PreProxyServer.config.envMap.get(this.envKey);
     return envItem;
   }
 
@@ -78,13 +76,14 @@ class PreProxyServer {
       ws: true,
       changeOrigin: true,
       router: (req) => {
-        const port = `${req.socket.localPort}`;
-        const name = PreProxyServer.appMap[port]?.x_name;
+        const envItem = PreProxyServer.config.envMap.get(this.envKey);
 
-        const devServerConfig = PreProxyServer.config.findDevServerForEnv(
-          name,
-          port
-        );
+        const devServerKey = Utils.getRowKey({
+          name: envItem.devServerName,
+        });
+
+        const devServerConfig =
+          PreProxyServer.config.devServerMap.get(devServerKey);
         // 默认转发到 Webpack 开发服务器
         return devServerConfig?.target;
       },
@@ -130,32 +129,31 @@ class PreProxyServer {
       return;
     }
 
-    const server = this.app.listen(port, () => {
+    this.server = this.app.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
-    }) as MyApplication;
-
-    server.x_name = name;
+      PreProxyServer.config.envMap.get(this.envKey).status = APP_STATUS.RUNNING;
+    });
 
     // 保存所有活动的 socket 连接
-    server.x_sockets = new Set();
+    this.sockets = new Set();
 
-    server.on("connection", (socket) => {
-      server.x_sockets.add(socket); // 保存 socket
+    this.server.on("connection", (socket) => {
+      this.sockets.add(socket); // 保存 socket
 
       socket.setTimeout(300000); // 设置超时时间为 5 分钟
 
       socket.on("timeout", () => {
         socket.destroy();
-        server.x_sockets.delete(socket);
+        this.sockets.delete(socket);
       });
 
       // 监听 socket 关闭事件
       socket.on("close", () => {
-        server.x_sockets.delete(socket); // 从集合中移除已关闭的 socket
+        this.sockets.delete(socket); // 从集合中移除已关闭的 socket
       });
     });
 
-    PreProxyServer.appMap[port] = server;
+    PreProxyServer.appMap[port] = this;
   }
 
   static stopServer(port: number | string) {
@@ -166,13 +164,15 @@ class PreProxyServer {
         return;
       }
 
-      for (const socket of this.appMap[port].x_sockets) {
+      for (const socket of this.appMap[port].sockets) {
         socket.destroy();
       }
 
-      this.appMap[port].close((err) => {
-        delete this.appMap[port];
+      this.appMap[port].server.close((err) => {
+        const rowKey = this.appMap[port].envKey;
+        PreProxyServer.config.envMap.get(rowKey).status = APP_STATUS.STOP;
 
+        delete this.appMap[port];
         console.log(`Server on port ${port} 已关闭`, err || "");
         resolve(1);
       });
@@ -184,15 +184,11 @@ class PreProxyServer {
    * @param newConfig
    */
   static updateAppMapAfterConfigFileChange() {
-    const envList = PreProxyServer.config.envConfig.envList;
-    const envMapWithNamAndPort = Utils.generateMap(envList);
+    const envMap = PreProxyServer.config.envMap;
 
     Object.entries(PreProxyServer.appMap).forEach(([port, item]) => {
-      const rowKey = Utils.getRowKey({
-        name: item.x_name,
-        port,
-      });
-      if (!envMapWithNamAndPort[rowKey]) {
+      const rowKey = item.envKey;
+      if (!envMap.has(rowKey)) {
         PreProxyServer.stopServer(port);
       }
     });

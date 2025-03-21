@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import portfinder from "portfinder";
+import { KeyObj } from "./types";
 
 class Utils {
   /**
@@ -8,16 +9,14 @@ class Utils {
    * @param {Array} envList - 环境配置列表
    * @returns {Array} - 去重后的环境配置列表
    */
-  static removeEnvDuplicates = <T extends { name: string; port?: number }>(
-    envList: T[]
-  ): T[] => {
+  static removeEnvDuplicates = <T extends KeyObj>(envList: T[]): T[] => {
     const uniqueMap = new Map();
     const result: T[] = [];
 
     envList.forEach((item) => {
-      const key = `${item.name}-${item.port}`;
-      if (!uniqueMap.has(key)) {
-        uniqueMap.set(key, true);
+      const rowKey = Utils.getRowKey(item);
+      if (!uniqueMap.has(rowKey)) {
+        uniqueMap.set(rowKey, true);
         result.push(item);
       }
     });
@@ -31,22 +30,16 @@ class Utils {
    * @param {*} keys
    * @returns
    */
-  static generateMap<T extends Record<K, any>, K extends string>(
+  static generateMap<T extends KeyObj>(
     // 传入的数组，元素类型为 T
-    list: T[],
-    // keys 数组，其元素为 K 类型，默认值为 ["name", "port"]
-    keys: K[] = ["name", "port"] as K[]
-  ): { [key: string]: T } {
-    // 定义 keyGenerator 函数，用于生成唯一键
-    const keyGenerator = (item: T): string => {
-      return keys.map((e) => `${item[e]}`).join("+");
-    };
-
+    list: T[]
+  ) {
     // 使用 reduce 方法将数组元素存入对象
-    return list.reduce((map: { [key: string]: T }, item: T) => {
-      map[keyGenerator(item)] = item;
+    return list.reduce((map, item: T) => {
+      const key = Utils.getRowKey(item);
+      map.set(key, item);
       return map;
-    }, {});
+    }, new Map());
   }
 
   static isESModuleByPackageJson() {
@@ -107,10 +100,8 @@ class Utils {
     return false;
   }
 
-  static getRowKey<T extends { name: string; port?: string | number }>(
-    rowData: T
-  ): string {
-    return `${rowData.name}+${rowData.port}`;
+  static getRowKey<T extends KeyObj>(rowData: T) {
+    return `${rowData?.name ?? ""}+${rowData?.port ?? ""}`;
   }
 
   /**

@@ -1,6 +1,24 @@
 import { IncomingMessage } from "http";
 import { Options as HttpProxyOptions } from "http-proxy-middleware";
 
+export enum APP_STATUS {
+  RUNNING = "running",
+  STOP = "stop",
+}
+
+/**
+ * APP 状态 PreProxyServer 的状态
+ */
+export type APP_STATUS_TYPE = APP_STATUS;
+
+/**
+ * 环境 和 devServer 的主键
+ */
+export type KeyObj = {
+  name: string;
+  port?: number | string;
+};
+
 /**
  * 开发服务器配置项
  */

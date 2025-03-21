@@ -5,7 +5,13 @@ import chokidar from "chokidar";
 import { EventEmitter } from "events";
 
 import Utils from "./Utils.js";
-import { DevServerItem, EnvConfig, EnvItem } from "./types.js";
+import {
+  DevServerItem,
+  EnvConfig,
+  EnvItem,
+  APP_STATUS,
+  APP_STATUS_TYPE,
+} from "./types.js";
 
 export const FILE_CHANGE_EVENT = "filechange";
 
@@ -26,9 +32,14 @@ class Config {
   envConfig: EnvConfig;
 
   /**
-   * 运行中的环境对应的，devServer
+   * 环境信息列表
    */
-  envToDevServerMap: Record<string, string> = {};
+  envMap: Map<string, EnvItem & { status?: APP_STATUS_TYPE }> = new Map();
+
+  /**
+   * 开发服务器列表
+   */
+  devServerMap: Map<string, DevServerItem> = new Map();
 
   /**
    * 事件总线
@@ -130,33 +141,32 @@ class Config {
     } = resolveDConfig;
 
     devServerList = Utils.removeEnvDuplicates<DevServerItem>(devServerList);
+    this.devServerMap = Utils.generateMap(devServerList);
 
     const defaultDevServerName = devServerList[0]?.name;
 
-    const envToDevServerMap: typeof this.envToDevServerMap = {};
-
-    envList = Utils.removeEnvDuplicates<EnvItem>(envList).map((item) => {
+    envList = Utils.removeEnvDuplicates<EnvItem>(envList);
+    envList = envList.map((item) => {
       const rowKey = Utils.getRowKey(item);
 
-      let devServerName = `${
-        this.envToDevServerMap[rowKey] || item?.devServerName
-      }`;
-      if (this.findDevServerByName(devServerName, devServerList)) {
-        if (this.envToDevServerMap[rowKey]) {
-          envToDevServerMap[rowKey] = this.envToDevServerMap[rowKey];
-        }
-      } else {
+      const oldEnvItem = this.envMap.get(rowKey);
+      let devServerName = `${oldEnvItem?.devServerName || item?.devServerName}`;
+
+      const devServerKey = Utils.getRowKey({ name: devServerName });
+
+      if (!this.devServerMap.has(devServerKey)) {
         devServerName = defaultDevServerName;
       }
       return {
         ...item,
         indexPage: `${item?.indexPage ?? indexPage}`,
         isEnableCookieProxy: item?.isEnableCookieProxy ?? isEnableCookieProxy,
+        status: oldEnvItem?.status ?? APP_STATUS.STOP,
         devServerName,
       };
     });
 
-    this.envToDevServerMap = envToDevServerMap;
+    this.envMap = Utils.generateMap(envList);
 
     this.envConfig = {
       ...resolveDConfig,
@@ -191,52 +201,6 @@ class Config {
           });
       }, 500);
     });
-  }
-
-  /**
-   * 根据 name 查询开发服务器
-   * @param name
-   * @returns
-   */
-  findDevServerByName(name: string, devServerList?: DevServerItem[]) {
-    const list = devServerList || this.envConfig.devServerList;
-    return list.find((item) => item.name === name);
-  }
-
-  /**
-   * 根据 name 和 port 查询环境信息
-   * @param name
-   * @param port
-   * @returns
-   */
-  findEnvByNameAndPort(name: string, port: number | string) {
-    const findKey = Utils.getRowKey({
-      name,
-      port,
-    });
-    return this.envConfig.envList.find((item) => {
-      const rowKey = Utils.getRowKey(item);
-      return findKey === rowKey;
-    });
-  }
-
-  /**
-   * 查询运行中的环境对应的 devServer
-   * @param name  环境名称
-   * @param port 环境端口
-   * @returns 该环境对应的 devServer
-   */
-  findDevServerForEnv(name: string, port: number | string) {
-    const rowKey = Utils.getRowKey({
-      name,
-      port,
-    });
-    let devServerName = this.envToDevServerMap[rowKey];
-    if (!devServerName) {
-      const envItem = this.findEnvByNameAndPort(name, port);
-      devServerName = envItem.devServerName;
-    }
-    return this.findDevServerByName(devServerName);
   }
 
   /**

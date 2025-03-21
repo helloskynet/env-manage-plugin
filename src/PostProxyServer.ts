@@ -100,9 +100,9 @@ class PostProxyServer {
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"] as string;
 
-          const envName = PreProxyServer.appMap[`${port}`].x_name;
+          const envKey = PreProxyServer.appMap[`${port}`].envKey;
 
-          const env = this.config.findEnvByNameAndPort(envName, port);
+          const env = this.config.envMap.get(envKey);
 
           if (env?.router) {
             return await env.router(req, env);
