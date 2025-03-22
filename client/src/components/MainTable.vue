@@ -1,5 +1,8 @@
 <template>
   <el-button type="success" @click="refreshList" :loading="refreshLoading">刷新</el-button>
+  <el-button type="warning" @click="clearProxyCookies" :loading="refreshLoading"
+    >清除所有代理 Cookie</el-button
+  >
   <el-table :data="tableData" style="width: 100%" stripe>
     <el-table-column prop="name" label="环境名称" width="100" />
     <el-table-column prop="target" label="环境代理详情" width="180" />
@@ -193,6 +196,23 @@ const updateSelectedDevServer = (devServerName, rowData) => {
 const refreshList = () => {
   getEnvList()
   getDevServerList()
+}
+
+const clearProxyCookies = () => {
+  fetch(`${apiPrefix}/clear-proxy-cookie`, {
+    method: 'GET',
+  })
+    .then((res) => {
+      return res.json()
+    })
+    .then((res) => {
+      console.log(res)
+      if (res.error) {
+        ElMessage.error(res.error)
+      } else if (res.message) {
+        ElMessage.success(res.message)
+      }
+    })
 }
 const reconnect = () => {
   setTimeout(() => {

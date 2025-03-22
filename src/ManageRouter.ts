@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import * as libCookie from "cookie";
 
 import Utils from "./Utils.js";
 import { Config } from "./Config.js";
@@ -66,6 +67,11 @@ class ManageRouter {
     this.router.get("/are-you-ok", (req, res) => {
       res.send(JSON.stringify(this.config));
     });
+    // 用于 清除代理 的cookie
+    this.router.get(
+      "/clear-proxy-cookie",
+      this.handleClearProxyCookie.bind(this)
+    );
   }
 
   // 处理服务器管理请求
@@ -119,6 +125,35 @@ class ManageRouter {
         console.error(err);
         return res.status(500).json({ error: "停止服务器失败" });
       });
+  }
+
+  /**
+   * 手动清除代理 cookie
+   * @param req
+   * @param res
+   */
+  handleClearProxyCookie(
+    req: Request<{}, {}, ManageServerRequest>,
+    res: Response
+  ) {
+    const cookies = req.headers.cookie;
+
+    if (cookies) {
+      const cookieArr = libCookie.parse(cookies);
+
+      Object.keys(cookieArr).forEach((cookieName) => {
+        if (cookieName.startsWith(this.config.envConfig.cookiePrefix)) {
+          res.appendHeader(
+            "Set-Cookie",
+            `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
+          );
+        }
+      });
+    }
+
+    res.send({
+      message: "Prefixed cookies cleared successfully.",
+    });
   }
 
   // 处理获取环境列表

@@ -120,16 +120,17 @@ class PreProxyServer {
   }
 
   /**
-   * 代理的时候如果收到了 setcookie 请求，则追加对应的代理cookie
+   * 代理的时候如果收到了 setcookie 请求
+   * 给 每一个 setcookie 追加保存一个 代理cookie
    * @param proxyRes
    */
   private _rewriteSetCookieOnProxyRes(proxyRes: IncomingMessage) {
     const envItem = this.getEnvItem();
     const setCookie = proxyRes.headers["set-cookie"];
     if (envItem.isEnableCookieProxy && setCookie) {
-      const cookie = setCookieParser.parse(setCookie);
+      const setCookies = setCookieParser.parse(setCookie);
 
-      const proxyCookie = cookie.map((item: Cookie) => {
+      const proxyCookie = setCookies.map((item: Cookie) => {
         const cookie = {
           ...item,
           name: `${this.cookiePrefix}${item.name}`,
@@ -141,8 +142,7 @@ class PreProxyServer {
         );
       });
 
-      setCookie.push(...proxyCookie);
-      proxyRes.headers["set-cookie"] = setCookie;
+      proxyRes.headers["set-cookie"].push(...proxyCookie);
     }
   }
 
@@ -156,8 +156,8 @@ class PreProxyServer {
     const envItem = this.getEnvItem();
 
     if (envItem.isEnableCookieProxy && req.headers.cookie) {
-      const cookie = libCookie.parse(req.headers.cookie);
-      
+      const cookie = libCookie.parse(req.headers.cookie || "");
+
       const newCookies: string[] = [];
 
       Object.keys(cookie).forEach((item) => {
