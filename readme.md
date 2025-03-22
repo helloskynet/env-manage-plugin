@@ -64,6 +64,9 @@ export default {
   basePath: "/dev-manage-api",
   // 环境的索引路径，可作为环境的首页路径或特定的入口路径，可以被 envList 中的覆盖
   indexPage: "/Test",
+  // 是否开启 cookie 的代理
+  isEnableCookieProxy: true,
+  // 开发服务器列表
   devServerList: [
     {
       // 为开发服务器命名，便于识别和管理，名称可自定义
@@ -86,6 +89,8 @@ export default {
       target: "http://localhost:3010",
       // 环境的索引路径，可作为该环境的首页路径或特定的入口路径
       indexPage: "/Test",
+      // 是否开启 cookie 的代理
+      isEnableCookieProxy: true,
       // 关联的开发服务器Name 未设置时 默认为第一个
       devServerName: "your_dev_server_1",
       // 路由规则函数，根据请求和环境信息，返回请求应转发到的目标地址
@@ -211,6 +216,17 @@ export default defineConfig({
 ### 配置文件热更新
 
 如果需要修改环境配置，直接修改 `envm.config.js` 文件，工具支持热更新，修改后无需重启服务即可生效。
+
+### Cookie 代理
+
+由于 `Cookie` 在同主机的不同端口会进行共享，从而导致不同环境的登录失效，故支持 `Cookie` 代理功能。
+
+例如： 在 `localhost:3001` 端口登录 `环境A`，然后在 `localhost:3002` 登录 `环境B`；第二次登录的 `set-cookie` 操作，会覆盖 `环境A` 的登录操作设置的 `Cookie`。导致 `3001` 端口对 `环境A` 的登录失效。故设置此功能，将不同端口的登录 `Cookie` 分开存储，并在请求时替换成对应环境的 `Cookie`。
+
+其它：
+
+1. 通过配置项 `isEnableCookieProxy` 可以控制此功能的是否开启，默认开启；
+2. 通过管理页面的 `清除所有代理 Cookie` 按钮可以清除所有保存的代理`Cookie`。
 
 ## 依赖
 
