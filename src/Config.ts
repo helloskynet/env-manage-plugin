@@ -136,7 +136,7 @@ class Config {
       envList = [],
       indexPage = "",
       devServerList = [],
-      cookiePrefix = "envm",
+      cookieSuffix = "envm",
       isEnableCookieProxy = true,
       basePath = "/dev-manage-api",
     } = resolveDConfig;
@@ -175,7 +175,7 @@ class Config {
       envList,
       basePath,
       indexPage,
-      cookiePrefix,
+      cookieSuffix,
       devServerList,
       isEnableCookieProxy,
     };

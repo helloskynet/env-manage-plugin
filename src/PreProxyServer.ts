@@ -71,16 +71,16 @@ class PreProxyServer {
   /**
    * 当前 代理的 cookie 前缀
    */
-  get cookiePrefix() {
+  get cookieSuffix() {
     const envItem = PreProxyServer.config.envMap.get(this.envKey);
-    return `${PreProxyServer.configCookiePrefix}-${envItem.port}-`;
+    return `-${envItem.port}-${PreProxyServer.configCookieSuffix}`;
   }
 
   /**
    * 配置的 cookie 前缀
    */
-  static get configCookiePrefix() {
-    return `${PreProxyServer.config.envConfig.cookiePrefix}`;
+  static get configCookieSuffix() {
+    return `${PreProxyServer.config.envConfig.cookieSuffix}`;
   }
 
   /**
@@ -133,7 +133,7 @@ class PreProxyServer {
       const proxyCookie = setCookies.map((item: Cookie) => {
         const cookie = {
           ...item,
-          name: `${this.cookiePrefix}${item.name}`,
+          name: `${item.name}${this.cookieSuffix}`,
         };
         return libCookie.serialize(
           cookie.name,
@@ -161,10 +161,10 @@ class PreProxyServer {
       const newCookies: string[] = [];
 
       Object.keys(cookie).forEach((item) => {
-        if (item.startsWith(PreProxyServer.configCookiePrefix)) {
+        if (item.endsWith(PreProxyServer.configCookieSuffix)) {
           return;
         }
-        let cookieName = `${this.cookiePrefix}${item}`;
+        let cookieName = `${item}${this.cookieSuffix}`;
         if (!cookie[cookieName]) {
           cookieName = item;
         }

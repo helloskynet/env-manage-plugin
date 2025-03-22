@@ -142,7 +142,7 @@ class ManageRouter {
       const cookieArr = libCookie.parse(cookies);
 
       Object.keys(cookieArr).forEach((cookieName) => {
-        if (cookieName.startsWith(this.config.envConfig.cookiePrefix)) {
+        if (cookieName.endsWith(this.config.envConfig.cookieSuffix)) {
           res.appendHeader(
             "Set-Cookie",
             `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
