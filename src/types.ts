@@ -74,7 +74,7 @@ export type EnvItem = {
   /**
    * 当前环境使用的开发服务器名称。
    *
-   * 若未提供，则默认使用开发服务器列表 {@link EnvConfig.devServerList `Config.devServerList` } 中的第一个。
+   * 若未提供，则默认使用开发服务器列表 {@link EnvmConfig.devServerList `Config.devServerList` } 中的第一个。
    */
   devServerName?: string;
   /**
@@ -113,7 +113,7 @@ type RouterFunction = (
 /**
  * 应用配置
  */
-export interface EnvConfig {
+export interface EnvmConfig {
   /**
    * 后置转发端口，开发服务器将请求转发到该端口对应的地址。
    *

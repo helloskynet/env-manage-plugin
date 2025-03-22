@@ -49,21 +49,21 @@ class PreProxyServer {
     });
   }
 
-  static create(envConfig: EnvItem) {
-    const { port } = envConfig;
+  static create(envmConfig: EnvItem) {
+    const { port } = envmConfig;
     if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return null;
     }
 
-    return new PreProxyServer(envConfig);
+    return new PreProxyServer(envmConfig);
   }
 
-  private constructor(envConfig: EnvItem) {
+  private constructor(envmConfig: EnvItem) {
     this.app = express();
-    this.envKey = Utils.getRowKey(envConfig);
+    this.envKey = Utils.getRowKey(envmConfig);
     this.app.use(this.createPreProxyMiddleware());
-    this.startServer(envConfig);
+    this.startServer(envmConfig);
   }
 
   getEnvItem() {
@@ -83,7 +83,7 @@ class PreProxyServer {
    * 配置的 cookie 后缀
    */
   static get configCookieSuffix() {
-    return `${PreProxyServer.config.envConfig.cookieSuffix}`;
+    return `${PreProxyServer.config.envmConfig.cookieSuffix}`;
   }
 
   /**
@@ -180,11 +180,11 @@ class PreProxyServer {
 
   /**
    * 启动服务
-   * @param envConfig
+   * @param envmConfig
    * @returns
    */
-  startServer(envConfig: EnvItem) {
-    const { port } = envConfig;
+  startServer(envmConfig: EnvItem) {
+    const { port } = envmConfig;
     if (PreProxyServer.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;

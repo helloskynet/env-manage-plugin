@@ -7,7 +7,7 @@ import { EventEmitter } from "events";
 import Utils from "./Utils.js";
 import {
   DevServerItem,
-  EnvConfig,
+  EnvmConfig,
   EnvItem,
   APP_STATUS,
   APP_STATUS_TYPE,
@@ -29,7 +29,7 @@ class Config {
   /**
    * 配置内容
    */
-  envConfig: EnvConfig;
+  envmConfig: EnvmConfig;
 
   /**
    * 环境信息列表
@@ -130,7 +130,7 @@ class Config {
    * @param resolveDConfig
    * @returns
    */
-  resolveConfig(resolveDConfig: EnvConfig) {
+  resolveConfig(resolveDConfig: EnvmConfig) {
     let {
       port = 3099,
       envList = [],
@@ -169,7 +169,7 @@ class Config {
 
     this.envMap = Utils.generateMap(envList);
 
-    this.envConfig = {
+    this.envmConfig = {
       ...resolveDConfig,
       port,
       envList,
@@ -210,11 +210,11 @@ class Config {
    * @returns
    */
   checkPortAsync() {
-    return Utils.isPortOccupied(this.envConfig.port).then((result) => {
+    return Utils.isPortOccupied(this.envmConfig.port).then((result) => {
       if (result) {
         return this.checkIsRunning().then((res: Config) => {
           console.log(
-            `服务已启动在端口 ${this.envConfig.port} 配置文件地址为 ${res.filePath} 请检查`
+            `服务已启动在端口 ${this.envmConfig.port} 配置文件地址为 ${res.filePath} 请检查`
           );
           throw new Error("服务已经启动");
         });
@@ -244,8 +244,8 @@ class Config {
   checkIsRunning() {
     const options = {
       hostname: "127.0.0.1",
-      port: this.envConfig.port,
-      path: `${this.envConfig.basePath}/are-you-ok`,
+      port: this.envmConfig.port,
+      path: `${this.envmConfig.basePath}/are-you-ok`,
       method: "GET",
     };
 

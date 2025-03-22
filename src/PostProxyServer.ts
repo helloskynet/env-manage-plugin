@@ -30,7 +30,7 @@ class PostProxyServer {
 
     // 初始化管理路由
     const manageRouter = new ManageRouter();
-    this.app.use(this.config.envConfig.basePath, manageRouter.getRouter());
+    this.app.use(this.config.envmConfig.basePath, manageRouter.getRouter());
 
     // 全局错误处理中间件
     this.app.use(
@@ -68,7 +68,7 @@ class PostProxyServer {
     const wss = new WebSocketServer({ noServer: true });
 
     server.on("upgrade", (request, socket, head) => {
-      if (request.url.startsWith(this.config.envConfig.basePath)) {
+      if (request.url.startsWith(this.config.envmConfig.basePath)) {
         wss.handleUpgrade(request, socket, head, (ws) => {});
       }
     });
@@ -128,9 +128,9 @@ class PostProxyServer {
    * 启动服务
    */
   startServer() {
-    return this.app.listen(this.config.envConfig.port, () => {
+    return this.app.listen(this.config.envmConfig.port, () => {
       console.log(
-        `Post Proxy Middleware is running on http://localhost:${this.config.envConfig.port}`
+        `Post Proxy Middleware is running on http://localhost:${this.config.envmConfig.port}`
       );
     });
   }

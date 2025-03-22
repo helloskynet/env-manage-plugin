@@ -18,19 +18,6 @@ class ManageRouter {
 
   config: Config;
 
-  activeDevServer: Record<string, EnvItem>;
-
-  /**
-   * 保存运行中的环境
-   */
-  runningApplication: {
-    [key: string]: Boolean;
-  };
-
-  get envConfig() {
-    return this.config.envConfig;
-  }
-
   constructor() {
     this.config = new Config();
 
@@ -142,11 +129,8 @@ class ManageRouter {
       const cookieArr = libCookie.parse(cookies);
 
       Object.keys(cookieArr).forEach((cookieName) => {
-        if (cookieName.endsWith(this.config.envConfig.cookieSuffix)) {
-          res.appendHeader(
-            "Set-Cookie",
-            `${cookieName}=; max-age=0; path=/`
-          );
+        if (cookieName.endsWith(this.config.envmConfig.cookieSuffix)) {
+          res.appendHeader("Set-Cookie", `${cookieName}=; max-age=0; path=/`);
         }
       });
     }
