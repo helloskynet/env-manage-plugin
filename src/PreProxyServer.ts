@@ -6,7 +6,7 @@ import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
 
 import Utils from "./Utils.js";
-import { APP_STATUS, EnvItem, KeyObj } from "./types.js";
+import { EnvItem } from "./types.js";
 import { Config, FILE_CHANGE_EVENT } from "./Config.js";
 
 class PreProxyServer {
@@ -24,6 +24,9 @@ class PreProxyServer {
    */
   server: Server;
 
+  /**
+   * 保存当前代理的 socket 连接 关闭前先 断开所有链接
+   */
   sockets: Set<Socket>;
 
   /**
@@ -69,7 +72,7 @@ class PreProxyServer {
   }
 
   /**
-   * 当前 代理的 cookie 前缀
+   * 当前 代理的 cookie 后缀
    */
   get cookieSuffix() {
     const envItem = PreProxyServer.config.envMap.get(this.envKey);
@@ -77,7 +80,7 @@ class PreProxyServer {
   }
 
   /**
-   * 配置的 cookie 前缀
+   * 配置的 cookie 后缀
    */
   static get configCookieSuffix() {
     return `${PreProxyServer.config.envConfig.cookieSuffix}`;
@@ -181,7 +184,7 @@ class PreProxyServer {
    * @returns
    */
   startServer(envConfig: EnvItem) {
-    const { port, name } = envConfig;
+    const { port } = envConfig;
     if (PreProxyServer.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;
@@ -189,7 +192,7 @@ class PreProxyServer {
 
     this.server = this.app.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
-      PreProxyServer.config.envMap.get(this.envKey).status = APP_STATUS.RUNNING;
+      PreProxyServer.config.startServer(this.envKey);
     });
 
     // 保存所有活动的 socket 连接
@@ -227,8 +230,7 @@ class PreProxyServer {
       }
 
       this.appMap[port].server.close((err) => {
-        const rowKey = this.appMap[port].envKey;
-        PreProxyServer.config.envMap.get(rowKey).status = APP_STATUS.STOP;
+        this.config.stopServer(this.appMap[port].envKey);
 
         delete this.appMap[port];
         console.log(`Server on port ${port} 已关闭`, err || "");

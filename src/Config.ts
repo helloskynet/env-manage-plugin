@@ -223,6 +223,21 @@ class Config {
   }
 
   /**
+   * 对应代理启动之后，更新状态
+   * @param envKey
+   */
+  startServer(envKey: string) {
+    this.envMap.get(envKey).status = APP_STATUS.RUNNING;
+  }
+
+  /**
+   * 对应的代理关闭之后，更新状态
+   * @param envKey
+   */
+  stopServer(envKey: string) {
+    this.envMap.get(envKey).status = APP_STATUS.STOP;
+  }
+  /**
    * 查询端口，中启动的服务是否为 envm
    * @returns
    */
