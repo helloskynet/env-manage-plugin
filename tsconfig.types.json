@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "./dist", // 指定类型声明文件的输出目录
+  },
+  "include": [
+    "src/types.ts",
+  ],
+  "exclude": [
+    "node_modules",
+  ]
+}

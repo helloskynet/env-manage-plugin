@@ -1,4 +1,4 @@
-/** @type {import('env-manage-plugin').Config} */
+/** @type {import('env-manage-plugin').EnvConfig} */
 module.exports = {
   indexPage: "/",
   devServerList: [

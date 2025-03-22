@@ -9,13 +9,13 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "skipLibCheck": true, // 跳过声明文件.d.ts的检查
-    "declaration": true,
-    "declarationDir": "./dist", // 指定类型声明文件的输出目录
+    "declaration": false
   },
   "include": [
     "src/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "src/types.ts"
   ]
 }
