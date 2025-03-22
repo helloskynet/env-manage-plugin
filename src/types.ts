@@ -143,6 +143,14 @@ export interface EnvConfig {
   isEnableCookieProxy?: boolean;
 
   /**
+   * cookie 前缀，
+   * 由于同主机不同端口 cookie 共享，会将登录不同端口的 cookie 区分端口再次存储，此字段作为前缀，在代理时，重新复写cookie
+   *
+   * @default 'envm'
+   */
+  cookiePrefix?: string;
+
+  /**
    * 开发服务器列表，包含多个开发服务器的配置信息
    */
   devServerList: Array<DevServerItem>;

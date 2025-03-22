@@ -42,16 +42,19 @@
   "dependencies": {
     "chokidar": "^4.0.3",
     "commander": "^13.1.0",
+    "cookie": "^1.0.2",
     "express": "^4.21.2",
     "express-static-gzip": "^2.2.0",
     "http-proxy-middleware": "^3.0.3",
     "portfinder": "^1.0.35",
+    "set-cookie-parser": "^2.7.1",
     "unplugin": "^2.2.0",
     "ws": "^8.18.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.8",
+    "@types/set-cookie-parser": "^2.4.10",
     "@types/ws": "^8.18.0",
     "concurrently": "^8.2.2",
     "nodemon": "^3.1.9",

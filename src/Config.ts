@@ -133,11 +133,12 @@ class Config {
   resolveConfig(resolveDConfig: EnvConfig) {
     let {
       port = 3099,
-      basePath = "/dev-manage-api",
       envList = [],
-      devServerList = [],
       indexPage = "",
+      devServerList = [],
+      cookiePrefix = "envm",
       isEnableCookieProxy = true,
+      basePath = "/dev-manage-api",
     } = resolveDConfig;
 
     devServerList = Utils.removeEnvDuplicates<DevServerItem>(devServerList);
@@ -174,6 +175,7 @@ class Config {
       envList,
       basePath,
       indexPage,
+      cookiePrefix,
       devServerList,
       isEnableCookieProxy,
     };

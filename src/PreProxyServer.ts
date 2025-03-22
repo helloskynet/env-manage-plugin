@@ -1,7 +1,9 @@
 import { Socket } from "net";
-import { IncomingMessage, Server } from "http";
+import { ClientRequest, IncomingMessage, Server } from "http";
 import express, { Application, Request } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import setCookieParser, { Cookie } from "set-cookie-parser";
+import * as libCookie from "cookie";
 
 import Utils from "./Utils.js";
 import { APP_STATUS, EnvItem, KeyObj } from "./types.js";
@@ -61,9 +63,24 @@ class PreProxyServer {
     this.startServer(envConfig);
   }
 
-  getEnvItem(req: IncomingMessage) {
+  getEnvItem() {
     const envItem = PreProxyServer.config.envMap.get(this.envKey);
     return envItem;
+  }
+
+  /**
+   * 当前 代理的 cookie 前缀
+   */
+  get cookiePrefix() {
+    const envItem = PreProxyServer.config.envMap.get(this.envKey);
+    return `${PreProxyServer.configCookiePrefix}-${envItem.port}-`;
+  }
+
+  /**
+   * 配置的 cookie 前缀
+   */
+  static get configCookiePrefix() {
+    return `${PreProxyServer.config.envConfig.cookiePrefix}`;
   }
 
   /**
@@ -90,31 +107,72 @@ class PreProxyServer {
       on: {
         proxyReq: (proxyReq, req) => {
           proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
-
-          const envItem = this.getEnvItem(req);
-
-          if (envItem.isEnableCookieProxy) {
-            if (this.cookie) {
-              proxyReq.setHeader("cookie", this.cookie);
-            } else {
-              this.cookie = req.headers.cookie;
-            }
-          }
+          this._rewrieCookieOnProxyReq(proxyReq, req);
         },
         proxyRes: (proxyRes, req, res) => {
-          const envItem = this.getEnvItem(req);
-          if (envItem.isEnableCookieProxy) {
-            const setCookie = proxyRes.headers["set-cookie"];
-            if (setCookie) {
-              this.cookie = "";
-            }
-          }
+          this._rewriteSetCookieOnProxyRes(proxyRes);
         },
         proxyReqWs(proxyReq, req: Request, res) {
           proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
         },
       },
     });
+  }
+
+  /**
+   * 代理的时候如果收到了 setcookie 请求，则追加对应的代理cookie
+   * @param proxyRes
+   */
+  private _rewriteSetCookieOnProxyRes(proxyRes: IncomingMessage) {
+    const envItem = this.getEnvItem();
+    const setCookie = proxyRes.headers["set-cookie"];
+    if (envItem.isEnableCookieProxy && setCookie) {
+      const cookie = setCookieParser.parse(setCookie);
+
+      const proxyCookie = cookie.map((item: Cookie) => {
+        const cookie = {
+          ...item,
+          name: `${this.cookiePrefix}${item.name}`,
+        };
+        return libCookie.serialize(
+          cookie.name,
+          cookie.value,
+          cookie as libCookie.SerializeOptions
+        );
+      });
+
+      setCookie.push(...proxyCookie);
+      proxyRes.headers["set-cookie"] = setCookie;
+    }
+  }
+
+  /**
+   * 代理 转发的时候，将对应端口的cookie 重写回去
+   */
+  private _rewrieCookieOnProxyReq(
+    proxyReq: ClientRequest,
+    req: IncomingMessage
+  ) {
+    const envItem = this.getEnvItem();
+
+    if (envItem.isEnableCookieProxy && req.headers.cookie) {
+      const cookie = libCookie.parse(req.headers.cookie);
+      
+      const newCookies: string[] = [];
+
+      Object.keys(cookie).forEach((item) => {
+        if (item.startsWith(PreProxyServer.configCookiePrefix)) {
+          return;
+        }
+        let cookieName = `${this.cookiePrefix}${item}`;
+        if (!cookie[cookieName]) {
+          cookieName = item;
+        }
+        newCookies.push(libCookie.serialize(item, cookie[cookieName]));
+      });
+
+      proxyReq.setHeader("cookie", newCookies.join(";"));
+    }
   }
 
   /**
