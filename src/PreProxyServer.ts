@@ -1,17 +1,15 @@
 import { Socket } from "net";
 import { ClientRequest, IncomingMessage, Server } from "http";
-import express, { Application, Request } from "express";
+import express, { Request } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
 
 import Utils from "./Utils.js";
-import { EnvItem } from "./types.js";
-import { Config, FILE_CHANGE_EVENT } from "./Config.js";
+import { config } from "./ResolveConfig.js";
+import { EnvItemModel } from "./models/EnvModel.js";
 
 class PreProxyServer {
-  app: Application;
-
   /**
    * 保存cookie
    * 因为同主机的不同端口会共享 cookie
@@ -41,33 +39,42 @@ class PreProxyServer {
     [key: string]: PreProxyServer;
   } = {};
 
-  static config = new Config();
+  static portToEnvMap: {
+    [key: string]: EnvItemModel;
+  } = {};
 
-  static {
-    this.config.bus.on(FILE_CHANGE_EVENT, () => {
-      this.updateAppMapAfterConfigFileChange();
-    });
-  }
+  // fixme: 这里的 devServerMap 是为了存储开发服务器的配置
+  // 目前是为了在代理请求时能够根据环境的 devServerName 获取对应的目标地址
+  // 可能需要进一步优化，或者改为从配置文件中读取
+  static devServerMap: {
+    [key: string]: EnvItemModel;
+  } = {};
 
-  static create(envmConfig: EnvItem) {
+  static async create(envmConfig: EnvItemModel) {
     const { port } = envmConfig;
     if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return null;
     }
 
-    return new PreProxyServer(envmConfig);
+    this.portToEnvMap[envmConfig.port] = envmConfig;
+
+    const preProxyServer = new PreProxyServer(envmConfig);
+    await preProxyServer.startServer(envmConfig);
+    PreProxyServer.appMap[port] = preProxyServer;
+    return preProxyServer;
   }
 
-  private constructor(envmConfig: EnvItem) {
-    this.app = express();
+  private constructor(
+    envmConfig: EnvItemModel,
+    private app = express()
+  ) {
     this.envKey = Utils.getRowKey(envmConfig);
-    this.app.use(this.createPreProxyMiddleware());
-    this.startServer(envmConfig);
+    app.use(this.createPreProxyMiddleware());
   }
 
   getEnvItem() {
-    const envItem = PreProxyServer.config.envMap.get(this.envKey);
+    const envItem = PreProxyServer.portToEnvMap[this.envKey];
     return envItem;
   }
 
@@ -75,7 +82,7 @@ class PreProxyServer {
    * 当前 代理的 cookie 后缀
    */
   get cookieSuffix() {
-    const envItem = PreProxyServer.config.envMap.get(this.envKey);
+    const envItem = PreProxyServer.portToEnvMap[this.envKey];
     return `-${envItem.port}-${PreProxyServer.configCookieSuffix}`;
   }
 
@@ -83,7 +90,7 @@ class PreProxyServer {
    * 配置的 cookie 后缀
    */
   static get configCookieSuffix() {
-    return `${PreProxyServer.config.envmConfig.cookieSuffix}`;
+    return `${config.cookieSuffix}`;
   }
 
   /**
@@ -95,27 +102,26 @@ class PreProxyServer {
     return createProxyMiddleware({
       ws: true,
       changeOrigin: true,
-      router: (req) => {
-        const envItem = PreProxyServer.config.envMap.get(this.envKey);
+      router: () => {
+        const envItem = PreProxyServer.portToEnvMap[this.envKey];
 
         const devServerKey = Utils.getRowKey({
-          name: envItem.devServerName,
+          name: envItem.devServerId,
         });
 
-        const devServerConfig =
-          PreProxyServer.config.devServerMap.get(devServerKey);
+        const devServerConfig = PreProxyServer.devServerMap[devServerKey];
         // 默认转发到 Webpack 开发服务器
-        return devServerConfig?.target;
+        return devServerConfig?.devServerId;
       },
       on: {
         proxyReq: (proxyReq, req) => {
           proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
           this._rewrieCookieOnProxyReq(proxyReq, req);
         },
-        proxyRes: (proxyRes, req, res) => {
+        proxyRes: (proxyRes) => {
           this._rewriteSetCookieOnProxyRes(proxyRes);
         },
-        proxyReqWs(proxyReq, req: Request, res) {
+        proxyReqWs(proxyReq, req: Request) {
           proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
         },
       },
@@ -130,7 +136,7 @@ class PreProxyServer {
   private _rewriteSetCookieOnProxyRes(proxyRes: IncomingMessage) {
     const envItem = this.getEnvItem();
     const setCookie = proxyRes.headers["set-cookie"];
-    if (envItem.isEnableCookieProxy && setCookie) {
+    if (envItem && setCookie) {
       const setCookies = setCookieParser.parse(setCookie);
 
       const proxyCookie = setCookies.map((item: Cookie) => {
@@ -158,7 +164,7 @@ class PreProxyServer {
   ) {
     const envItem = this.getEnvItem();
 
-    if (envItem.isEnableCookieProxy && req.headers.cookie) {
+    if (envItem && req.headers.cookie) {
       const cookie = libCookie.parse(req.headers.cookie || "");
 
       const newCookies: string[] = [];
@@ -183,16 +189,23 @@ class PreProxyServer {
    * @param envmConfig
    * @returns
    */
-  startServer(envmConfig: EnvItem) {
+  async startServer(envmConfig: EnvItemModel) {
     const { port } = envmConfig;
     if (PreProxyServer.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;
     }
 
-    this.server = this.app.listen(port, () => {
-      console.log(`Server is running on http://localhost:${port}`);
-      PreProxyServer.config.startServer(this.envKey);
+    this.server = await new Promise((resolve, reject) => {
+      const server = this.app.listen(port, () => {
+        console.log(`Server is running on http://localhost:${port}`);
+        // 更新状态
+        resolve(server);
+      });
+      server.on("error", (err) => {
+        console.error(`端口 ${port} 启动失败:`, err.message);
+        reject(err);
+      });
     });
 
     // 保存所有活动的 socket 连接
@@ -213,8 +226,6 @@ class PreProxyServer {
         this.sockets.delete(socket); // 从集合中移除已关闭的 socket
       });
     });
-
-    PreProxyServer.appMap[port] = this;
   }
 
   static stopServer(port: number | string) {
@@ -230,27 +241,11 @@ class PreProxyServer {
       }
 
       this.appMap[port].server.close((err) => {
-        this.config.stopServer(this.appMap[port].envKey);
-
+        // 停止服务更新状态
         delete this.appMap[port];
         console.log(`Server on port ${port} 已关闭`, err || "");
         resolve(1);
       });
-    });
-  }
-
-  /**
-   * 配置文件变更 检查再配置中已经不存在的环境，并关闭改环境
-   * @param newConfig
-   */
-  static updateAppMapAfterConfigFileChange() {
-    const envMap = PreProxyServer.config.envMap;
-
-    Object.entries(PreProxyServer.appMap).forEach(([port, item]) => {
-      const rowKey = item.envKey;
-      if (!envMap.has(rowKey)) {
-        PreProxyServer.stopServer(port);
-      }
     });
   }
 }

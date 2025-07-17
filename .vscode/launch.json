@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug TS (Precompiled)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/index.js",
+      "args": [
+        "--config=${workspaceFolder}/test/envm.config.js"
+      ],
+      "preLaunchTask": "tsc: build",             
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"], 
+      "sourceMaps": true,                          
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

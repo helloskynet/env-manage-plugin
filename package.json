@@ -10,9 +10,6 @@
     "rollup-plugin",
     "vite-plugin"
   ],
-  "workspaces": [
-    "client"
-  ],
   "bin": {
     "envm": "bin/index.js"
   },
@@ -25,17 +22,23 @@
     }
   },
   "scripts": {
-    "dev": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"npm run dev:*\" ",
+    "preinstall": "npx only-allow pnpm",
+    "dev": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"pnpm run dev:*\" ",
     "dev:ts": "tsc --watch",
     "dev:proxy": "nodemon bin/index.js --config=./test/envm.config.js",
-    "dev:client": "cd client && npm run dev",
+    "dev:client": "cd client && pnpm run dev",
     "dev:server": "node test/server.js",
     "build": "tsc & tsc -p tsconfig.types.json",
-    "postbuild": "npm --prefix client run build",
-    "test": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"npm run test:*\" ",
+    "postbuild": "pnpm --prefix client run build",
+    "test": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"pnpm run test:*\" ",
     "test:envm": "npx envm --config=./test/envm.config.js",
-    "test:client": "npm run dev:client",
-    "test:server": "npm run dev:server"
+    "test:client": "pnpm run dev:client",
+    "test:server": "pnpm run dev:server",
+    "temp": "echo 0",
+    "lint": "pnpm run lint:server && pnpm run lint:client",
+    "lint:client": "cd client && pnpm lint",
+    "lint:server": "eslint ./src",
+    "prepare": "husky"
   },
   "author": "lcn",
   "license": "MIT",
@@ -43,23 +46,34 @@
     "chokidar": "^4.0.3",
     "commander": "^13.1.0",
     "cookie": "^1.0.2",
+    "dotenv": "^17.1.0",
     "express": "^4.21.2",
     "express-static-gzip": "^2.2.0",
     "http-proxy-middleware": "^3.0.3",
+    "lokijs": "^1.5.12",
     "portfinder": "^1.0.35",
     "set-cookie-parser": "^2.7.1",
     "tslib": "^2.8.1",
     "unplugin": "^2.2.0",
-    "ws": "^8.18.1"
+    "ws": "^8.18.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "@eslint/json": "^0.12.0",
+    "@stylistic/eslint-plugin": "^4.2.0",
     "@types/express": "^5.0.0",
+    "@types/lokijs": "^1.5.14",
     "@types/node": "^22.13.8",
     "@types/set-cookie-parser": "^2.4.10",
     "@types/ws": "^8.18.0",
     "concurrently": "^8.2.2",
+    "eslint": "^9.27.0",
+    "globals": "^16.1.0",
+    "husky": "^9.1.7",
     "nodemon": "^3.1.9",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.32.1"
   },
   "bugs": {
     "url": "https://github.com/helloskynet/env-manage-plugin/issues"

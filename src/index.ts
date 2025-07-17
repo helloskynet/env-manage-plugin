@@ -1,6 +1,8 @@
-import { Config } from "./Config.js";
 import { Options } from "./types.js";
+import Utils from "./Utils.js";
+import http from "http";
 import PostProxyServer from "./PostProxyServer.js";
+import { config  } from "./ResolveConfig.js";
 
 class EnvManage {
   /**
@@ -12,18 +14,69 @@ class EnvManage {
     this.options = options;
   }
 
-  async startIndependent(isPlugin: boolean = false) {
-    const config = new Config(isPlugin);
-
-    await config
-      .initConfig(this.options.config)
+  async startIndependent() {
+    console.log("Starting EnvManage...", config);
+    
+    // 检查端口是否被占用
+    this.checkPortAsync()
       .then(() => {
-        console.log("Config file loaded");
+        console.log(`端口 ${config.port} 可用，启动服务...`);
         new PostProxyServer();
       })
-      .catch(() => {
-        // todo 错误处理
+      .catch((error) => {
+        console.error("端口检查失败:", error.message);
       });
+  }
+
+  /**
+   * 判断端口是否被占用，如果被占用的，查询是否已经启动
+   * @returns
+   */
+  checkPortAsync() {
+    return Utils.isPortOccupied(config.port).then((result) => {
+      if (result) {
+        return this.checkIsRunning().then(() => {
+          throw new Error(`请确认服务是否已经在端口 ${config.port} 启动`);
+        });
+      }
+    });
+  }
+  /**
+   * 查询端口，中启动的服务是否为 envm
+   * @returns
+   */
+  checkIsRunning() {
+    const options = {
+      hostname: "127.0.0.1",
+      port: config.port,
+      path: `${config.apiPrefix}/are-you-ok`,
+      method: "GET",
+    };
+
+    return new Promise((resolve, reject) => {
+      const req = http.request(options, (res) => {
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          reject(new Error(`请求失败，状态码: ${res.statusCode}`));
+          return;
+        }
+        let responseData = "";
+
+        res.on("data", (chunk) => {
+          responseData += chunk;
+        });
+
+        res.on("end", () => {
+          const result = JSON.parse(responseData);
+          resolve(result);
+        });
+      });
+
+      req.on("error", (error) => {
+        reject(error);
+      });
+
+      req.end();
+    });
   }
 }
 

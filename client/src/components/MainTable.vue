@@ -1,20 +1,51 @@
 <template>
-  <el-button type="success" @click="refreshList" :loading="refreshLoading">刷新</el-button>
-  <el-button type="warning" @click="clearProxyCookies" :loading="refreshLoading"
-    >清除所有代理 Cookie</el-button
+  <el-button
+    type="success"
+    @click="handleAddEnv"
+    :loading="refreshLoading"
+  >新增代理</el-button>
+  <el-button
+    type="success"
+    @click="handleAddEnv"
+    :loading="refreshLoading"
+  >新增DevServer</el-button>
+  <el-button
+    type="success"
+    @click="refreshList"
+    :loading="refreshLoading"
+  >刷新</el-button>
+  <el-button
+    type="warning"
+    @click="clearProxyCookies"
+    :loading="refreshLoading"
+  >清除所有代理 Cookie</el-button>
+  <el-table
+    :data="tableData"
+    style="width: 100%"
+    stripe
   >
-  <el-table :data="tableData" style="width: 100%" stripe>
-    <el-table-column prop="name" label="环境名称" width="100" />
-    <el-table-column prop="target" label="环境代理详情" width="180" />
-    <el-table-column prop="index" label="首页地址" show-overflow-tooltip>
+    <el-table-column
+      prop="name"
+      label="环境名称"
+      width="100"
+    />
+    <el-table-column
+      prop="ip"
+      label="环境代理详情"
+      width="180"
+    />
+    <el-table-column
+      prop="index"
+      label="首页地址"
+      show-overflow-tooltip
+    >
       <template #default="scope">
         <el-link
           :disabled="scope.row.status === 'stop'"
           type="primary"
           :href="scope.row.index"
           target="_blank"
-          >{{ scope.row.index }}</el-link
-        >
+        >{{ scope.row.index }}</el-link>
       </template>
     </el-table-column>
     <el-table-column prop="port" label="端口" />
@@ -28,17 +59,16 @@
       <template #default="scope">
         <el-radio-group
           v-model="scope.row.devServerName"
-          @change="(value) => updateSelectedDevServer(value, scope.row)"
+          @change="(value: string) => updateSelectedDevServer(value, scope.row)"
         >
           <el-radio
             v-for="item in devServerList"
             :key="item.name"
             :value="`${item.name}`"
-            :title="item.target"
+            :title="item.ip"
             border
             size="small"
-            >{{ item.name }}</el-radio
-          >
+          >{{ item.name }}</el-radio>
         </el-radio-group>
       </template>
     </el-table-column>
@@ -49,51 +79,80 @@
           v-if="scope.row.status === 'stop'"
           :loading="loadingMap[scope.row.port]"
           @click="handleStart(scope.row)"
-          >启动</el-button
-        >
+        >启动</el-button>
         <el-button
-          type="danger"
+          type="info"
           v-else
           :loading="loadingMap[scope.row.port]"
           @click="handleStop(scope.row)"
-          >停止</el-button
-        >
+        >停止</el-button>
+        <el-button
+          type="danger"
+          :loading="loadingMap[scope.row.port]"
+          @click="handleDelete(scope.row)"
+        >删除</el-button>
       </template>
     </el-table-column>
   </el-table>
+  <add-env
+    ref="addEnvRef"
+    :modelValue="modelValue"
+    :apiPrefix="apiPrefix"
+    @refreshList="refreshList"
+  />
 </template>
 
 <script lang="ts" setup>
-import { ElMessage } from 'element-plus'
+import addEnv from './AddEnv.vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
+import type { DevServerInterface, EnvItemInterface, ListResponse } from '@/types/BaseRes'
+import { fetchData } from '@/utils'
 
 const apiPrefix = 'dev-manage-api'
 
-let tableData = ref([])
+const tableData = ref<EnvItemInterface[]>([])
 
-let devServerList = ref([])
+const devServerList = ref<DevServerInterface[]>([])
 
-let loadingMap = ref({}) // 存储每行的 loading 状态
+const loadingMap = ref<{ [key: string]: unknown }>({}) // 存储每行的 loading 状态
 
-let refreshLoading = ref(false)
+const refreshLoading = ref(false)
+
+const modelValue = ref<EnvItemInterface>({
+  name: '',
+  description: '',
+  port: 0,
+  devServerId: '',
+  ip: '',
+  homePage: '',
+})
+
+const addEnvRef = ref()
+
+const handleAddEnv = () => {
+  // 使用 $refs 调用子组件方法
+  if (addEnvRef.value) {
+    addEnvRef.value.showDialog()
+  }
+}
+
 /**
  * 获取环境列表
  *
  */
 const getEnvList = () => {
   refreshLoading.value = true
-  fetch(`${apiPrefix}/getlist`)
-    .then((res) => {
-      return res.json()
-    })
+  fetchData<ListResponse<EnvItemInterface>>(`${apiPrefix}/getlist`)
     .then((res) => {
       console.log(res)
-      tableData.value = res.list.map((item) => {
-        return {
-          ...item,
-          index: `${location.protocol}//${location.hostname}:${item.port}${item.indexPage}`,
-        }
-      })
+      tableData.value =
+        res?.list.map((item) => {
+          return {
+            ...item,
+            index: `${location.protocol}//${location.hostname}:${item.port}${item.homePage}`,
+          }
+        }) ?? []
     })
     .finally(() => {
       refreshLoading.value = false
@@ -104,7 +163,7 @@ const getEnvList = () => {
  *
  */
 const getDevServerList = () => {
-  fetch(`${apiPrefix}/get-dev-server-list`)
+  fetch(`${apiPrefix}/dev-server/list`)
     .then((res) => {
       return res.json()
     })
@@ -120,35 +179,54 @@ onMounted(() => {
   startWs()
 })
 
-const handleStart = (rowData) => {
-  updateStatus({
-    action: 'start',
-    name: rowData.name,
-    port: rowData.port,
-  })
+const handleStart = (rowData: EnvItemInterface) => {
+  updateStatus('start', rowData)
 }
-const handleStop = (rowData) => {
-  const rowPort = rowData.port
-  if (location.port == rowPort) {
-    ElMessage.error('不能停止当前环境')
-    return
-  }
-  updateStatus({
-    action: 'stop',
-    name: rowData.name,
-    port: rowData.port,
-  })
+const handleStop = (rowData: EnvItemInterface) => {
+  updateStatus('stop', rowData)
 }
 
-const updateStatus = (body) => {
-  loadingMap.value[body.port] = true
+const handleDelete = (rowData: EnvItemInterface) => {
+  ElMessageBox.confirm(`确定删除环境 ${rowData.name} 吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
+    .then(() => {
+      fetch(`${apiPrefix}/env/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // 必须设置
+        },
+        body: JSON.stringify(rowData),
+      })
+        .then((res) => {
+          return res.json()
+        })
+        .then((res) => {
+          console.log(res)
+          if (res.error) {
+            ElMessage.error(res.error)
+          } else if (res.message) {
+            ElMessage.success(res.message)
+          }
+          getEnvList()
+        })
+    })
+    .catch(() => {
+      ElMessage.info('已取消删除')
+    })
+}
 
-  fetch(`${apiPrefix}/manage-server`, {
+const updateStatus = (action: string, rowData: EnvItemInterface) => {
+  loadingMap.value[rowData.port] = true
+
+  fetch(`${apiPrefix}/server/${action}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json', // 必须设置
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(rowData),
   })
     .then((res) => {
       return res.json()
@@ -163,11 +241,11 @@ const updateStatus = (body) => {
       getEnvList()
     })
     .finally(() => {
-      loadingMap.value[body.port] = false
+      loadingMap.value[rowData.port] = false
     })
 }
 
-const updateSelectedDevServer = (devServerName, rowData) => {
+const updateSelectedDevServer = (devServerName: string, rowData: EnvItemInterface) => {
   fetch(`${apiPrefix}/update-dev-server-id`, {
     method: 'POST',
     headers: {

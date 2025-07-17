@@ -1,44 +1,52 @@
 import { Server } from "http";
 import { join } from "path";
-import WebSocket, { WebSocketServer } from "ws";
-import express, {
-  Application,
-  Errback,
-  Request,
-  Response,
-  NextFunction,
-} from "express";
+import { WebSocketServer } from "ws";
+import express, { Errback, NextFunction, Request, Response } from "express";
 import expressStaticGzip from "express-static-gzip";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
 import ManageRouter from "./ManageRouter.js";
 import PreProxyServer from "./PreProxyServer.js";
-import { Config, FILE_CHANGE_EVENT } from "./Config.js";
+import { config } from "./ResolveConfig.js";
+
+// ApiResponse工具函数
+const ApiResponse = {
+  success: (data: unknown) => ({ code: 200, message: "success", data }),
+  error: (code: unknown, message: unknown) => ({ code, message }),
+};
 
 /**
  * 后置代理服务器---同时也是管理页面的服务器
  */
 class PostProxyServer {
-  app: Application;
-  config: Config;
+  constructor(private app = express()) {
+    // 代理中间件
+    app.use(this.createPostProxyMiddleware());
 
-  constructor() {
-    this.config = new Config();
-
-    // 初始化服务器
-    this.app = this.initializeServer();
+    // 静态资源
+    app.use(expressStaticGzip(join(__dirname, "client"), {}));
 
     // 初始化管理路由
     const manageRouter = new ManageRouter();
-    this.app.use(this.config.envmConfig.basePath, manageRouter.getRouter());
+    // Express中间件（统一处理响应）
+    app.use((req, res, next) => {
+      // 保存原始res.json方法
+      const originalJson = res.json;
+      // 重写res.json，自动封装为ApiResponse
+      res.json = function (body) {
+        // 如果已经是ApiResponse格式，则直接返回
+        if (body && body.code !== undefined) {
+          return originalJson.call(this, body);
+        }
+        // 正常响应：封装为success格式
+        return originalJson.call(this, ApiResponse.success(body));
+      };
+      next();
+    });
+    app.use(config.apiPrefix, manageRouter.getRouter());
 
     // 全局错误处理中间件
-    this.app.use(
-      (err: Errback, req: Request, res: Response, next: NextFunction) => {
-        console.error("未捕获的错误:", err);
-        res.status(500).send("服务器内部错误");
-      }
-    );
+    app.use(this.globalErrorHandler);
 
     // 启动服务器
     const server = this.startServer();
@@ -46,40 +54,45 @@ class PostProxyServer {
     this.registerWs(server);
   }
 
-  initializeServer() {
-    const app = express();
+  private globalErrorHandler = (
+    err: Errback,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    console.error("未捕获的错误:", err);
 
-    // 代理中间件
-    app.use(this.createPostProxyMiddleware());
-    // 无需代理的数据继续下一个中间件
-    app.use(this.errorHandler);
+    // 2. 检查响应是否已发送
+    if (res.headersSent) {
+      return next(err);
+    }
 
-    // 静态资源
-    app.use(expressStaticGzip(join(__dirname, "client"), {}));
+    // 3. 安全地发送错误响应
+    res.status(500).send("服务器内部错误");
+  };
 
-    return app;
+  /**
+   * 启动服务
+   */
+  private startServer() {
+    return this.app.listen(config.port, () => {
+      console.log(
+        `Post Proxy Middleware is running on http://localhost:${config.port}`
+      );
+    });
   }
 
   /**
    * 注册ws服务用于通知客户端更新
    * @param server
    */
-  registerWs(server: Server) {
+  private registerWs(server: Server) {
     const wss = new WebSocketServer({ noServer: true });
 
     server.on("upgrade", (request, socket, head) => {
-      if (request.url.startsWith(this.config.envmConfig.basePath)) {
-        wss.handleUpgrade(request, socket, head, (ws) => {});
+      if (request.url.startsWith(config.apiPrefix)) {
+        wss.handleUpgrade(request, socket, head, () => {});
       }
-    });
-
-    this.config.bus.on(FILE_CHANGE_EVENT, (data) => {
-      const message = JSON.stringify(data);
-      wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(message);
-        }
-      });
     });
   }
 
@@ -87,7 +100,7 @@ class PostProxyServer {
    * 创建后置服务器 代理转发中间件
    * @returns
    */
-  createPostProxyMiddleware() {
+  private createPostProxyMiddleware() {
     // 定义路径过滤函数，排除 管理url
     const pathFilter = (path: string, req: Request) => {
       return !!req.headers["x-api-server"];
@@ -100,38 +113,14 @@ class PostProxyServer {
         if (req.headers["x-api-server"]) {
           const port = req.headers["x-api-server"] as string;
 
-          const envKey = PreProxyServer.appMap[`${port}`].envKey;
+          const env = PreProxyServer.portToEnvMap[`${port}`];
 
-          const env = this.config.envMap.get(envKey);
-
-          if (env?.router) {
-            return await env.router(req, env);
+          if (env?.devServerId) {
+            return env.devServerId;
           }
-          if (env?.target) {
-            return env.target;
-          }
-          return env?.target;
+          return env?.devServerId;
         }
-        throw new Error("SKIP_PROXY");
       },
-    });
-  }
-
-  errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
-    if (err.message === "SKIP_PROXY") {
-      return next();
-    }
-    res.status(500).send("代理服务器出错");
-  }
-
-  /**
-   * 启动服务
-   */
-  startServer() {
-    return this.app.listen(this.config.envmConfig.port, () => {
-      console.log(
-        `Post Proxy Middleware is running on http://localhost:${this.config.envmConfig.port}`
-      );
     });
   }
 }

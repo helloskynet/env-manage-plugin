@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["run", "dev:proxy"],
+      "problemMatcher": [],
+      "label": "pnpm: dev:proxy",
+      "detail": "nodemon bin/index.js --config=./test/envm.config.js"
+    },
+    {
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["run", "dev:client"],
+      "problemMatcher": [],
+      "label": "pnpm: dev:client",
+      "detail": "cd client && pnpm run dev"
+    },
+    {
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["run", "dev:server"],
+      "problemMatcher": [],
+      "label": "pnpm: dev:server",
+      "detail": "node test/server.js"
+    },
+    {
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["run", "dev:ts"],
+      "problemMatcher": [],
+      "label": "pnpm: dev:ts",
+      "detail": "tsc --watch"
+    },
+    {
+      "label": "开发",
+      "dependsOn": [
+        "pnpm: dev:proxy",
+        "pnpm: dev:client",
+        "pnpm: dev:server",
+        "pnpm: dev:ts"
+      ],
+      "dependsOrder": "parallel"
+    }
+  ]
+}

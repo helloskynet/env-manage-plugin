@@ -8,14 +8,11 @@
     "esModuleInterop": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "skipLibCheck": true, // 跳过声明文件.d.ts的检查
-    "declaration": false
+    "skipLibCheck": true,
+    "declaration": false,
+    "sourceMap": true, 
+    "inlineSources": true
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "src/types.ts"
-  ]
+  "include": ["src/**/*.ts", "src/Config.js", "types/**/*.d.ts"],
+  "exclude": ["node_modules", "src/types.ts"]
 }

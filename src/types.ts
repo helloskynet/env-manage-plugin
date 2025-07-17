@@ -74,7 +74,7 @@ export type EnvItem = {
   /**
    * 当前环境使用的开发服务器名称。
    *
-   * 若未提供，则默认使用开发服务器列表 {@link EnvmConfig.devServerList `Config.devServerList` } 中的第一个。
+   * 若未提供，则默认使用开发服务器列表 {@link EnvmConfig.devServerList `devServerList` } 中的第一个。
    */
   devServerName?: string;
   /**

@@ -17,7 +17,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (
         return;
       }
       hasBeenCalled = true;
-      envMangePlugin.startIndependent(true);
+      envMangePlugin.startIndependent();
     },
   };
 };

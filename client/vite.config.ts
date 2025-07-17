@@ -35,7 +35,7 @@ export default defineConfig({
       resolvers: [ElementPlusResolver()],
       dts: false,
     }),
-    ElementPlus(),
+    ElementPlus({}),
     viteCompression({
       algorithm: 'gzip',
       deleteOriginFile: true,

@@ -25,3 +25,5 @@ nodemon.json
 client/
 .github/
 test/
+
+.vscode/

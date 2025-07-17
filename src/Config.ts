@@ -34,7 +34,12 @@ class Config {
   /**
    * 环境信息列表
    */
-  envMap: Map<string, EnvItem & { status?: APP_STATUS_TYPE }> = new Map();
+  envMap: Map<
+    string,
+    EnvItem & {
+      status?: APP_STATUS_TYPE;
+    }
+  > = new Map();
 
   /**
    * 开发服务器列表
@@ -59,19 +64,6 @@ class Config {
     this.isPlugin = isPlugin;
   }
 
-  /**
-   * 初始化配置文件加载器
-   * @param configPath
-   * @returns
-   */
-  async initConfig(configPath: string) {
-    const localConfigPath = this.resolveAndValidateConfigPath(configPath);
-    this.filePath = path.resolve(process.cwd(), localConfigPath);
-
-    await this.loadConfig();
-    await this.checkPortAsync();
-    this.watchConfig();
-  }
 
   /**
    * 解析并验证配置文件路径
@@ -131,15 +123,14 @@ class Config {
    * @returns
    */
   resolveConfig(resolveDConfig: EnvmConfig) {
-    let {
+    const {
       port = 3099,
-      envList = [],
       indexPage = "",
-      devServerList = [],
       cookieSuffix = "envm",
       isEnableCookieProxy = true,
       basePath = "/dev-manage-api",
     } = resolveDConfig;
+    let { envList = [], devServerList = [] } = resolveDConfig;
 
     devServerList = Utils.removeEnvDuplicates<DevServerItem>(devServerList);
     this.devServerMap = Utils.generateMap(devServerList);
@@ -153,7 +144,9 @@ class Config {
       const oldEnvItem = this.envMap.get(rowKey);
       let devServerName = `${oldEnvItem?.devServerName || item?.devServerName}`;
 
-      const devServerKey = Utils.getRowKey({ name: devServerName });
+      const devServerKey = Utils.getRowKey({
+        name: devServerName,
+      });
 
       if (!this.devServerMap.has(devServerKey)) {
         devServerName = defaultDevServerName;

@@ -83,7 +83,7 @@ class Utils {
             } else {
               return false;
             }
-          } catch (error) {
+          } catch {
             break;
           }
         }
