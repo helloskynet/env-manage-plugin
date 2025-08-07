@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const { program } = require("commander");
-const { EnvManage } = require("../dist/index.js");
-const packageJson = require("../package.json");
+const { EnvManage } = require("../src/index.ts");
+const packageJson = require("../../../package.json");
 
 program
   .name("envm")

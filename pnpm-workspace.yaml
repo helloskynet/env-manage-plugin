@@ -1,0 +1,7 @@
+# 包含所有子目录下的项目（常用）
+packages:
+  # 所有在 packages 目录下的子项目
+  - 'packages/**'
+  # 排除指定目录（可选）
+  - '!** /node_modules'
+  - '!** /dist'

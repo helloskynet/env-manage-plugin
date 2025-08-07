@@ -10,9 +10,8 @@
     "rootDir": "./src",
     "skipLibCheck": true,
     "declaration": false,
-    "sourceMap": true, 
+    "sourceMap": true,
     "inlineSources": true
   },
-  "include": ["src/**/*.ts", "src/Config.js", "types/**/*.d.ts"],
-  "exclude": ["node_modules", "src/types.ts"]
+  "include": ["src/**/*.ts"]
 }
