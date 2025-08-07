@@ -1,5 +1,5 @@
 import { ElMessage } from 'element-plus'
-import type { BaseResponse } from '@/types/BaseRes.ts'
+import type { BaseResponse } from 'envm'
 
 // 定义参数类型：字符串（仅URL）或完整参数对象
 type FetchDataInput =

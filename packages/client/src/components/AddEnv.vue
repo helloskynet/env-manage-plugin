@@ -70,7 +70,7 @@
 import { ref, reactive, watch, nextTick } from 'vue'
 import { ElForm, ElMessage, type FormItemRule } from 'element-plus'
 import { fetchData } from '@/utils'
-import type { DevServerInterface, EnvItemInterface, ListResponse } from '@/types/BaseRes'
+import type { DevServerInterface, EnvItemInterface, ListResponse } from 'envm'
 
 const emit = defineEmits<{
   (e: 'refreshList'): void

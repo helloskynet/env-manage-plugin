@@ -24,18 +24,10 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev:all": "pnpm -r dev",
-    "dev": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"pnpm run dev:*\" ",
-    "dev:ts": "tsc --watch",
-    "dev:proxy": "nodemon bin/index.js --config=./test/envm.config.js",
-    "dev:client": "cd client && pnpm run dev",
     "dev:server": "node test/server.js",
-    "build": "tsc & tsc -p tsconfig.types.json",
+    "build": "pnpm -r build",
     "postbuild": "pnpm --prefix client run build",
-    "test": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"pnpm run test:*\" ",
-    "test:envm": "npx envm --config=./test/envm.config.js",
-    "test:client": "pnpm run dev:client",
-    "test:server": "pnpm run dev:server",
-    "temp": "echo 0",
+    "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "prepare": "husky"
   },
@@ -45,10 +37,14 @@
     "dotenv": "^17.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "@eslint/json": "^0.12.0",
+    "@types/node": "^22.16.4",
     "concurrently": "^8.2.2",
     "eslint": "^9.27.0",
     "husky": "^9.1.7",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "typescript-eslint": "^8.37.0"
   },
   "bugs": {
     "url": "https://github.com/helloskynet/env-manage-plugin/issues"

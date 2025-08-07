@@ -6,6 +6,14 @@ export default defineConfigWithVueTs(
   {
     name: 'app/files-to-lint',
     files: ['**/*.{js,mjs,jsx,ts,tsx,vue}'],
+    languageOptions: {
+      parserOptions: {
+        // 指定tsconfig.json所在的根目录（client模块的根目录）
+        tsconfigRootDir: './',
+        // 指向client模块的tsconfig文件（根据实际文件名调整）
+        project: ['./tsconfig*.json'],
+      },
+    },
   },
 
   globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
