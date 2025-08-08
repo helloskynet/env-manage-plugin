@@ -18,12 +18,12 @@ importers:
       '@eslint/json':
         specifier: ^0.12.0
         version: 0.12.0
+      '@tsconfig/node22':
+        specifier: ^22.0.2
+        version: 22.0.2
       '@types/node':
         specifier: ^22.16.4
         version: 22.16.4
-      concurrently:
-        specifier: ^8.2.2
-        version: 8.2.2
       eslint:
         specifier: ^9.27.0
         version: 9.31.0(jiti@2.5.1)
@@ -46,9 +46,6 @@ importers:
         specifier: ^3.5.13
         version: 3.5.17(typescript@5.8.3)
     devDependencies:
-      '@tsconfig/node22':
-        specifier: ^22.0.2
-        version: 22.0.2
       '@types/envm':
         specifier: workspace:*
         version: link:../types
@@ -97,9 +94,6 @@ importers:
 
   packages/server:
     dependencies:
-      chokidar:
-        specifier: ^4.0.3
-        version: 4.0.3
       commander:
         specifier: ^13.1.0
         version: 13.1.0
@@ -161,9 +155,6 @@ importers:
       concurrently:
         specifier: ^8.2.2
         version: 8.2.2
-      eslint:
-        specifier: ^9.27.0
-        version: 9.31.0(jiti@2.5.1)
       globals:
         specifier: ^16.1.0
         version: 16.3.0
@@ -1078,10 +1069,6 @@ packages:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
 
-  chokidar@4.0.3:
-    resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
-    engines: {node: '>= 14.16.0'}
-
   cliui@8.0.1:
     resolution: {integrity: sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==}
     engines: {node: '>=12'}
@@ -1953,10 +1940,6 @@ packages:
   readdirp@3.6.0:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
-
-  readdirp@4.1.2:
-    resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
-    engines: {node: '>= 14.18.0'}
 
   require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
@@ -3365,10 +3348,6 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  chokidar@4.0.3:
-    dependencies:
-      readdirp: 4.1.2
-
   cliui@8.0.1:
     dependencies:
       string-width: 4.2.3
@@ -4245,8 +4224,6 @@ snapshots:
   readdirp@3.6.0:
     dependencies:
       picomatch: 2.3.1
-
-  readdirp@4.1.2: {}
 
   require-directory@2.1.1: {}
 

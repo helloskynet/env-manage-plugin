@@ -2,16 +2,15 @@ import { globalIgnores } from 'eslint/config'
 import pluginVue from 'eslint-plugin-vue'
 import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
+
 export default defineConfigWithVueTs(
   {
     name: 'app/files-to-lint',
-    files: ['**/*.{js,mjs,jsx,ts,tsx,vue}'],
+    files: ['./**/*.{js,mjs,jsx,ts,tsx,vue}'],
     languageOptions: {
       parserOptions: {
-        // 指定tsconfig.json所在的根目录（client模块的根目录）
-        tsconfigRootDir: './',
-        // 指向client模块的tsconfig文件（根据实际文件名调整）
-        project: ['./tsconfig*.json'],
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
   },

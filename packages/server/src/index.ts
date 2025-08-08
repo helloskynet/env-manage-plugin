@@ -55,7 +55,8 @@ class EnvManage {
 
     return new Promise((resolve, reject) => {
       const req = http.request(options, (res) => {
-        if (res.statusCode < 200 || res.statusCode >= 300) {
+        const statusCode = res.statusCode || 0
+        if (statusCode < 200 || statusCode >= 300) {
           reject(new Error(`请求失败，状态码: ${res.statusCode}`));
           return;
         }

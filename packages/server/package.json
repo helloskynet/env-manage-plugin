@@ -26,17 +26,11 @@
     "dev": "tsx ./bin/index.ts",
     "build": "tsc",
     "postbuild": "pnpm --prefix client run build",
-    "test": "concurrently --prefix \"[{name}]\" --prefix-colors \"auto\" \"pnpm run test:*\" ",
-    "test:envm": "npx envm --config=./test/envm.config.js",
-    "test:client": "pnpm run dev:client",
-    "test:server": "pnpm run dev:server",
-    "lint": "eslint ./src",
-    "prepare": "husky"
+    "lint": "eslint ./src"
   },
   "author": "lcn",
   "license": "MIT",
   "dependencies": {
-    "chokidar": "^4.0.3",
     "commander": "^13.1.0",
     "cookie": "^1.0.2",
     "dotenv": "^17.1.0",
@@ -59,7 +53,6 @@
     "@types/set-cookie-parser": "^2.4.10",
     "@types/ws": "^8.18.0",
     "concurrently": "^8.2.2",
-    "eslint": "^9.27.0",
     "globals": "^16.1.0",
     "nodemon": "^3.1.9",
     "tsx": "^4.20.3",

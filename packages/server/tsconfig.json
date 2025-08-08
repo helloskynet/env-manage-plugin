@@ -1,17 +1,18 @@
 {
+  "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
+    "module": "es2020",
     "importHelpers": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "skipLibCheck": true,
     "declaration": false,
     "sourceMap": true,
     "inlineSources": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "eslint.config.ts", "./bin/index.ts"]
 }

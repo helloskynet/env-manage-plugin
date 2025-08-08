@@ -5,7 +5,7 @@ import type { BaseResponse } from 'envm'
 type FetchDataInput =
   | string
   | {
-      urlStr: string
+      url: string
       method?: string
       params?: Record<string, unknown>
     }
@@ -14,10 +14,10 @@ const fetchData = <R = unknown>(input: FetchDataInput) => {
   // 统一处理参数格式
   const options =
     typeof input === 'string'
-      ? { urlStr: input, method: 'GET' } // 字符串时作为URL，默认GET
+      ? { url: input, method: 'GET' } // 字符串时作为URL，默认GET
       : { method: 'GET', ...input } // 对象时合并默认方法
 
-  return fetch(options.urlStr, {
+  return fetch(options.url, {
     method: options.method,
     headers: {
       'Content-Type': 'application/json', // 必须设置
