@@ -7,7 +7,7 @@ type FetchDataInput =
   | {
       url: string
       method?: string
-      params?: Record<string, unknown>
+      params?: object
     }
 
 const fetchData = <R = unknown>(input: FetchDataInput) => {
@@ -37,7 +37,7 @@ const fetchData = <R = unknown>(input: FetchDataInput) => {
     })
     .catch((error) => {
       console.error('Error fetching data:', error)
-      ElMessage.error('请求数据失败，请稍后重试')
+      ElMessage.error(error.message || '请求数据失败，请稍后重试')
       return undefined
     })
 }

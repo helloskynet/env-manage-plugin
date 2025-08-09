@@ -26,7 +26,6 @@
     "dev": "pnpm -r --parallel dev",
     "dev:server": "node test/server.js",
     "build": "pnpm -r build",
-    "postbuild": "pnpm --prefix client run build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "prepare": "husky"

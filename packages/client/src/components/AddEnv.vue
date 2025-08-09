@@ -68,7 +68,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, watch, nextTick } from 'vue'
-import { ElForm, ElMessage, type FormItemRule } from 'element-plus'
+import { ElForm,  type FormItemRule } from 'element-plus'
 import { fetchData } from '@/utils'
 import type { DevServerInterface, EnvItemInterface, ListResponse } from 'envm'
 
@@ -153,31 +153,22 @@ const resetForm = () => {
 /**
  * 提交表单
  *
- * @param data
+ * @param envItem
  */
-const addDevServer = (data: EnvItemInterface) => {
-  fetch(`${props.apiPrefix}/env/add`, {
+const addDevServer = (envItem: EnvItemInterface) => {
+  fetchData({
+    url: `${props.apiPrefix}/env/add`,
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json', // 必须设置
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => {
-      return res.json()
-    })
-    .then((res) => {
-      console.log(res)
-      if (res.error) {
-        ElMessage.error(res.error)
-      } else if (res.message) {
-        handleClose(() => {
-          visible.value = false
-        })
-        ElMessage.success(res.message)
-      }
+    params: envItem,
+  }).then((res) => {
+    console.log(res)
+    if(res){
+      handleClose(() => {
+        visible.value = false
+      })
       emit('refreshList')
-    })
+    }
+  })
 }
 
 const submitForm = () => {
