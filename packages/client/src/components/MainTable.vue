@@ -126,6 +126,7 @@ const modelValue = ref<EnvItemInterface>({
   devServerId: '',
   ip: '',
   homePage: '',
+  status: 'stopped',
 })
 
 const addEnvRef = ref()
@@ -143,7 +144,7 @@ const handleAddEnv = () => {
  */
 const getEnvList = () => {
   refreshLoading.value = true
-  fetchData<ListResponse<EnvItemInterface>>(`${apiPrefix}/getlist`)
+  fetchData<ListResponse<EnvItemInterface>>(`${apiPrefix}/env/getlist`)
     .then((res) => {
       console.log(res)
       tableData.value =
@@ -163,7 +164,7 @@ const getEnvList = () => {
  *
  */
 const getDevServerList = () => {
-  fetch(`${apiPrefix}/dev-server/list`)
+  fetch(`${apiPrefix}/server/list`)
     .then((res) => {
       return res.json()
     })

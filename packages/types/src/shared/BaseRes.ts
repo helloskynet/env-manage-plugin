@@ -1,28 +1,54 @@
+import { z } from 'zod';
+
 /**
- * 接口响应数据的基础结构定义
- * 用于统一后端API返回的数据格式，便于前端处理各类接口响应
- * 
- * @template T - 响应数据中data字段的类型，默认为unknown（需根据具体接口指定）
+ * 基础响应结构的Zod校验规则
+ * 用于统一API返回格式，同时支持前后端类型共享
  */
-export interface BaseResponse<T = unknown> {
+export const BaseResponseSchema = z.object({
   /**
    * 状态码
-   * - 200 通常表示请求成功
-   * - 非200 表示请求异常（具体含义由后端业务定义）
+   * - 200表示成功
+   * - 非200表示异常
    */
-  code: number;
+  code: z.number(),
 
   /**
    * 响应消息
-   * - 成功时可能为"success"等提示信息
-   * - 失败时为具体的错误描述，可用于前端展示
+   * - 成功时为"success"或相关提示
+   * - 失败时为错误描述
    */
-  message: string;
+  message: z.string(),
 
   /**
-   * 响应的具体数据
-   * - 类型由泛型T指定，不同接口返回的数据结构不同
-   * - 可选字段，部分接口（如删除操作）可能不需要返回数据
+   * 响应数据
+   * - 可选字段，根据接口需求动态变化
+   * - 类型由泛型参数指定
    */
+  data: z.unknown().optional()
+});
+
+/**
+ * 基础响应类型（从Zod规则推导）
+ * 前端可直接导入用于接口响应类型注解
+ * 后端可用于类型校验后的结果类型
+ */
+export type BaseResponse<T = unknown> = z.infer<typeof BaseResponseSchema> & {
+  // 扩展泛型支持，使data字段类型可指定
   data?: T;
-}
+};
+
+/**
+ * 创建带具体数据类型的响应Schema
+ * 用于后端校验特定接口的响应格式
+ * @param dataSchema 具体数据字段的Zod校验规则
+ * @returns 包含具体数据类型的完整响应Schema
+ */
+export const createResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) => {
+  return BaseResponseSchema.extend({
+    data: dataSchema.optional()
+  }) as z.ZodObject<{
+    code: z.ZodNumber;
+    message: z.ZodString;
+    data: z.ZodOptional<T>;
+  }>;
+};

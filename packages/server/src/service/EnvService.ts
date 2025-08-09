@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import PreProxyServer from "../PreProxyServer.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
-import { EnvItemModel } from "../models/EnvModel.js";
 import BaseResponse from "../dto/BaseRes.js";
+import { EnvItemInterface } from "envm";
 
 /**
  * 环境服务类
@@ -18,7 +18,7 @@ class EnvService {
    * @returns {BaseResponse}
    * @throws {Error} 如果缺少必要参数或环境已存在
    */
-  handleAddEnv(envItem: EnvItemModel): BaseResponse {
+  handleAddEnv(envItem: EnvItemInterface): BaseResponse {
     console.log("添加环境", envItem);
     const existingEnv = this.envRepo.findOneByIpAndPort(envItem);
     if (!existingEnv) {
@@ -41,7 +41,7 @@ class EnvService {
    * @returns {void}
    * @throws {Error} 如果环境不存在
    */
-  handleDeleteEnv(envItem: EnvItemModel): void {
+  handleDeleteEnv(envItem: EnvItemInterface): void {
     console.log("删除环境", envItem);
     const env = this.envRepo.findOneByIpAndPort(envItem);
     if (env) {
@@ -68,7 +68,7 @@ class EnvService {
    * @param res
    * @returns
    */
-  async handleStartServer(env: EnvItemModel, res: Response) {
+  async handleStartServer(env: EnvItemInterface, res: Response) {
     const port = env.port;
     if (PreProxyServer.appMap[port]) {
       await PreProxyServer.stopServer(env.port);
@@ -86,7 +86,7 @@ class EnvService {
    * @param res
    * @returns
    */
-  handleStopServer(env: EnvItemModel, res: Response) {
+  handleStopServer(env: EnvItemInterface, res: Response) {
     return PreProxyServer.stopServer(env.port)
       .then(() => {
         return res.json({
@@ -105,13 +105,13 @@ class EnvService {
    * @param res
    * @returns
    */
-  handleUpdateDevServerId(req: Request<unknown, unknown, EnvItemModel>) {
+  handleUpdateDevServerId(req: Request<unknown, unknown, EnvItemInterface>) {
     const { devServerId, ip, port } = req.body;
 
     this.envRepo.updateDevServerId(ip, port, devServerId);
 
     return {
-      message: `环境 【${name}】 在端口 【${port}】 已经切换到 【${devServerId}】`,
+      message: `环境 【$--{name}】 在端口 【${port}】 已经切换到 【${devServerId}】`,
     };
   }
 }

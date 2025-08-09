@@ -3,6 +3,8 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "es2020",
+    "typeRoots": ["./node_modules/@types", "./src/types"], // 包含类型声明目录
+     "types": ["express"], // 确保引入express的基础类型
     "importHelpers": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
@@ -14,5 +16,5 @@
     "sourceMap": true,
     "inlineSources": true
   },
-  "include": ["src/**/*.ts", "eslint.config.ts", "./bin/index.ts"]
+  "include": ["src/**/*", "eslint.config.ts", "./bin/index.ts"]
 }

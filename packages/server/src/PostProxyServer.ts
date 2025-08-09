@@ -4,10 +4,9 @@ import { WebSocketServer } from "ws";
 import express, { Errback, NextFunction, Request, Response } from "express";
 import expressStaticGzip from "express-static-gzip";
 import { createProxyMiddleware } from "http-proxy-middleware";
-
-import ManageRouter from "./ManageRouter.js";
 import PreProxyServer from "./PreProxyServer.js";
 import { config } from "./ResolveConfig.js";
+import { createRouter } from "./routes/index.js";
 
 // ApiResponse工具函数
 const ApiResponse = {
@@ -26,8 +25,6 @@ class PostProxyServer {
     // 静态资源
     app.use(expressStaticGzip(join(__dirname, "client"), {}));
 
-    // 初始化管理路由
-    const manageRouter = new ManageRouter();
     // Express中间件（统一处理响应）
     app.use((req, res, next) => {
       // 保存原始res.json方法
@@ -43,7 +40,8 @@ class PostProxyServer {
       };
       next();
     });
-    app.use(config.apiPrefix, manageRouter.getRouter());
+    // 初始化管理路由
+    app.use(config.apiPrefix, createRouter());
 
     // 全局错误处理中间件
     app.use(this.globalErrorHandler);
@@ -90,7 +88,7 @@ class PostProxyServer {
     const wss = new WebSocketServer({ noServer: true });
 
     server.on("upgrade", (request, socket, head) => {
-      if (request.url.startsWith(config.apiPrefix)) {
+      if (request?.url?.startsWith(config.apiPrefix)) {
         wss.handleUpgrade(request, socket, head, () => {});
       }
     });

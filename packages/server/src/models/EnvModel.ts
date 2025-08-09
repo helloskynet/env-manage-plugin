@@ -1,11 +1,11 @@
-import { EnvItemInterface } from '../../types/env';
+import { EnvItemInterface } from 'envm';
 
 class EnvItemModel implements EnvItemInterface {
 
   /**
    * 环境名称
    */
-  name: string;
+  name!: string;
 
   /**
    * 环境描述
@@ -15,17 +15,17 @@ class EnvItemModel implements EnvItemInterface {
   /**
    * 环境绑定端口
    **/ 
-  port: number;
+  port!: number;
 
   /**
    * 环境绑定的开发服务器ID
    */
-  devServerId: string;
+  devServerId!: string;
 
   /**
    * 环境IP地址
    */
-  ip: string;
+  ip!: string;
 
   /**
    * 环境首页
@@ -35,7 +35,7 @@ class EnvItemModel implements EnvItemInterface {
   /**
    * 环境状态
    */
-  status: 'running' | 'stopped';
+  status: 'running' | 'stopped' = 'stopped';
   
 }
 

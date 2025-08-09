@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { EnvService } from "../service/EnvService";
-import { EnvItemModel } from "../models/EnvModel";
+import { EnvItemInterface } from "envm";
 
 /**
  * 开发环境控制器
@@ -24,23 +24,8 @@ class EnvController {
    */
   handleAddEnv(req: Request, res: Response, next: NextFunction) {
     try {
-      const { name, port, ip, devServerId } = req.body;
-      console.log("添加环境-------------", name, port, "lll");
-
-      if (!name || !port) {
-        return res.json({
-          error: "缺少 name 或 port 或者 devServerId 参数",
-        });
-      }
-
-      const envItem: EnvItemModel = {
-        name,
-        port,
-        ip,
-        devServerId,
-        status: "stopped", // 默认状态为 stopped
-      };
-
+      console.log("添加环境-------------", req.dto, "lll");
+      const envItem = req.dto as EnvItemInterface
       const env = this.envService.handleAddEnv(envItem);
       res.json(env);
     } catch (error) {
@@ -51,7 +36,7 @@ class EnvController {
   handleDeleteEnv(req: Request, res: Response, next: NextFunction) {
     try {
       const { name, port, ip, devServerId } = req.body;
-      const envItem: EnvItemModel = {
+      const envItem: EnvItemInterface = {
         name,
         port,
         ip,
@@ -94,12 +79,12 @@ class EnvController {
    * @returns
    */
   handleStartServer(
-    req: Request<unknown, unknown, EnvItemModel>,
+    req: Request<unknown, unknown, EnvItemInterface>,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const env: EnvItemModel = req.body;
+      const env: EnvItemInterface = req.body;
       return this.envService.handleStartServer(env, res);
     } catch (error) {
       next(error);
@@ -114,12 +99,12 @@ class EnvController {
    * @returns
    */
   handleStopServer(
-    req: Request<unknown, unknown, EnvItemModel>,
+    req: Request<unknown, unknown, EnvItemInterface>,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const env: EnvItemModel = req.body;
+      const env: EnvItemInterface = req.body;
       return this.envService.handleStopServer(env, res);
     } catch (error) {
       next(error);

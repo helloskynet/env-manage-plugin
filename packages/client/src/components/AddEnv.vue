@@ -185,7 +185,7 @@ const submitForm = () => {
 const devServerOptions = ref<{ label: string; value: string }[]>([])
 // 获取开发服务器列表
 const getDevServerList = () => {
-  fetchData<ListResponse<DevServerInterface>>(`${props.apiPrefix}/dev-server/list`).then((data) => {
+  fetchData<ListResponse<DevServerInterface>>(`${props.apiPrefix}/server/list`).then((data) => {
     devServerOptions.value =
       data?.list.map((item: { name: string; id: string }) => ({
         label: item.name,

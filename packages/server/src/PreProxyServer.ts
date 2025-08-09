@@ -1,31 +1,25 @@
 import { Socket } from "net";
 import { ClientRequest, IncomingMessage, Server } from "http";
-import express, { Request } from "express";
+import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
 
 import Utils from "./Utils.js";
 import { config } from "./ResolveConfig.js";
-import { EnvItemModel } from "./models/EnvModel.js";
+import { EnvItemInterface } from "envm";
 
 class PreProxyServer {
-  /**
-   * 保存cookie
-   * 因为同主机的不同端口会共享 cookie
-   * 所以如果在同一个主机的不同端口，登录同一个应用的不同的环境会导致 cookie 被覆盖
-   */
-  cookie: string;
 
   /**
    * 代理服务器
    */
-  server: Server;
+  server!: Server;
 
   /**
    * 保存当前代理的 socket 连接 关闭前先 断开所有链接
    */
-  sockets: Set<Socket>;
+  sockets!: Set<Socket>;
 
   /**
    * 绑定的环境信息
@@ -40,17 +34,17 @@ class PreProxyServer {
   } = {};
 
   static portToEnvMap: {
-    [key: string]: EnvItemModel;
+    [key: string]: EnvItemInterface;
   } = {};
 
   // fixme: 这里的 devServerMap 是为了存储开发服务器的配置
   // 目前是为了在代理请求时能够根据环境的 devServerName 获取对应的目标地址
   // 可能需要进一步优化，或者改为从配置文件中读取
   static devServerMap: {
-    [key: string]: EnvItemModel;
+    [key: string]: EnvItemInterface;
   } = {};
 
-  static async create(envmConfig: EnvItemModel) {
+  static async create(envmConfig: EnvItemInterface) {
     const { port } = envmConfig;
     if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
@@ -65,10 +59,7 @@ class PreProxyServer {
     return preProxyServer;
   }
 
-  private constructor(
-    envmConfig: EnvItemModel,
-    private app = express()
-  ) {
+  private constructor(envmConfig: EnvItemInterface, private app = express()) {
     this.envKey = Utils.getRowKey(envmConfig);
     app.use(this.createPreProxyMiddleware());
   }
@@ -121,7 +112,7 @@ class PreProxyServer {
         proxyRes: (proxyRes) => {
           this._rewriteSetCookieOnProxyRes(proxyRes);
         },
-        proxyReqWs(proxyReq, req: Request) {
+        proxyReqWs: (proxyReq, req: IncomingMessage) => {
           proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
         },
       },
@@ -151,7 +142,7 @@ class PreProxyServer {
         );
       });
 
-      proxyRes.headers["set-cookie"].push(...proxyCookie);
+      setCookie.push(...proxyCookie);
     }
   }
 
@@ -177,7 +168,7 @@ class PreProxyServer {
         if (!cookie[cookieName]) {
           cookieName = item;
         }
-        newCookies.push(libCookie.serialize(item, cookie[cookieName]));
+        newCookies.push(libCookie.serialize(item, cookie[cookieName] || ''));
       });
 
       proxyReq.setHeader("cookie", newCookies.join(";"));
@@ -189,7 +180,7 @@ class PreProxyServer {
    * @param envmConfig
    * @returns
    */
-  async startServer(envmConfig: EnvItemModel) {
+  async startServer(envmConfig: EnvItemInterface) {
     const { port } = envmConfig;
     if (PreProxyServer.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);

@@ -1,8 +1,8 @@
 import { db } from "./database.js";
-import { EnvItemModel } from "../models/EnvModel.js";
+import { EnvItemInterface } from "envm";
 
 export interface EnvRepoInterface {
-  getAll(): EnvItemModel[];
+  getAll(): EnvItemInterface[];
 }
 
 class EnvRepo implements EnvRepoInterface {
@@ -17,7 +17,7 @@ class EnvRepo implements EnvRepoInterface {
    * @returns 环境信息列表
    */
   getAll() {
-    const envms = db.getCollection<EnvItemModel>("envms");
+    const envms = db.getCollection<EnvItemInterface>("envms");
     const list = envms.find();
     console.log("从数据库获取的环境信息：", list);
     return list;
@@ -26,8 +26,8 @@ class EnvRepo implements EnvRepoInterface {
   /**
    * 新增环境
    */
-  addEnv(env: EnvItemModel) {
-    const envms = db.getCollection<EnvItemModel>("envms");
+  addEnv(env: EnvItemInterface) {
+    const envms = db.getCollection<EnvItemInterface>("envms");
     envms.insert(env);
   }
 
@@ -36,8 +36,8 @@ class EnvRepo implements EnvRepoInterface {
    * @param env 环境信息
    * @returns 匹配的环境信息或 undefined
    */
-  deleteEnv(env: EnvItemModel) {
-    const envms = db.getCollection<EnvItemModel>("envms");
+  deleteEnv(env: EnvItemInterface) {
+    const envms = db.getCollection<EnvItemInterface>("envms");
     envms.findAndRemove({
       ip: env.ip,
       port: env.port,
@@ -49,8 +49,8 @@ class EnvRepo implements EnvRepoInterface {
    * @param env 环境信息
    * @returns 匹配的环境信息或 undefined
    */
-  findOneByIpAndPort(env: EnvItemModel) {
-    const envms = db.getCollection<EnvItemModel>("envms");
+  findOneByIpAndPort(env: EnvItemInterface) {
+    const envms = db.getCollection<EnvItemInterface>("envms");
     return envms.findOne({
       ip: env.ip,
       port: env.port,
@@ -61,7 +61,7 @@ class EnvRepo implements EnvRepoInterface {
    * 更新环境绑定的开发服务器ID
    */
   updateDevServerId(ip: string, port: number, devServerId: string) {
-    const envms = db.getCollection<EnvItemModel>("envms");
+    const envms = db.getCollection<EnvItemInterface>("envms");
     envms.findAndUpdate({ ip, port }, (env) => {
       if (!env) {
         throw new Error("未找到对应的环境");
