@@ -13,7 +13,7 @@ class DevServerController {
   handleGetDevServerList(req: Request, res: Response, next: NextFunction) {
     try {
       const list = this.devserverService.handleGetDevServerList();
-      res.json({ list });
+      res.success({ list });
     } catch (error) {
       next(error);
     }

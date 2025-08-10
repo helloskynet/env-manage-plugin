@@ -1,5 +1,5 @@
 import { db } from "./database.js";
-import { EnvItemInterface } from "envm";
+import { EnvBaseInterface, EnvBaseSchema, EnvItemInterface } from "envm";
 
 export interface EnvRepoInterface {
   getAll(): EnvItemInterface[];
@@ -19,7 +19,6 @@ class EnvRepo implements EnvRepoInterface {
   getAll() {
     const envms = db.getCollection<EnvItemInterface>("envms");
     const list = envms.find();
-    console.log("从数据库获取的环境信息：", list);
     return list;
   }
 
@@ -36,12 +35,10 @@ class EnvRepo implements EnvRepoInterface {
    * @param env 环境信息
    * @returns 匹配的环境信息或 undefined
    */
-  deleteEnv(env: EnvItemInterface) {
+  deleteEnv(env: EnvBaseInterface) {
     const envms = db.getCollection<EnvItemInterface>("envms");
-    envms.findAndRemove({
-      ip: env.ip,
-      port: env.port,
-    });
+    const target = EnvBaseSchema.safeParse(env)
+    envms.findAndRemove(target.data);
   }
 
   /**
@@ -49,12 +46,10 @@ class EnvRepo implements EnvRepoInterface {
    * @param env 环境信息
    * @returns 匹配的环境信息或 undefined
    */
-  findOneByIpAndPort(env: EnvItemInterface) {
+  findOneByIpAndPort(env: EnvBaseInterface) {
     const envms = db.getCollection<EnvItemInterface>("envms");
-    return envms.findOne({
-      ip: env.ip,
-      port: env.port,
-    });
+    const target = EnvBaseSchema.safeParse(env)
+    return envms.findOne(target.data);
   }
 
   /**

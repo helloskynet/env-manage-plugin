@@ -67,10 +67,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, watch, nextTick } from 'vue'
-import { ElForm,  type FormItemRule } from 'element-plus'
+import { ref, reactive, nextTick } from 'vue'
+import { ElForm, type FormItemRule } from 'element-plus'
 import { fetchData } from '@/utils'
-import type { DevServerInterface, EnvItemInterface, ListResponse } from 'envm'
+import { type DevServerInterface, type EnvItemInterface, type ListResponse } from 'envm'
 
 const emit = defineEmits<{
   (e: 'refreshList'): void
@@ -79,7 +79,6 @@ const emit = defineEmits<{
 const visible = ref(false)
 
 const props = defineProps<{
-  modelValue: EnvItemInterface
   apiPrefix: string
 }>()
 
@@ -93,10 +92,16 @@ defineExpose({
 
 const formRef = ref<InstanceType<typeof ElForm>>()
 
+const defautlFormData: EnvItemInterface = {
+  ip: '',
+  port: 0,
+  name: '',
+  devServerId: '',
+  status: 'stopped',
+}
+
 // 使用初始值填充表单
-const formData = reactive<EnvItemInterface>({
-  ...props.modelValue,
-})
+const formData = reactive(defautlFormData)
 
 // 修正正则表达式
 const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
@@ -124,15 +129,6 @@ const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
   ],
 })
 
-// 优化监听逻辑
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    Object.assign(formData, newVal)
-  },
-  { immediate: true },
-)
-
 // 优化关闭逻辑
 const handleClose = (done: () => void) => {
   resetForm()
@@ -142,7 +138,7 @@ const handleClose = (done: () => void) => {
 // 改进的重置方法
 const resetForm = () => {
   // 重置为初始值而非空表单
-  Object.assign(formData, props.modelValue)
+  Object.assign(formData, defautlFormData)
 
   // 清除验证状态
   nextTick(() => {
@@ -162,12 +158,10 @@ const addDevServer = (envItem: EnvItemInterface) => {
     params: envItem,
   }).then((res) => {
     console.log(res)
-    if(res){
-      handleClose(() => {
-        visible.value = false
-      })
-      emit('refreshList')
-    }
+    handleClose(() => {
+      visible.value = false
+    })
+    emit('refreshList')
   })
 }
 

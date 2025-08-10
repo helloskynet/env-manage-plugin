@@ -10,7 +10,6 @@ import { config } from "./ResolveConfig.js";
 import { EnvItemInterface } from "envm";
 
 class PreProxyServer {
-
   /**
    * 代理服务器
    */
@@ -27,9 +26,18 @@ class PreProxyServer {
   envKey: string;
 
   /**
+   * 判断改端口是否已经有服务存在
+   * @param port 
+   * @returns 
+   */
+  static getAppInsByPort(port: string) {
+    return this.appMap[port];
+  }
+
+  /**
    * 保存启动的环境实例
    */
-  static appMap: {
+  private static appMap: {
     [key: string]: PreProxyServer;
   } = {};
 
@@ -168,7 +176,7 @@ class PreProxyServer {
         if (!cookie[cookieName]) {
           cookieName = item;
         }
-        newCookies.push(libCookie.serialize(item, cookie[cookieName] || ''));
+        newCookies.push(libCookie.serialize(item, cookie[cookieName] || ""));
       });
 
       proxyReq.setHeader("cookie", newCookies.join(";"));
@@ -220,10 +228,10 @@ class PreProxyServer {
   }
 
   static stopServer(port: number | string) {
-    return new Promise((resolve, reject) => {
-      if (!this.appMap[port]) {
+    return new Promise((resolve) => {
+      if (this.getAppInsByPort(port as string)) {
         console.log(`端口 ${port} 未启动`);
-        reject(`端口 【${port}】 未启动`);
+        resolve(1)
         return;
       }
 

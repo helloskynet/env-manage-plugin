@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { EnvService } from "../service/EnvService";
-import { EnvItemInterface } from "envm";
+import { EnvBaseInterface, EnvItemInterface } from "envm";
 
 /**
  * 开发环境控制器
@@ -10,6 +10,7 @@ import { EnvItemInterface } from "envm";
  *  路由处理
  *  响应格式化
  *  权限验证等流程控制
+ * Controller：作为请求入口，负责 “接收请求→调用服务→返回响应” 的流程编排，不包含具体业务逻辑。
  */
 class EnvController {
   constructor(private readonly envService: EnvService) {}
@@ -25,9 +26,9 @@ class EnvController {
   handleAddEnv(req: Request, res: Response, next: NextFunction) {
     try {
       console.log("添加环境-------------", req.dto, "lll");
-      const envItem = req.dto as EnvItemInterface
-      const env = this.envService.handleAddEnv(envItem);
-      res.json(env);
+      const envItem = req.dto as EnvItemInterface;
+      this.envService.handleAddEnv(envItem);
+      res.success();
     } catch (error) {
       next(error);
     }
@@ -35,22 +36,10 @@ class EnvController {
 
   handleDeleteEnv(req: Request, res: Response, next: NextFunction) {
     try {
-      const { name, port, ip, devServerId } = req.body;
-      const envItem: EnvItemInterface = {
-        name,
-        port,
-        ip,
-        devServerId,
-        status: "stopped", // 默认状态为 stopped
-      };
-
-      console.log(req.body, "req.body");
-      if (!name) {
-        return res.status(400).json({ error: "缺少 name 参数" });
-      }
-
+      console.log(req.dto, "req.body");
+      const envItem = req.dto as EnvBaseInterface;
       this.envService.handleDeleteEnv(envItem);
-      res.json({ message: "环境删除成功" });
+      res.success();
     } catch (error) {
       next(error);
     }
@@ -65,7 +54,7 @@ class EnvController {
   handleGetList(req: Request, res: Response, next: NextFunction) {
     try {
       const list = this.envService.handleGetList();
-      res.json({ list });
+      res.success({ list });
     } catch (error) {
       next(error);
     }
@@ -78,14 +67,12 @@ class EnvController {
    * @param next
    * @returns
    */
-  handleStartServer(
-    req: Request<unknown, unknown, EnvItemInterface>,
-    res: Response,
-    next: NextFunction
-  ) {
+  async handleStartServer(req: Request, res: Response, next: NextFunction) {
     try {
-      const env: EnvItemInterface = req.body;
-      return this.envService.handleStartServer(env, res);
+      console.log(req.dto, "req.body--------------");
+      const envItem = req.dto as EnvBaseInterface;
+      await this.envService.handleStartServer(envItem);
+      res.success();
     } catch (error) {
       next(error);
     }
@@ -98,14 +85,15 @@ class EnvController {
    * @param next
    * @returns
    */
-  handleStopServer(
+  async handleStopServer(
     req: Request<unknown, unknown, EnvItemInterface>,
     res: Response,
     next: NextFunction
   ) {
     try {
       const env: EnvItemInterface = req.body;
-      return this.envService.handleStopServer(env, res);
+      await this.envService.handleStopServer(env, res);
+      res.success();
     } catch (error) {
       next(error);
     }
@@ -127,7 +115,7 @@ class EnvController {
         });
       }
       const list = this.envService.handleUpdateDevServerId(req);
-      res.json({ list });
+      res.success({ list });
     } catch (error) {
       next(error);
     }

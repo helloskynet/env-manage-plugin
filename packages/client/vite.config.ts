@@ -70,6 +70,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // 别名映射，确保构建工具能正确解析 shared 源码
+      'envm': fileURLToPath(new URL('../types/src', import.meta.url)),
     },
   },
 })

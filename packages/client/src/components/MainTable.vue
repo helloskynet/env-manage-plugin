@@ -41,7 +41,7 @@
     >
       <template #default="scope">
         <el-link
-          :disabled="scope.row.status === 'stop'"
+          :disabled="scope.row.status === 'stopped'"
           type="primary"
           :href="scope.row.index"
           target="_blank"
@@ -51,7 +51,7 @@
     <el-table-column prop="port" label="端口" />
     <el-table-column prop="status" label="状态">
       <template #default="scope">
-        <el-tag v-if="scope.row.status === 'stop'" type="danger">未启动</el-tag>
+        <el-tag v-if="scope.row.status === 'stopped'" type="danger">未启动</el-tag>
         <el-tag v-else type="success">已启动</el-tag>
       </template>
     </el-table-column>
@@ -76,7 +76,7 @@
       <template #default="scope">
         <el-button
           type="success"
-          v-if="scope.row.status === 'stop'"
+          v-if="scope.row.status === 'stopped'"
           :loading="loadingMap[scope.row.port]"
           @click="handleStart(scope.row)"
         >启动</el-button>
@@ -96,7 +96,6 @@
   </el-table>
   <add-env
     ref="addEnvRef"
-    :modelValue="modelValue"
     :apiPrefix="apiPrefix"
     @refreshList="refreshList"
   />
@@ -119,15 +118,6 @@ const loadingMap = ref<{ [key: string]: unknown }>({}) // 存储每行的 loadin
 
 const refreshLoading = ref(false)
 
-const modelValue = ref<EnvItemInterface>({
-  name: '',
-  description: '',
-  port: 0,
-  devServerId: '',
-  ip: '',
-  homePage: '',
-  status: 'stopped',
-})
 
 const addEnvRef = ref()
 
@@ -146,7 +136,6 @@ const getEnvList = () => {
   refreshLoading.value = true
   fetchData<ListResponse<EnvItemInterface>>(`${apiPrefix}/env/getlist`)
     .then((res) => {
-      console.log(res)
       tableData.value =
         res?.list.map((item) => {
           return {
@@ -164,14 +153,9 @@ const getEnvList = () => {
  *
  */
 const getDevServerList = () => {
-  fetch(`${apiPrefix}/server/list`)
-    .then((res) => {
-      return res.json()
-    })
-    .then((res) => {
-      console.log(res)
-      devServerList.value = res.list
-    })
+  fetchData<ListResponse<DevServerInterface>>(`${apiPrefix}/server/list`).then((res) => {
+    devServerList.value = res?.list || []
+  })
 }
 
 onMounted(() => {
@@ -194,25 +178,14 @@ const handleDelete = (rowData: EnvItemInterface) => {
     type: 'warning',
   })
     .then(() => {
-      fetch(`${apiPrefix}/env/delete`, {
+      return fetchData({
+        url: `${apiPrefix}/env/delete`,
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json', // 必须设置
-        },
-        body: JSON.stringify(rowData),
+        params: rowData,
+      }).then(() => {
+        ElMessage.success('删除成功')
+        getEnvList()
       })
-        .then((res) => {
-          return res.json()
-        })
-        .then((res) => {
-          console.log(res)
-          if (res.error) {
-            ElMessage.error(res.error)
-          } else if (res.message) {
-            ElMessage.success(res.message)
-          }
-          getEnvList()
-        })
     })
     .catch(() => {
       ElMessage.info('已取消删除')

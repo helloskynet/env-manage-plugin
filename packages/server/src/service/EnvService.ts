@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import PreProxyServer from "../PreProxyServer.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
-import BaseResponse from "../dto/BaseRes.js";
-import { EnvItemInterface } from "envm";
+import { EnvBaseInterface, EnvItemInterface } from "envm";
+import { AppError } from "../utils/errors.js";
 
 /**
  * 环境服务类
@@ -18,21 +18,16 @@ class EnvService {
    * @returns {BaseResponse}
    * @throws {Error} 如果缺少必要参数或环境已存在
    */
-  handleAddEnv(envItem: EnvItemInterface): BaseResponse {
+  handleAddEnv(envItem: EnvItemInterface) {
     console.log("添加环境", envItem);
     const existingEnv = this.envRepo.findOneByIpAndPort(envItem);
     if (!existingEnv) {
       this.envRepo.addEnv(envItem);
-      return {
-        code: 200,
-        message: `添加成功`,
-      };
+      return;
     }
-    console.error("添加环境失败", envItem, "已存在", existingEnv);
-    return {
-      code: 201,
-      message: `添加失败，环境 【${existingEnv.ip}:${existingEnv.port}】 已存在`,
-    };
+    throw new AppError(
+      `添加失败，环境 【${existingEnv.ip}:${existingEnv.port}】 已存在`
+    );
   }
 
   /**
@@ -41,7 +36,7 @@ class EnvService {
    * @returns {void}
    * @throws {Error} 如果环境不存在
    */
-  handleDeleteEnv(envItem: EnvItemInterface): void {
+  handleDeleteEnv(envItem: EnvBaseInterface): void {
     console.log("删除环境", envItem);
     const env = this.envRepo.findOneByIpAndPort(envItem);
     if (env) {
@@ -49,7 +44,7 @@ class EnvService {
       console.log("删除环境成功", envItem);
     } else {
       console.error("删除环境失败", envItem, "不存在");
-      throw new Error(`删除失败，环境 【${envItem}】 不存在`);
+      throw new AppError(`删除失败，环境 【${envItem}】 不存在`);
     }
   }
 
@@ -68,16 +63,21 @@ class EnvService {
    * @param res
    * @returns
    */
-  async handleStartServer(env: EnvItemInterface, res: Response) {
-    const port = env.port;
-    if (PreProxyServer.appMap[port]) {
-      await PreProxyServer.stopServer(env.port);
-    }
-    PreProxyServer.create(env);
+  async handleStartServer(env: EnvBaseInterface) {
+    const envItem = this.envRepo.findOneByIpAndPort(env);
+    if (envItem) {
+      const port = envItem.port;
 
-    return res.json({
-      message: `环境 【${env.name}】 在端口 【${port}】 已启动`,
-    });
+      // 判断该端口是否已经有服务启动，如果有服务启动则关闭之后，在启动新的服务
+      const isOccp = PreProxyServer.getAppInsByPort(port as unknown as string);
+      console.log(isOccp,'isOccpisOccpisOccpisOccp')
+      if (isOccp) {
+        await PreProxyServer.stopServer(env.port);
+      }
+      await PreProxyServer.create(envItem);
+    } else {
+      throw new AppError("环境不存在");
+    }
   }
 
   /**

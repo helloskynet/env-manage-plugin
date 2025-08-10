@@ -56,7 +56,7 @@ const fetchData = <R = unknown>(input: FetchDataInput) => {
     .catch((error) => {
       console.error('Error fetching data:', error);
       ElMessage.error(error.message || '请求数据失败，请稍后重试');
-      return undefined;
+      return Promise.reject(error)
     });
 };
 
