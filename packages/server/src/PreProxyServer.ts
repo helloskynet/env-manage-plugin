@@ -8,6 +8,7 @@ import * as libCookie from "cookie";
 import Utils from "./Utils.js";
 import { config } from "./ResolveConfig.js";
 import { EnvItemInterface } from "envm";
+import { EnvRepo } from "./repositories/EnvRepo.js";
 
 class PreProxyServer {
   /**
@@ -26,9 +27,9 @@ class PreProxyServer {
   envKey: string;
 
   /**
-   * 判断改端口是否已经有服务存在
-   * @param port 
-   * @returns 
+   * 判断该端口是否已经有服务存在
+   * @param port
+   * @returns
    */
   static getAppInsByPort(port: string) {
     return this.appMap[port];
@@ -41,10 +42,6 @@ class PreProxyServer {
     [key: string]: PreProxyServer;
   } = {};
 
-  static portToEnvMap: {
-    [key: string]: EnvItemInterface;
-  } = {};
-
   // fixme: 这里的 devServerMap 是为了存储开发服务器的配置
   // 目前是为了在代理请求时能够根据环境的 devServerName 获取对应的目标地址
   // 可能需要进一步优化，或者改为从配置文件中读取
@@ -52,28 +49,30 @@ class PreProxyServer {
     [key: string]: EnvItemInterface;
   } = {};
 
-  static async create(envmConfig: EnvItemInterface) {
+  static async create(envmConfig: EnvItemInterface, envRepo: EnvRepo) {
     const { port } = envmConfig;
     if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return null;
     }
 
-    this.portToEnvMap[envmConfig.port] = envmConfig;
-
-    const preProxyServer = new PreProxyServer(envmConfig);
+    const preProxyServer = new PreProxyServer(envmConfig, envRepo);
     await preProxyServer.startServer(envmConfig);
     PreProxyServer.appMap[port] = preProxyServer;
     return preProxyServer;
   }
 
-  private constructor(envmConfig: EnvItemInterface, private app = express()) {
+  private constructor(
+    private envmConfig: EnvItemInterface,
+    private envRepo: EnvRepo,
+    private app = express()
+  ) {
     this.envKey = Utils.getRowKey(envmConfig);
     app.use(this.createPreProxyMiddleware());
   }
 
   getEnvItem() {
-    const envItem = PreProxyServer.portToEnvMap[this.envKey];
+    const envItem = this.envRepo.findOneByIpAndPort(this.envmConfig);
     return envItem;
   }
 
@@ -81,8 +80,8 @@ class PreProxyServer {
    * 当前 代理的 cookie 后缀
    */
   get cookieSuffix() {
-    const envItem = PreProxyServer.portToEnvMap[this.envKey];
-    return `-${envItem.port}-${PreProxyServer.configCookieSuffix}`;
+    const envItem = this.getEnvItem();
+    return `-${envItem?.port}-${PreProxyServer.configCookieSuffix}`;
   }
 
   /**
@@ -102,10 +101,11 @@ class PreProxyServer {
       ws: true,
       changeOrigin: true,
       router: () => {
-        const envItem = PreProxyServer.portToEnvMap[this.envKey];
-
+        // 查询环境信息
+        const envItem = this.getEnvItem();
+        // 根据环境信息查询绑定的服务，地址
         const devServerKey = Utils.getRowKey({
-          name: envItem.devServerId,
+          name: envItem?.devServerId as unknown as string,
         });
 
         const devServerConfig = PreProxyServer.devServerMap[devServerKey];
@@ -229,9 +229,9 @@ class PreProxyServer {
 
   static stopServer(port: number | string) {
     return new Promise((resolve) => {
-      if (this.getAppInsByPort(port as string)) {
-        console.log(`端口 ${port} 未启动`);
-        resolve(1)
+      if (!this.getAppInsByPort(port as string)) {
+        console.log(`端口 ${port} 未启动，无需停止！`);
+        resolve(1);
         return;
       }
 

@@ -195,7 +195,7 @@ const handleDelete = (rowData: EnvItemInterface) => {
 const updateStatus = (action: string, rowData: EnvItemInterface) => {
   loadingMap.value[rowData.port] = true
 
-  fetch(`${apiPrefix}/server/${action}`, {
+  fetch(`${apiPrefix}/env/${action}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json', // 必须设置

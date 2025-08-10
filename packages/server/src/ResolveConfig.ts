@@ -37,7 +37,7 @@ const parseConfig = (): ConfigModel => {
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error("❌ 环境变量配置错误:", error.errors);
+      console.error("❌ 环境变量配置错误:", error);
     }
     throw new Error("环境变量验证失败");
   }

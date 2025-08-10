@@ -1,7 +1,6 @@
-import { Request, Response } from "express";
 import PreProxyServer from "../PreProxyServer.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
-import { EnvBaseInterface, EnvItemInterface } from "envm";
+import { EnvBaseInterface, EnvItemInterface, EnvItemPartial } from "envm";
 import { AppError } from "../utils/errors.js";
 
 /**
@@ -13,21 +12,19 @@ class EnvService {
 
   /**
    * 添加环境
-   * @param req
-   * @param res
-   * @returns {BaseResponse}
-   * @throws {Error} 如果缺少必要参数或环境已存在
+   * @param envItem
+   * @returns
    */
   handleAddEnv(envItem: EnvItemInterface) {
     console.log("添加环境", envItem);
     const existingEnv = this.envRepo.findOneByIpAndPort(envItem);
     if (!existingEnv) {
       this.envRepo.addEnv(envItem);
-      return;
+    } else {
+      throw new AppError(
+        `添加失败，环境 【${existingEnv.ip}:${existingEnv.port}】 已存在`
+      );
     }
-    throw new AppError(
-      `添加失败，环境 【${existingEnv.ip}:${existingEnv.port}】 已存在`
-    );
   }
 
   /**
@@ -49,6 +46,14 @@ class EnvService {
   }
 
   /**
+   * 更新环境信息
+   * @param envItem
+   */
+  handleUpdateEnv(envItem: EnvItemPartial) {
+    this.envRepo.updateEnvmItem(envItem);
+  }
+
+  /**
    * 获取环境列表
    * @returns
    */
@@ -60,21 +65,17 @@ class EnvService {
   /**
    * 启动代理服务器
    * @param env
-   * @param res
    * @returns
    */
   async handleStartServer(env: EnvBaseInterface) {
     const envItem = this.envRepo.findOneByIpAndPort(env);
     if (envItem) {
-      const port = envItem.port;
-
-      // 判断该端口是否已经有服务启动，如果有服务启动则关闭之后，在启动新的服务
-      const isOccp = PreProxyServer.getAppInsByPort(port as unknown as string);
-      console.log(isOccp,'isOccpisOccpisOccpisOccp')
-      if (isOccp) {
-        await PreProxyServer.stopServer(env.port);
-      }
-      await PreProxyServer.create(envItem);
+      // 先停止该端口的服务
+      await this.handleStopServer(env);
+      // 再启动服务
+      await PreProxyServer.create(envItem, this.envRepo);
+      // 更新数据库
+      await this.updateEnvStatus(env, "running");
     } else {
       throw new AppError("环境不存在");
     }
@@ -86,33 +87,49 @@ class EnvService {
    * @param res
    * @returns
    */
-  handleStopServer(env: EnvItemInterface, res: Response) {
-    return PreProxyServer.stopServer(env.port)
-      .then(() => {
-        return res.json({
-          message: `环境 【${env.name}】 在端口 【${env.port}】 已关闭`,
-        });
-      })
-      .catch((err) => {
-        console.error(err);
-        return res.status(500).json({ error: "停止服务器失败" });
-      });
+  async handleStopServer(env: EnvBaseInterface) {
+    // 停止服务
+    await PreProxyServer.stopServer(env.port);
+
+    // 查询数据库中3000端口正在运行的服务
+    const envItem = this.envRepo.findOneByPortAndStatus({
+      port: env.port,
+      status: "running",
+    });
+
+    // 如果有则关闭
+    if (envItem) {
+      await this.updateEnvStatus(envItem, "stopped");
+    }
   }
 
   /**
-   * 更新环境绑定的开发服务器ID
-   * @param req
-   * @param res
+   * 更新环境信息
+   * @param envItem
+   */
+  handleUpdateDevServerId(envItem: EnvItemPartial) {
+    this.envRepo.updateEnvmItem(envItem);
+  }
+
+  /**
+   * 更新服务状态
+   * @param env
+   * @param status
    * @returns
    */
-  handleUpdateDevServerId(req: Request<unknown, unknown, EnvItemInterface>) {
-    const { devServerId, ip, port } = req.body;
+  private updateEnvStatus(
+    env: EnvBaseInterface,
+    status: "running" | "stopped"
+  ) {
+    // 查找最新的环境信息（避免使用旧引用）
+    const envItem = this.envRepo.findOneByIpAndPort(env);
+    if (envItem) {
+      // 更新状态并提交
+      envItem.status = status;
+      this.envRepo.update(envItem); // 假设update是异步方法（若同步可去掉await）
+    }
 
-    this.envRepo.updateDevServerId(ip, port, devServerId);
-
-    return {
-      message: `环境 【$--{name}】 在端口 【${port}】 已经切换到 【${devServerId}】`,
-    };
+    return envItem;
   }
 }
 

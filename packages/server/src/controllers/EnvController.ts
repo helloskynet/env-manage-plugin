@@ -1,6 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { EnvService } from "../service/EnvService";
-import { EnvBaseInterface, EnvItemInterface } from "envm";
+import {
+  EnvBaseInterface,
+  EnvBaseSchema,
+  EnvItemInterface,
+  EnvItemPartial,
+} from "envm";
 
 /**
  * 开发环境控制器
@@ -25,7 +30,7 @@ class EnvController {
    */
   handleAddEnv(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log("添加环境-------------", req.dto, "lll");
+      console.log("添加环境-------------", req.dto);
       const envItem = req.dto as EnvItemInterface;
       this.envService.handleAddEnv(envItem);
       res.success();
@@ -34,10 +39,16 @@ class EnvController {
     }
   }
 
+  /**
+   * 删除环境
+   * @param req 
+   * @param res 
+   * @param next 
+   */
   handleDeleteEnv(req: Request, res: Response, next: NextFunction) {
     try {
       console.log(req.dto, "req.body");
-      const envItem = req.dto as EnvBaseInterface;
+      const envItem = EnvBaseSchema.parse(req.dto);
       this.envService.handleDeleteEnv(envItem);
       res.success();
     } catch (error) {
@@ -70,7 +81,7 @@ class EnvController {
   async handleStartServer(req: Request, res: Response, next: NextFunction) {
     try {
       console.log(req.dto, "req.body--------------");
-      const envItem = req.dto as EnvBaseInterface;
+      const envItem = EnvBaseSchema.parse(req.dto);
       await this.envService.handleStartServer(envItem);
       res.success();
     } catch (error) {
@@ -85,14 +96,10 @@ class EnvController {
    * @param next
    * @returns
    */
-  async handleStopServer(
-    req: Request<unknown, unknown, EnvItemInterface>,
-    res: Response,
-    next: NextFunction
-  ) {
+  async handleStopServer(req: Request, res: Response, next: NextFunction) {
     try {
-      const env: EnvItemInterface = req.body;
-      await this.envService.handleStopServer(env, res);
+      const envItem = req.dto as EnvBaseInterface;
+      await this.envService.handleStopServer(envItem);
       res.success();
     } catch (error) {
       next(error);
@@ -107,14 +114,9 @@ class EnvController {
    */
   handleUpdateDevServerId(req: Request, res: Response, next: NextFunction) {
     try {
-      const { devServerName, name, port } = req.body;
+      const envItem = req.dto as EnvItemPartial;
 
-      if (!devServerName || !name || !port) {
-        return res.status(400).json({
-          error: "缺少 devServerName 或 name 或者 port 参数",
-        });
-      }
-      const list = this.envService.handleUpdateDevServerId(req);
+      const list = this.envService.handleUpdateDevServerId(envItem);
       res.success({ list });
     } catch (error) {
       next(error);

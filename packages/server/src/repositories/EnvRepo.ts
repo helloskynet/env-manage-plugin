@@ -1,11 +1,23 @@
+import { AppError } from "../utils/errors.js";
 import { db } from "./database.js";
-import { EnvBaseInterface, EnvBaseSchema, EnvItemInterface } from "envm";
+import {
+  EnvBaseInterface,
+  EnvBaseSchema,
+  EnvItemInterface,
+  EnvItemPartial,
+} from "envm";
 
 export interface EnvRepoInterface {
   getAll(): EnvItemInterface[];
 }
 
 class EnvRepo implements EnvRepoInterface {
+  /**
+   * 获取环境集合的私有方法，减少重复代码
+   */
+  private getCollection() {
+    return db.getCollection<EnvItemInterface>("envms");
+  }
   /**
    *
    * @returns
@@ -17,17 +29,14 @@ class EnvRepo implements EnvRepoInterface {
    * @returns 环境信息列表
    */
   getAll() {
-    const envms = db.getCollection<EnvItemInterface>("envms");
-    const list = envms.find();
-    return list;
+    return this.getCollection().find();
   }
 
   /**
    * 新增环境
    */
   addEnv(env: EnvItemInterface) {
-    const envms = db.getCollection<EnvItemInterface>("envms");
-    envms.insert(env);
+    this.getCollection().insert(env);
   }
 
   /**
@@ -36,9 +45,8 @@ class EnvRepo implements EnvRepoInterface {
    * @returns 匹配的环境信息或 undefined
    */
   deleteEnv(env: EnvBaseInterface) {
-    const envms = db.getCollection<EnvItemInterface>("envms");
-    const target = EnvBaseSchema.safeParse(env)
-    envms.findAndRemove(target.data);
+    const target = EnvBaseSchema.safeParse(env);
+    this.getCollection().findAndRemove(target.data);
   }
 
   /**
@@ -47,23 +55,44 @@ class EnvRepo implements EnvRepoInterface {
    * @returns 匹配的环境信息或 undefined
    */
   findOneByIpAndPort(env: EnvBaseInterface) {
-    const envms = db.getCollection<EnvItemInterface>("envms");
-    const target = EnvBaseSchema.safeParse(env)
-    return envms.findOne(target.data);
+    const target = EnvBaseSchema.safeParse(env);
+    return this.getCollection().findOne(target.data);
+  }
+
+  /**
+   * 根据状态和端口查询
+   * @param env
+   * @returns
+   */
+  findOneByPortAndStatus(env: Pick<EnvItemInterface, "port" | "status">) {
+    return this.getCollection().findOne({
+      port: env.port,
+      status: env.status,
+    });
   }
 
   /**
    * 更新环境绑定的开发服务器ID
    */
-  updateDevServerId(ip: string, port: number, devServerId: string) {
-    const envms = db.getCollection<EnvItemInterface>("envms");
-    envms.findAndUpdate({ ip, port }, (env) => {
-      if (!env) {
-        throw new Error("未找到对应的环境");
+  updateEnvmItem(envmItem: EnvItemPartial) {
+    this.getCollection().findAndUpdate(
+      { ip: envmItem.ip, port: envmItem.port },
+      (env) => {
+        if (!env) {
+          throw new AppError("未找到对应的环境");
+        }
+        Object.assign(env, envmItem);
+        return env;
       }
-      env.devServerId = devServerId;
-      return env;
-    });
+    );
+  }
+
+  /**
+   *  更新
+   * @param envmItem
+   */
+  update(envmItem: EnvItemInterface) {
+    this.getCollection().update(envmItem);
   }
 }
 

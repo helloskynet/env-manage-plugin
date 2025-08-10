@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PartialExcept } from "./Utils";
 
 /**
  * 基类：环境对象的主键信息（用于删除、查询等操作）
@@ -80,3 +81,10 @@ export const EnvItemSchema = EnvBaseSchema.extend({
  * 前后端可直接导入使用，确保类型一致性
  */
 export type EnvItemInterface = z.infer<typeof EnvItemSchema>;
+
+/**
+ * 环境对象的部分更新类型
+ * - 基础属性（ip 和 port）保持必选（作为查询条件）
+ * - 其他扩展属性均为可选（支持部分更新）
+ */
+export type EnvItemPartial = PartialExcept<EnvItemInterface, keyof EnvBaseInterface>;

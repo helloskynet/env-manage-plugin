@@ -6,7 +6,6 @@ import { EnvController } from "../controllers/EnvController.js";
 import { DevServerController } from "../controllers/DevServerController.js";
 import { config } from "../ResolveConfig.js";
 import { toDTO } from "../middleware/dto.middleware";
-import { z } from "zod";
 import { EnvBaseSchema, EnvItemSchema } from "envm";
 
 // 1. 创建各模块路由
@@ -19,20 +18,14 @@ const createEnvRoutes = (controller: EnvController) => {
   router.post("/delete", toDTO(EnvBaseSchema), (...res) =>
     controller.handleDeleteEnv(...res)
   );
-  router.post(
-    "/update-dev-server-id",
-    toDTO(z.object({ envId: z.string(), devServerId: z.string() }), "body"),
-    (...res) => controller.handleUpdateDevServerId(...res)
+  router.post("/update-dev-server-id", toDTO(EnvBaseSchema), (...res) =>
+    controller.handleUpdateDevServerId(...res)
   );
-  router.post(
-    "/start",
-    toDTO(EnvBaseSchema),
-    (...res) => controller.handleStartServer(...res)
+  router.post("/start", toDTO(EnvBaseSchema), (...res) =>
+    controller.handleStartServer(...res)
   );
-  router.post(
-    "/stop",
-    toDTO(z.object({ envId: z.string() }), "body"),
-    (...res) => controller.handleStopServer(...res)
+  router.post("/stop", toDTO(EnvBaseSchema), (...res) =>
+    controller.handleStopServer(...res)
   );
   return router;
 };
