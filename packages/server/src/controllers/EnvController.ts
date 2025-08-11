@@ -5,7 +5,7 @@ import {
   EnvBaseSchema,
   EnvItemInterface,
   EnvItemPartial,
-} from "envm";
+} from "@envm/schemas";
 
 /**
  * 开发环境控制器

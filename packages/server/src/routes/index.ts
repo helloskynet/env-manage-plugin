@@ -6,7 +6,7 @@ import { EnvController } from "../controllers/EnvController.js";
 import { DevServerController } from "../controllers/DevServerController.js";
 import { config } from "../ResolveConfig.js";
 import { toDTO } from "../middleware/dto.middleware";
-import { EnvBaseSchema, EnvItemSchema } from "envm";
+import { EnvBaseSchema, EnvItemSchema } from "@envm/schemas";
 
 // 1. 创建各模块路由
 const createEnvRoutes = (controller: EnvController) => {

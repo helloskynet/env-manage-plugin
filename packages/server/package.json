@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^4.2.0",
-    "@types/envm": "workspace:*",
+    "@envm/schemas": "workspace:*",
     "@types/express": "^5.0.0",
     "@types/lokijs": "^1.5.14",
     "@types/set-cookie-parser": "^2.4.10",

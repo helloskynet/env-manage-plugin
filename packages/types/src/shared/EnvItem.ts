@@ -59,15 +59,12 @@ export const EnvItemSchema = EnvBaseSchema.extend({
   /**
    * 环境首页
    * - 可选字符串
-   * - 若提供则需符合URL格式
+   * @default /
    */
   homePage: z
     .string()
     .optional()
-    .refine(
-      (value) => value === undefined || /^https?:\/\/.+/.test(value),
-      "首页地址必须是有效的URL（以http/https开头）"
-    )
+    .default('/')
     .describe("环境首页"),
 
   /**

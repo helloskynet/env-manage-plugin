@@ -105,7 +105,7 @@
 import addEnv from './AddEnv.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
-import type { DevServerInterface, EnvItemInterface, ListResponse } from 'envm'
+import type { DevServerInterface, EnvItemInterface, ListResponse } from '@envm/schemas'
 import { fetchData } from '@/utils'
 
 const apiPrefix = 'dev-manage-api'

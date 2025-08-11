@@ -5,7 +5,7 @@ import {
   EnvBaseSchema,
   EnvItemInterface,
   EnvItemPartial,
-} from "envm";
+} from "@envm/schemas";
 
 export interface EnvRepoInterface {
   getAll(): EnvItemInterface[];

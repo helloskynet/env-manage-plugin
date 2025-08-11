@@ -70,7 +70,7 @@
 import { ref, reactive, nextTick } from 'vue'
 import { ElForm, type FormItemRule } from 'element-plus'
 import { fetchData } from '@/utils'
-import { type DevServerInterface, type EnvItemInterface, type ListResponse } from 'envm'
+import { type DevServerInterface, type EnvItemInterface, type ListResponse } from '@envm/schemas'
 
 const emit = defineEmits<{
   (e: 'refreshList'): void
@@ -97,6 +97,7 @@ const defautlFormData: EnvItemInterface = {
   port: 0,
   name: '',
   devServerId: '',
+  homePage: '',
   status: 'stopped',
 }
 
@@ -116,14 +117,6 @@ const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
     {
       pattern: /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/,
       message: '请输入有效的IP地址',
-      trigger: 'blur',
-    },
-  ],
-  homePage: [
-    { required: true, message: '请输入首页地址', trigger: 'blur' },
-    {
-      type: 'url',
-      message: '请输入有效的URL地址 (需包含协议如 http://)',
       trigger: 'blur',
     },
   ],
