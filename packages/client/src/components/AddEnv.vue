@@ -174,7 +174,7 @@ const devServerOptions = ref<{ label: string; value: string }[]>([])
 const getDevServerList = () => {
   fetchData<ListResponse<DevServerInterface>>(`${props.apiPrefix}/server/list`).then((data) => {
     devServerOptions.value =
-      data?.list.map((item: { name: string; id: string }) => ({
+      data?.list?.map((item: { name: string; id: string }) => ({
         label: item.name,
         value: item.id,
       })) ?? []

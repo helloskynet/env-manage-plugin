@@ -1,6 +1,7 @@
 import loki, { Collection } from "lokijs";
 import { DevServerModel } from "../models/DevServerModel";
-import { EnvItemInterface } from "../../types/env";
+import { EnvItemInterface } from "@envm/schemas";
+import { DevServerInterface } from "@envm/schemas";
 
 export const db = new loki(".envm.data.json", {
   autosave: true,
@@ -68,7 +69,7 @@ const getEnvmsCollection = () => {
  * 初始化开发服务器集合
  */
 const getDevServerCollection = () => {
-  const devServer = db.getCollection<EnvItemInterface>("devServer");
+  const devServer = db.getCollection<DevServerInterface>("devServer");
 
   if (!devServer) {
     const devServerColection = db.addCollection<DevServerModel>("devServer", {

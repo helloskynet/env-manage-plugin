@@ -33,6 +33,7 @@ const createEnvRoutes = (controller: EnvController) => {
 const createDevServerRoutes = (controller: DevServerController) => {
   const router = Router();
   router.get("/list", (...res) => controller.handleGetDevServerList(...res));
+  router.post('/add', (...res) => controller.handleCreateDevServer(...res));
   return router;
 };
 

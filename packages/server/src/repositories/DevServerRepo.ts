@@ -1,48 +1,113 @@
+import { DevServerInterface } from "@envm/schemas";
+import { db } from "./database";
 
-import { db } from "./database.js";
-import { DevServerModel } from "../models/DevServerModel.js";
-
-export interface DevServerRepoInterface {
-  getAll(): DevServerModel[];
-}
-
-class DevServerRepo implements DevServerRepoInterface {
+export class DevServerRepo {
+  // private collection: Collection<DevServerInterface>;
 
   /**
-   *
-   * @param isPlugin 是否通过 plugin 模式启动，用于控制提示信息
-   * @returns
+   * 获取环境集合的私有方法，减少重复代码
    */
+  private get collection() {
+    return db.getCollection<DevServerInterface>("devServer");
+  }
+
   constructor() {
+    // 获取或创建集合
+    // this.collection = db.getCollection<DevServerInterface>("devServer");
   }
 
   /**
-   * 获取所有环境信息
-   * @returns 环境信息列表
+   * 获取所有开发服务器
+   * @returns 开发服务器列表
    */
-  getAll() {
-    const devServer = db.getCollection<DevServerModel>("devServer");
-    const list = devServer.find();
-    console.log("从数据库获取的开发服务器信息：", list);
-    return list;
+  findAll(): DevServerInterface[] {
+    return this.collection.find();
   }
 
   /**
-   * 新增环境
+   * 根据ID获取开发服务器
+   * @param id 服务器ID
+   * @returns 开发服务器信息或null
    */
-  addEnv(devServerItem: DevServerModel) {
-    const devServerCol = db.getCollection<DevServerModel>("devServer");
-    devServerCol.insert(devServerItem);
+  findById(id: string): DevServerInterface | null {
+    return this.collection.findOne({ id }) || null;
   }
 
-  findById(id: string) {
-    const devServerCol = db.getCollection<DevServerModel>("devServer");
-    const item = devServerCol.findOne({ id });
-    if (!item) {
-      throw new Error(`未找到 ID 为 ${id} 的开发服务器`);
+  /**
+   * 根据端口获取开发服务器
+   * @param port 端口号
+   * @returns 开发服务器信息或null
+   */
+  findByPort(port: number): DevServerInterface | null {
+    return this.collection.findOne({ port }) || null;
+  }
+
+  /**
+   * 创建新的开发服务器
+   * @param serverData 服务器信息
+   * @returns 新创建的服务器信息
+   */
+  create(serverData: DevServerInterface) {
+    try {
+      this.collection.insert(serverData);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("duplicate")) {
+        if (error.message.includes("port")) {
+          throw new Error(`端口 ${serverData.port} 已被占用`);
+        }
+        throw new Error(`服务器ID ${serverData.id} 已存在`);
+      }
+      throw error;
     }
-    return item;
+  }
+
+  /**
+   * 更新开发服务器信息
+   * @param id 服务器ID
+   * @param updateData 要更新的信息
+   * @returns 更新后的服务器信息或null
+   */
+  update(
+    id: string,
+    updateData: Partial<DevServerInterface>
+  ): DevServerInterface | null {
+    const server = this.findById(id);
+    if (!server) {
+      return null;
+    }
+
+    // 合并更新数据
+    const updatedServer = { ...server, ...updateData, id };
+
+    try {
+      this.collection.update(updatedServer);
+      db.saveDatabase();
+      return updatedServer;
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes("duplicate") &&
+        updateData.port
+      ) {
+        throw new Error(`端口 ${updateData.port} 已被占用`);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * 删除开发服务器
+   * @param id 服务器ID
+   * @returns 删除是否成功
+   */
+  delete(id: string): boolean {
+    const server = this.findById(id);
+    if (!server) {
+      return false;
+    }
+
+    this.collection.remove(server);
+    db.saveDatabase();
+    return true;
   }
 }
-
-export { DevServerRepo };

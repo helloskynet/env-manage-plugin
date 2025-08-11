@@ -6,7 +6,7 @@
   >新增代理</el-button>
   <el-button
     type="success"
-    @click="handleAddEnv"
+    @click="handleAddServer"
     :loading="refreshLoading"
   >新增DevServer</el-button>
   <el-button
@@ -94,15 +94,21 @@
       </template>
     </el-table-column>
   </el-table>
-  <add-env
+  <AddEnv
     ref="addEnvRef"
+    :apiPrefix="apiPrefix"
+    @refreshList="refreshList"
+  />
+  <AddServer
+    ref="addServerRef"
     :apiPrefix="apiPrefix"
     @refreshList="refreshList"
   />
 </template>
 
 <script lang="ts" setup>
-import addEnv from './AddEnv.vue'
+import AddEnv from './AddEnv.vue'
+import AddServer from './AddServer.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import type { DevServerInterface, EnvItemInterface, ListResponse } from '@envm/schemas'
@@ -120,11 +126,18 @@ const refreshLoading = ref(false)
 
 
 const addEnvRef = ref()
+const addServerRef = ref()
 
 const handleAddEnv = () => {
   // 使用 $refs 调用子组件方法
   if (addEnvRef.value) {
     addEnvRef.value.showDialog()
+  }
+}
+const handleAddServer = () => {
+  // 使用 $refs 调用子组件方法
+  if (addServerRef.value) {
+    addServerRef.value.showDialog()
   }
 }
 

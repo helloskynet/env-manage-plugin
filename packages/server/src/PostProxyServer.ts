@@ -4,7 +4,6 @@ import { WebSocketServer } from "ws";
 import express, { Request } from "express";
 import expressStaticGzip from "express-static-gzip";
 import { createProxyMiddleware } from "http-proxy-middleware";
-import PreProxyServer from "./PreProxyServer.js";
 import { config } from "./ResolveConfig.js";
 import { createRouter } from "./routes/index.js";
 import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
@@ -76,14 +75,15 @@ class PostProxyServer {
       changeOrigin: true,
       router: async (req) => {
         if (req.headers["x-api-server"]) {
-          const port = req.headers["x-api-server"] as string;
+          // const port = req.headers["x-api-server"] as string;
 
-          const env = PreProxyServer.portToEnvMap[`${port}`];
+          // const env = PreProxyServer.portToEnvMap[`${port}`];
 
-          if (env?.devServerId) {
-            return env.devServerId;
-          }
-          return env?.devServerId;
+          // if (env?.devServerId) {
+          //   return env.devServerId;
+          // }
+          // return env?.devServerId || 12;
+          return "tempServerId";
         }
       },
     });
