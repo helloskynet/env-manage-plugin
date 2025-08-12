@@ -13,7 +13,7 @@ type FetchDataInput =
 const fetchData = <R = unknown>(input: FetchDataInput) => {
   // 统一处理参数格式
   const options =
-    typeof input === 'string' ? { url: input, method: 'GET' } : { method: 'GET', ...input }
+    typeof input === 'string' ? { url: input, method: 'GET' } : { method: 'POST', ...input }
 
   return fetch(options.url, {
     method: options.method,

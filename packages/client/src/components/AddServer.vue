@@ -82,7 +82,6 @@ const formRef = ref<InstanceType<typeof ElForm>>()
 
 // 表单默认数据
 const defaultFormData: Partial<DevServerInterface> = {
-  id: '',
   name: '888',
   description: '',
   port: 1,
@@ -98,9 +97,7 @@ const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
     { required: true, message: '请输入服务器名称', trigger: 'blur' },
     { min: 2, max: 30, message: '名称长度需在2-30个字符之间', trigger: 'blur' },
   ],
-  port: [
-    { required: true, message: '请输入端口号', trigger: 'blur' },
-  ],
+  port: [{ required: true, message: '请输入端口号', trigger: 'blur' }],
   ip: [
     { required: true, message: '请输入IP地址', trigger: 'blur' },
     {
@@ -163,7 +160,6 @@ const submitForm = () => {
       // 生成唯一ID（实际项目可能由后端生成）
       const submitData: DevServerInterface = {
         ...formData,
-        id: Date.now().toString(), // 临时ID生成方式
       } as DevServerInterface
 
       createDevServer(submitData)

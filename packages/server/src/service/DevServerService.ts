@@ -1,5 +1,6 @@
 import { DevServerRepo } from "../repositories/DevServerRepo";
-import { DevServerInterface } from "@envm/schemas";
+import { CreateDevServerInterface, DevServerInterface, UpdateDevServerInterface } from "@envm/schemas";
+import { AppError } from "../utils/errors";
 
 export class DevServerService {
   constructor(private readonly devServerRepository: DevServerRepo) {}
@@ -26,14 +27,15 @@ export class DevServerService {
    * @param serverData 服务器信息
    * @returns 新创建的服务器信息
    */
-  createDevServer(serverData: DevServerInterface) {
-    // 可以在这里添加业务逻辑验证，例如检查端口是否已被占用
-    const existingServer = this.devServerRepository.findByPort(serverData.port);
-    if (existingServer) {
-      throw new Error(`端口 ${serverData.port} 已被占用`);
+  createDevServer(serverData: CreateDevServerInterface) {
+    try {
+      this.devServerRepository.create(serverData);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Duplicate')) {
+        throw new AppError(`创建失败: ${serverData.id} 已存在！` );
+      }
+      throw error;
     }
-
-    this.devServerRepository.create(serverData);
   }
 
   /**
@@ -44,12 +46,12 @@ export class DevServerService {
    */
   updateDevServer(
     id: string,
-    updateData: Partial<DevServerInterface>
+    updateData: Partial<UpdateDevServerInterface>
   ): DevServerInterface | null {
     // 如果更新了端口，检查新端口是否已被占用
-    if (updateData.port) {
-      const existingServer = this.devServerRepository.findByPort(
-        updateData.port
+    if (updateData.id) {
+      const existingServer = this.devServerRepository.findById(
+        updateData.id
       );
       if (existingServer && existingServer.id !== id) {
         throw new Error(`端口 ${updateData.port} 已被占用`);

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { DevServerService } from "../service/DevServerService";
-import { DevServerSchema } from "@envm/schemas";
+import { CreateDevServerSchema, BaseDevServerSchema } from "@envm/schemas";
 
 class DevServerController {
   constructor(private readonly devServerService: DevServerService) {}
@@ -53,9 +53,8 @@ class DevServerController {
   handleCreateDevServer(req: Request, res: Response, next: NextFunction) {
     try {
       // 验证请求体
-      const validatedData = DevServerSchema.parse(req.body);
+      const validatedData = CreateDevServerSchema.parse(req.body);
 
-      // const newServer =
       this.devServerService.createDevServer(validatedData);
       res.success("开发服务器创建成功");
     } catch (error) {
@@ -73,7 +72,7 @@ class DevServerController {
   handleUpdateDevServer(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const updateData = DevServerSchema.partial().parse(req.body);
+      const updateData = BaseDevServerSchema.partial().parse(req.body);
 
       const updatedServer = this.devServerService.updateDevServer(
         id,

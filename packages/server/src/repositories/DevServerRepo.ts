@@ -1,4 +1,4 @@
-import { DevServerInterface } from "@envm/schemas";
+import { CreateDevServerInterface, DevServerInterface } from "@envm/schemas";
 import { db } from "./database";
 
 export class DevServerRepo {
@@ -8,7 +8,7 @@ export class DevServerRepo {
    * 获取环境集合的私有方法，减少重复代码
    */
   private get collection() {
-    return db.getCollection<DevServerInterface>("devServer");
+    return db.getCollection<CreateDevServerInterface>("devServer");
   }
 
   constructor() {
@@ -29,7 +29,7 @@ export class DevServerRepo {
    * @param id 服务器ID
    * @returns 开发服务器信息或null
    */
-  findById(id: string): DevServerInterface | null {
+  findById(id: string): CreateDevServerInterface | null {
     return this.collection.findOne({ id }) || null;
   }
 
@@ -47,18 +47,8 @@ export class DevServerRepo {
    * @param serverData 服务器信息
    * @returns 新创建的服务器信息
    */
-  create(serverData: DevServerInterface) {
-    try {
-      this.collection.insert(serverData);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("duplicate")) {
-        if (error.message.includes("port")) {
-          throw new Error(`端口 ${serverData.port} 已被占用`);
-        }
-        throw new Error(`服务器ID ${serverData.id} 已存在`);
-      }
-      throw error;
-    }
+  create(serverData: CreateDevServerInterface) {
+      this.collection.insert(serverData);   
   }
 
   /**

@@ -55,17 +55,17 @@
         <el-tag v-else type="success">已启动</el-tag>
       </template>
     </el-table-column>
-    <el-table-column prop="devServerName" label="devServer">
+    <el-table-column prop="devServerId" label="devServer">
       <template #default="scope">
         <el-radio-group
-          v-model="scope.row.devServerName"
+          v-model="scope.row.devServerId"
           @change="(value: string) => updateSelectedDevServer(value, scope.row)"
         >
           <el-radio
             v-for="item in devServerList"
-            :key="item.name"
-            :value="`${item.name}`"
-            :title="item.ip"
+            :key="item.id"
+            :value="`${item.id}`"
+            :title="item.id"
             border
             size="small"
           >{{ item.name }}</el-radio>
@@ -123,7 +123,6 @@ const devServerList = ref<DevServerInterface[]>([])
 const loadingMap = ref<{ [key: string]: unknown }>({}) // 存储每行的 loading 状态
 
 const refreshLoading = ref(false)
-
 
 const addEnvRef = ref()
 const addServerRef = ref()
@@ -232,30 +231,18 @@ const updateStatus = (action: string, rowData: EnvItemInterface) => {
     })
 }
 
-const updateSelectedDevServer = (devServerName: string, rowData: EnvItemInterface) => {
-  fetch(`${apiPrefix}/update-dev-server-id`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json', // 必须设置
-    },
-    body: JSON.stringify({
-      name: rowData.name,
+const updateSelectedDevServer = (devServerId: string, rowData: EnvItemInterface) => {
+  fetchData({
+    url: `${apiPrefix}/env/update`,
+    data: {
+      ip: rowData.ip,
       port: rowData.port,
-      devServerName,
-    }),
+      devServerId,
+    },
+  }).then(() => {
+    ElMessage.success('更新成功')
+    getEnvList()
   })
-    .then((res) => {
-      return res.json()
-    })
-    .then((res) => {
-      console.log(res)
-      if (res.error) {
-        ElMessage.error(res.error)
-      } else if (res.message) {
-        ElMessage.success(res.message)
-      }
-      getEnvList()
-    })
 }
 
 const refreshList = () => {

@@ -4,7 +4,7 @@ import {
   EnvBaseInterface,
   EnvBaseSchema,
   EnvItemInterface,
-  EnvItemPartial,
+  UpdateEnvSchema,
 } from "@envm/schemas";
 
 /**
@@ -114,7 +114,7 @@ class EnvController {
    */
   handleUpdateDevServerId(req: Request, res: Response, next: NextFunction) {
     try {
-      const envItem = req.dto as EnvItemPartial;
+      const envItem = UpdateEnvSchema.parse(req.dto);
 
       const list = this.envService.handleUpdateDevServerId(envItem);
       res.success({ list });

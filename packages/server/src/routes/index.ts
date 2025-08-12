@@ -6,7 +6,7 @@ import { EnvController } from "../controllers/EnvController.js";
 import { DevServerController } from "../controllers/DevServerController.js";
 import { config } from "../ResolveConfig.js";
 import { toDTO } from "../middleware/dto.middleware";
-import { EnvBaseSchema, EnvItemSchema } from "@envm/schemas";
+import { EnvBaseSchema, EnvItemSchema, UpdateEnvSchema } from "@envm/schemas";
 
 // 1. 创建各模块路由
 const createEnvRoutes = (controller: EnvController) => {
@@ -18,7 +18,7 @@ const createEnvRoutes = (controller: EnvController) => {
   router.post("/delete", toDTO(EnvBaseSchema), (...res) =>
     controller.handleDeleteEnv(...res)
   );
-  router.post("/update-dev-server-id", toDTO(EnvBaseSchema), (...res) =>
+  router.post("/update", toDTO(UpdateEnvSchema), (...res) =>
     controller.handleUpdateDevServerId(...res)
   );
   router.post("/start", toDTO(EnvBaseSchema), (...res) =>

@@ -39,7 +39,7 @@ export const EnvItemSchema = EnvBaseSchema.extend({
    * - 非空字符串
    * - 至少1个字符（可根据实际需求调整长度限制）
    */
-  name: z.string().min(1, "环境名称不能为空").describe("环境名称"),
+  name: z.string().min(1, "环境名称不能为空").describe("环境名称").optional(),
 
   /**
    * 环境描述
@@ -54,6 +54,7 @@ export const EnvItemSchema = EnvBaseSchema.extend({
   devServerId: z
     .string()
     .min(1, "开发服务器ID不能为空")
+    .optional()
     .describe("环境绑定的开发服务器ID"),
 
   /**
@@ -61,16 +62,12 @@ export const EnvItemSchema = EnvBaseSchema.extend({
    * - 可选字符串
    * @default /
    */
-  homePage: z
-    .string()
-    .optional()
-    .default('/')
-    .describe("环境首页"),
+  homePage: z.string().optional().describe("环境首页"),
 
   /**
    * 环境状态
    */
-  status: z.enum(["running", "stopped"]).default("stopped"),
+  status: z.enum(["running", "stopped"]).optional(),
 });
 
 /**
@@ -84,4 +81,16 @@ export type EnvItemInterface = z.infer<typeof EnvItemSchema>;
  * - 基础属性（ip 和 port）保持必选（作为查询条件）
  * - 其他扩展属性均为可选（支持部分更新）
  */
-export type EnvItemPartial = PartialExcept<EnvItemInterface, keyof EnvBaseInterface>;
+export type EnvItemPartial = PartialExcept<
+  EnvItemInterface,
+  keyof EnvBaseInterface
+>;
+
+export const UpdateEnvSchema = EnvItemSchema
+  // 将 EnvItemSchema 中除了 ip 和 port 之外的字段设为可选
+  .partial()
+  // 重新强制 ip 和 port 为必填（因为 partial() 会将所有字段变为可选）
+  .extend(EnvBaseSchema.shape)
+  .strict();
+
+export type UpdateEnvInterface = z.infer<typeof UpdateEnvSchema>

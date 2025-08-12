@@ -7,7 +7,7 @@ import * as libCookie from "cookie";
 
 import Utils from "./Utils.js";
 import { config } from "./ResolveConfig.js";
-import { EnvItemInterface } from "envm";
+import { EnvItemInterface } from "@envm/schemas";
 import { EnvRepo } from "./repositories/EnvRepo.js";
 
 class PreProxyServer {
@@ -21,10 +21,6 @@ class PreProxyServer {
    */
   sockets!: Set<Socket>;
 
-  /**
-   * 绑定的环境信息
-   */
-  envKey: string;
 
   /**
    * 判断该端口是否已经有服务存在
@@ -67,13 +63,23 @@ class PreProxyServer {
     private envRepo: EnvRepo,
     private app = express()
   ) {
-    this.envKey = Utils.getRowKey(envmConfig);
     app.use(this.createPreProxyMiddleware());
   }
 
+  /**
+   * 
+   * @returns 获取绑定的环境信息
+   */
   getEnvItem() {
     const envItem = this.envRepo.findOneByIpAndPort(this.envmConfig);
     return envItem;
+  }
+
+  /**
+   * 获取绑定的服务器详情
+   */
+  getDevServer(){
+
   }
 
   /**
