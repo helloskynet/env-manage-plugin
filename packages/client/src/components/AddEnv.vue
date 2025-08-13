@@ -9,7 +9,7 @@
       ref="formRef"
       :model="formData"
       :rules="rules"
-      label-width="120px"
+      label-width="130px"
       size="default"
     >
       <el-form-item label="环境名称" prop="name">
@@ -24,7 +24,7 @@
         />
       </el-form-item>
 
-      <el-form-item label="绑定端口" prop="port">
+      <el-form-item label="绑定本地端口" prop="port">
         <el-input-number
           v-model="formData.port"
           :min="3000"
@@ -34,12 +34,8 @@
         />
       </el-form-item>
 
-      <el-form-item label="服务器ID" prop="devServerId">
-        <el-select
-          v-model="formData.devServerId"
-          placeholder="Select"
-          style="width: 240px"
-        >
+      <el-form-item label="开发服务器地址" prop="devServerId">
+        <el-select v-model="formData.devServerId" placeholder="webpack/vite等启动地址">
           <el-option
             v-for="item in devServerOptions"
             :key="item.value"
@@ -47,11 +43,10 @@
             :value="item.value"
           />
         </el-select>
-        <el-input v-model="formData.devServerId" />
       </el-form-item>
 
-      <el-form-item label="IP地址" prop="ip">
-        <el-input v-model="formData.ip" />
+      <el-form-item label="API环境地址" prop="ip">
+        <el-input v-model="formData.ip" placeholder="例如：http://127.0.0.1:3000" />
       </el-form-item>
 
       <el-form-item label="首页地址" prop="homePage">
@@ -112,14 +107,7 @@ const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
   ],
   port: [{ required: true, message: '请输入端口号', trigger: 'blur' }],
   devServerId: [{ required: true, message: '请输入服务器ID', trigger: 'blur' }],
-  ip: [
-    { required: true, message: '请输入IP地址', trigger: 'blur' },
-    {
-      pattern: /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/,
-      message: '请输入有效的IP地址',
-      trigger: 'blur',
-    },
-  ],
+  ip: [{ required: true, message: '请输入目标服务地址', trigger: 'blur' }],
 })
 
 // 优化关闭逻辑

@@ -75,15 +75,8 @@ class PostProxyServer {
       changeOrigin: true,
       router: async (req) => {
         if (req.headers["x-api-server"]) {
-          // const port = req.headers["x-api-server"] as string;
-
-          // const env = PreProxyServer.portToEnvMap[`${port}`];
-
-          // if (env?.devServerId) {
-          //   return env.devServerId;
-          // }
-          // return env?.devServerId || 12;
-          return "tempServerId";
+          const target = req.headers["x-api-server"] as string;
+          return target;
         }
       },
     });

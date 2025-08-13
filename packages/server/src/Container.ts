@@ -14,7 +14,7 @@ class Container {
     const envRepo = new EnvRepo();
     const devServerRepo = new DevServerRepo();
     // configIns.initConfig();
-    this.register("envService", new EnvService(envRepo));
+    this.register("envService", new EnvService(envRepo, devServerRepo));
     this.register("envController", new EnvController(this.get("envService")));
     // 开发服务器服务和控制器的注册
     this.register("devServerService", new DevServerService(devServerRepo));

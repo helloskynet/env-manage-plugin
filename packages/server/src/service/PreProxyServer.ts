@@ -5,10 +5,10 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
 
-import Utils from "../Utils.js";
 import { config } from "../ResolveConfig.js";
 import { EnvItemInterface } from "@envm/schemas";
 import { EnvRepo } from "../repositories/EnvRepo.js";
+import { DevServerRepo } from "../repositories/DevServerRepo.js";
 
 class PreProxyServer {
   /**
@@ -20,7 +20,6 @@ class PreProxyServer {
    * 保存当前代理的 socket 连接 关闭前先 断开所有链接
    */
   sockets!: Set<Socket>;
-
 
   /**
    * 判断该端口是否已经有服务存在
@@ -45,14 +44,22 @@ class PreProxyServer {
     [key: string]: EnvItemInterface;
   } = {};
 
-  static async create(envmConfig: EnvItemInterface, envRepo: EnvRepo) {
+  static async create(
+    envmConfig: EnvItemInterface,
+    envRepo: EnvRepo,
+    devServerRepo: DevServerRepo
+  ) {
     const { port } = envmConfig;
     if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return null;
     }
 
-    const preProxyServer = new PreProxyServer(envmConfig, envRepo);
+    const preProxyServer = new PreProxyServer(
+      envmConfig,
+      envRepo,
+      devServerRepo
+    );
     await preProxyServer.startServer(envmConfig);
     PreProxyServer.appMap[port] = preProxyServer;
     return preProxyServer;
@@ -61,13 +68,14 @@ class PreProxyServer {
   private constructor(
     private envmConfig: EnvItemInterface,
     private envRepo: EnvRepo,
+    private devServerRepo: DevServerRepo,
     private app = express()
   ) {
     app.use(this.createPreProxyMiddleware());
   }
 
   /**
-   * 
+   *
    * @returns 获取绑定的环境信息
    */
   getEnvItem() {
@@ -78,9 +86,7 @@ class PreProxyServer {
   /**
    * 获取绑定的服务器详情
    */
-  getDevServer(){
-
-  }
+  getDevServer() {}
 
   /**
    * 当前 代理的 cookie 后缀
@@ -110,24 +116,26 @@ class PreProxyServer {
         // 查询环境信息
         const envItem = this.getEnvItem();
         // 根据环境信息查询绑定的服务，地址
-        const devServerKey = Utils.getRowKey({
-          name: envItem?.devServerId as unknown as string,
-        });
-
-        const devServerConfig = PreProxyServer.devServerMap[devServerKey];
+        const devServerConfig = this.devServerRepo.findById(
+          envItem?.devServerId ?? ""
+        );
         // 默认转发到 Webpack 开发服务器
-        return devServerConfig?.devServerId;
+        return `http://${devServerConfig?.ip}:${devServerConfig?.port}`;
       },
       on: {
         proxyReq: (proxyReq, req) => {
-          proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
+          const envItem = this.getEnvItem();
+          const target = `http://${envItem?.ip}`;
+          proxyReq.setHeader("X-API-Server", `${target}`);
           this._rewrieCookieOnProxyReq(proxyReq, req);
         },
         proxyRes: (proxyRes) => {
           this._rewriteSetCookieOnProxyRes(proxyRes);
         },
-        proxyReqWs: (proxyReq, req: IncomingMessage) => {
-          proxyReq.setHeader("X-API-Server", `${req.socket.localPort}`);
+        proxyReqWs: (proxyReq) => {
+          const envItem = this.getEnvItem();
+          const target = `http://${envItem?.ip}`;
+          proxyReq.setHeader("X-API-Server", `${target}`);
         },
       },
     });

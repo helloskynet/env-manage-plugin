@@ -48,7 +48,7 @@
         >{{ scope.row.index }}</el-link>
       </template>
     </el-table-column>
-    <el-table-column prop="port" label="端口" />
+    <el-table-column prop="port" label="绑定端口" />
     <el-table-column prop="status" label="状态">
       <template #default="scope">
         <el-tag v-if="scope.row.status === 'stopped'" type="danger">未启动</el-tag>

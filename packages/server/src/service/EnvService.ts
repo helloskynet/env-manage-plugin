@@ -1,14 +1,19 @@
 import PreProxyServer from "./PreProxyServer.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
-import { EnvBaseInterface, EnvItemInterface, EnvItemPartial } from "@envm/schemas";
+import {
+  EnvBaseInterface,
+  EnvItemInterface,
+  EnvItemPartial,
+} from "@envm/schemas";
 import { AppError } from "../utils/errors.js";
+import { DevServerRepo } from "../repositories/DevServerRepo.js";
 
 /**
  * 环境服务类
  * 负责处理与环境相关的请求
  */
 class EnvService {
-  constructor(private envRepo: EnvRepo) {}
+  constructor(private envRepo: EnvRepo, private devServerRepo: DevServerRepo) {}
 
   /**
    * 添加环境
@@ -73,7 +78,7 @@ class EnvService {
       // 先停止该端口的服务
       await this.handleStopServer(env);
       // 再启动服务
-      await PreProxyServer.create(envItem, this.envRepo);
+      await PreProxyServer.create(envItem, this.envRepo, this.devServerRepo);
       // 更新数据库
       await this.updateEnvStatus(env, "running");
     } else {
