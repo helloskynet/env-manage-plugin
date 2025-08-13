@@ -5,10 +5,10 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
 
-import Utils from "./Utils.js";
-import { config } from "./ResolveConfig.js";
+import Utils from "../Utils.js";
+import { config } from "../ResolveConfig.js";
 import { EnvItemInterface } from "@envm/schemas";
-import { EnvRepo } from "./repositories/EnvRepo.js";
+import { EnvRepo } from "../repositories/EnvRepo.js";
 
 class PreProxyServer {
   /**

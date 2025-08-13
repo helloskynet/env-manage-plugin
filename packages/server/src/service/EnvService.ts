@@ -1,4 +1,4 @@
-import PreProxyServer from "../PreProxyServer.js";
+import PreProxyServer from "./PreProxyServer.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
 import { EnvBaseInterface, EnvItemInterface, EnvItemPartial } from "@envm/schemas";
 import { AppError } from "../utils/errors.js";

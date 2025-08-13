@@ -1,6 +1,5 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/errors.js";
-import { NextFunction } from "http-proxy-middleware/dist/types.js";
 
 /**
  * 全局错误处理中间件

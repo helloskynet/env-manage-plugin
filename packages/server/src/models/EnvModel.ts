@@ -1,42 +1,47 @@
-import { EnvItemInterface } from 'envm';
+import { EnvItemInterface } from "@envm/schemas";
 
 class EnvItemModel implements EnvItemInterface {
-
   /**
    * 环境名称
    */
-  name!: string;
+  name: string;
 
   /**
    * 环境描述
    */
-  description?: string;
+  description: string;
 
   /**
    * 环境绑定端口
-   **/ 
-  port!: number;
+   **/
+  port: number;
 
   /**
    * 环境绑定的开发服务器ID
    */
-  devServerId!: string;
+  devServerId: string;
 
   /**
    * 环境IP地址
    */
-  ip!: string;
+  ip: string;
 
   /**
    * 环境首页
    */
-  homePage?: string;
+  homePage: string;
 
-  /**
-   * 环境状态
-   */
-  status: 'running' | 'stopped' = 'stopped';
-  
+
+  status: "running" | "stopped" = "stopped";
+
+  constructor(envItem: EnvItemInterface) {
+    this.name = envItem.name ?? "";
+    this.description = envItem.description ?? "";
+    this.port = envItem.port ?? "";
+    this.ip = envItem.ip ?? "";
+    this.homePage = envItem.homePage ?? "";
+    this.devServerId = envItem.devServerId ?? "";
+  }
 }
 
 export { EnvItemModel };
