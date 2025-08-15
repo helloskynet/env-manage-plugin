@@ -3,7 +3,7 @@
     type="success"
     @click="handleAddEnv"
     :loading="refreshLoading"
-  >新增代理</el-button>
+  >新增API服务器</el-button>
   <el-button
     type="success"
     @click="handleAddServer"
@@ -30,8 +30,8 @@
       width="100"
     />
     <el-table-column
-      prop="ip"
-      label="环境代理详情"
+      prop="apiBaseUrl"
+      label="API服务地址"
       width="180"
     />
     <el-table-column
@@ -55,7 +55,7 @@
         <el-tag v-else type="success">已启动</el-tag>
       </template>
     </el-table-column>
-    <el-table-column prop="devServerId" label="devServer">
+    <el-table-column prop="devServerId" label="DevServer">
       <template #default="scope">
         <el-radio-group
           v-model="scope.row.devServerId"
@@ -63,9 +63,9 @@
         >
           <el-radio
             v-for="item in devServerList"
-            :key="item.id"
-            :value="`${item.id}`"
-            :title="item.id"
+            :key="item.devServerUrl"
+            :value="`${item.devServerUrl}`"
+            :title="item.name"
             border
             size="small"
           >{{ item.name }}</el-radio>
@@ -235,7 +235,7 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvItemInterface)
   fetchData({
     url: `${apiPrefix}/env/update`,
     data: {
-      ip: rowData.ip,
+      apiBaseUrl: rowData.apiBaseUrl,
       port: rowData.port,
       devServerId,
     },

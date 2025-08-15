@@ -58,6 +58,16 @@ class EnvRepo implements EnvRepoInterface {
     const target = EnvBaseSchema.safeParse(env);
     return this.getCollection().findOne(target.data);
   }
+  /**
+   * 根据环境信息查找单个环境
+   * @param env 环境信息
+   * @returns 匹配的环境信息或 undefined
+   */
+  findOneByApiBaseUrl(env: EnvBaseInterface) {
+    return this.getCollection().findOne({
+      apiBaseUrl: env.apiBaseUrl,
+    });
+  }
 
   /**
    * 根据状态和端口查询
@@ -76,7 +86,7 @@ class EnvRepo implements EnvRepoInterface {
    */
   updateEnvmItem(envmItem: EnvItemPartial) {
     this.getCollection().findAndUpdate(
-      { ip: envmItem.ip, port: envmItem.port },
+      { apiBaseUrl: envmItem.apiBaseUrl, port: envmItem.port },
       (env) => {
         if (!env) {
           throw new AppError("未找到对应的环境");

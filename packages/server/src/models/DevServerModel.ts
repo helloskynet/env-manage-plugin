@@ -1,4 +1,4 @@
-import { DevServerInterface } from "../../types/devServer";
+import { DevServerInterface } from "@envm/schemas";
 
 interface DevServerModel extends DevServerInterface{
   /**
@@ -17,14 +17,9 @@ interface DevServerModel extends DevServerInterface{
   description: string;
 
   /**
-   * 开发服务器的端口
-   */
-  port: number;
-
-  /**
    * 开发服务器的IP地址
    */
-  ip: string;
+  devServerUrl: string;
   
 }
 

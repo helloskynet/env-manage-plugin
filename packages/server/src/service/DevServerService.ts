@@ -19,7 +19,7 @@ export class DevServerService {
    * @returns 开发服务器信息或null
    */
   getDevServerById(id: string): DevServerInterface | null {
-    return this.devServerRepository.findById(id);
+    return this.devServerRepository.findByDevServerUrl(id);
   }
 
   /**
@@ -32,7 +32,7 @@ export class DevServerService {
       this.devServerRepository.create(serverData);
     } catch (error) {
       if (error instanceof Error && error.message.includes('Duplicate')) {
-        throw new AppError(`创建失败: ${serverData.id} 已存在！` );
+        throw new AppError(`创建失败: ${serverData.devServerUrl} 已存在！` );
       }
       throw error;
     }
@@ -49,12 +49,12 @@ export class DevServerService {
     updateData: Partial<UpdateDevServerInterface>
   ): DevServerInterface | null {
     // 如果更新了端口，检查新端口是否已被占用
-    if (updateData.id) {
-      const existingServer = this.devServerRepository.findById(
-        updateData.id
+    if (updateData.devServerUrl) {
+      const existingServer = this.devServerRepository.findByDevServerUrl(
+        updateData.devServerUrl
       );
-      if (existingServer && existingServer.id !== id) {
-        throw new Error(`端口 ${updateData.port} 已被占用`);
+      if (existingServer && existingServer.devServerUrl !== id) {
+        throw new Error(`端口 ${updateData.devServerUrl} 已被占用`);
       }
     }
 

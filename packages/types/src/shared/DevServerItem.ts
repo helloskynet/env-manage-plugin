@@ -16,26 +16,17 @@ export const BaseDevServerSchema = z.object({
   description: z.string().optional().default(""),
 
   /**
-   * 开发服务器的端口（1-65535之间的整数）
-   */
-  port: z.number().int().min(1).max(65535),
-
-  /**
    * 开发服务器的IP地址
    * 使用简单的IP地址格式验证
    */
-  ip: z.string().regex(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/),
+  devServerUrl: z.string(),
 });
 
 /**
  * 创建开发服务器的验证模式
  * 不需要额外字段，直接使用基础模式
  */
-export const DevServerSchema = BaseDevServerSchema.transform((data) => ({
-  ...data,
-  // 自动生成id: ip:port格式
-  id: `${data.ip}:${data.port}`,
-}));
+export const DevServerSchema = BaseDevServerSchema;
 /**
  * 创建开发服务器的验证模式
  * 自动根据ip和port生成id
@@ -46,31 +37,17 @@ export const CreateDevServerSchema = DevServerSchema;
  * 更新开发服务器的验证模式
  * 所有字段可选，但必须提供主键(ip+port)
  */
-export const UpdateDevServerSchema = BaseDevServerSchema.partial()
-  .extend({
-    ip: BaseDevServerSchema.shape.ip,
-    port: BaseDevServerSchema.shape.port,
-  })
-  .transform((data) => ({
-    ...data,
-    // 自动生成id: ip:port格式
-    id: `${data.ip}:${data.port}`,
-  }));
+export const UpdateDevServerSchema = BaseDevServerSchema.partial().extend({
+  devServerUrl: BaseDevServerSchema.shape.devServerUrl,
+});
 
 /**
  * 删除开发服务器的验证模式
  * 只需要主键(ip+port)
  */
-export const DeleteDevServerSchema = z
-  .object({
-    ip: BaseDevServerSchema.shape.ip,
-    port: BaseDevServerSchema.shape.port,
-  })
-  .transform((data) => ({
-    ...data,
-    // 自动生成id: ip:port格式
-    id: `${data.ip}:${data.port}`,
-  }));
+export const DeleteDevServerSchema = z.object({
+  devServerUrl: BaseDevServerSchema.shape.devServerUrl,
+});
 
 /**
  * 查询开发服务器的验证模式

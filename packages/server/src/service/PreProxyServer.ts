@@ -116,16 +116,16 @@ class PreProxyServer {
         // 查询环境信息
         const envItem = this.getEnvItem();
         // 根据环境信息查询绑定的服务，地址
-        const devServerConfig = this.devServerRepo.findById(
+        const devServerConfig = this.devServerRepo.findByDevServerUrl(
           envItem?.devServerId ?? ""
         );
         // 默认转发到 Webpack 开发服务器
-        return `http://${devServerConfig?.ip}:${devServerConfig?.port}`;
+        return `${devServerConfig?.devServerUrl}`;
       },
       on: {
         proxyReq: (proxyReq, req) => {
           const envItem = this.getEnvItem();
-          const target = `http://${envItem?.ip}`;
+          const target = `${envItem?.apiBaseUrl}`;
           proxyReq.setHeader("X-API-Server", `${target}`);
           this._rewrieCookieOnProxyReq(proxyReq, req);
         },
@@ -134,7 +134,7 @@ class PreProxyServer {
         },
         proxyReqWs: (proxyReq) => {
           const envItem = this.getEnvItem();
-          const target = `http://${envItem?.ip}`;
+          const target = `${envItem?.apiBaseUrl}`;
           proxyReq.setHeader("X-API-Server", `${target}`);
         },
       },

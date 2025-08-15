@@ -9,35 +9,27 @@
       ref="formRef"
       :model="formData"
       :rules="rules"
-      label-width="120px"
+      label-width="130px"
       size="default"
     >
-      <el-form-item label="服务器名称" prop="name">
-        <el-input v-model="formData.name" placeholder="请输入开发服务器名称" />
+      <el-form-item label="服务名称" prop="name">
+        <el-input v-model="formData.name" placeholder="请输入开发服务名称" />
       </el-form-item>
 
-      <el-form-item label="服务器描述" prop="description">
+      <el-form-item label="服务地址" prop="devServerUrl">
+        <el-input
+          v-model="formData.devServerUrl"
+          placeholder="webpack/vite等启动地址，例如：http://127.0.0.1:3000"
+        />
+      </el-form-item>
+
+      <el-form-item label="服务描述" prop="description">
         <el-input
           type="textarea"
           v-model="formData.description"
           :rows="3"
-          placeholder="请输入服务器描述信息"
+          placeholder="请输入开发服务描述信息"
         />
-      </el-form-item>
-
-      <el-form-item label="端口号" prop="port">
-        <el-input-number
-          v-model="formData.port"
-          :min="1"
-          :max="65535"
-          :precision="0"
-          size="default"
-          placeholder="请输入端口号"
-        />
-      </el-form-item>
-
-      <el-form-item label="IP地址" prop="ip">
-        <el-input v-model="formData.ip" placeholder="例如：192.168.1.100" />
       </el-form-item>
     </el-form>
 
@@ -82,10 +74,9 @@ const formRef = ref<InstanceType<typeof ElForm>>()
 
 // 表单默认数据
 const defaultFormData: Partial<DevServerInterface> = {
-  name: '888',
+  name: '',
   description: '',
-  port: 1,
-  ip: '2.3.4.5',
+  devServerUrl: 'http://127.0.0.1:5173',
 }
 
 // 表单数据响应式对象
@@ -93,27 +84,20 @@ const formData = reactive<Partial<DevServerInterface>>({ ...defaultFormData })
 
 // 表单验证规则
 const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
-  name: [
-    { required: true, message: '请输入服务器名称', trigger: 'blur' },
-    { min: 2, max: 30, message: '名称长度需在2-30个字符之间', trigger: 'blur' },
-  ],
-  port: [{ required: true, message: '请输入端口号', trigger: 'blur' }],
-  ip: [
-    { required: true, message: '请输入IP地址', trigger: 'blur' },
-    {
-      pattern: /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/,
-      message: '请输入有效的IP地址（例如：192.168.1.1）',
-      trigger: 'blur',
-    },
+  name: [{ min: 2, max: 30, message: '名称长度需在2-30个字符之间', trigger: 'blur' }],
+  devServerUrl: [
+    { required: true, message: '请输入开发服务地址', trigger: 'blur' },
     {
       validator: (rule, value, callback) => {
-        // 进一步验证IP地址每个段的有效性（0-255）
-        const segments = (value as string).split('.')
-        const isValid = segments.every((seg) => {
-          const num = parseInt(seg, 10)
-          return !isNaN(num) && num >= 0 && num <= 255
-        })
-        void (isValid ? callback() : callback(new Error('IP地址段需在0-255之间')))
+        // 严格匹配 http/https + IP + 端口(3000-65535)
+        const regex =
+          /^(http|https):\/\/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(3000|[3-9]\d{3}|[1-5]\d{4}|6[0-5]{2}[0-3][0-5])$/
+
+        if (regex.test(value)) {
+          callback() // 校验通过
+        } else {
+          callback(new Error('请输入正确的地址（格式：http/https://IP:端口，端口范围3000-65535）'))
+        }
       },
       trigger: 'blur',
     },
@@ -157,9 +141,9 @@ const createDevServer = (serverData: DevServerInterface) => {
 const submitForm = () => {
   formRef.value?.validate((valid) => {
     if (valid) {
-      // 生成唯一ID（实际项目可能由后端生成）
       const submitData: DevServerInterface = {
         ...formData,
+        name: formData.name || formData.devServerUrl,
       } as DevServerInterface
 
       createDevServer(submitData)

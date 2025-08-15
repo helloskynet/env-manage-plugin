@@ -1,5 +1,4 @@
 import loki from "lokijs";
-import { DevServerModel } from "../models/DevServerModel";
 import { CreateDevServerInterface, EnvItemInterface } from "@envm/schemas";
 
 export const db = new loki(".envm.data.json", {
@@ -16,7 +15,8 @@ const getEnvmsCollection = () => {
   const envms = db.getCollection<EnvItemInterface>("envms");
   if (!envms) {
     db.addCollection<EnvItemInterface>("envms", {
-      indices: ["ip", "port"],
+      indices: ["apiBaseUrl"],
+      unique: ["apiBaseUrl"],
     });
   }
 };
@@ -28,9 +28,9 @@ const getDevServerCollection = () => {
   const devServer = db.getCollection<CreateDevServerInterface>("devServer");
 
   if (!devServer) {
-    db.addCollection<DevServerModel>("devServer", {
-      indices: ["ip", "port"],
-      unique: ["id"],
+    db.addCollection<CreateDevServerInterface>("devServer", {
+      indices: ["devServerUrl"],
+      unique: ["devServerUrl"],
     });
   }
 };
@@ -42,16 +42,3 @@ function loadHandler() {
   console.log("数据库已加载/初始化");
 }
 
-// 确保集合存在的辅助函数
-export function getEnvmCollection() {
-  let envms = db.getCollection<EnvItemInterface>("envms");
-
-  if (!envms) {
-    envms = db.addCollection<EnvItemInterface>("envms", {
-      indices: ["ip", "port"],
-      unique: ["ip", "port"],
-    });
-  }
-
-  return envms;
-}

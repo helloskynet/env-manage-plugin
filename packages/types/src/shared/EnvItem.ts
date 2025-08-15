@@ -2,95 +2,77 @@ import { z } from "zod";
 import { PartialExcept } from "./Utils";
 
 /**
- * 基类：环境对象的主键信息（用于删除、查询等操作）
- * 包含唯一标识环境的 ip 和 port
+ * 基类：环境对象的主键信息（仅ip作为主键）
  */
 export const EnvBaseSchema = z.object({
-  // 主键字段：ip（复用之前的校验规则）
-  ip: z
-    .string()
-    // .regex(
-    //   /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
-    //   "请输入有效的IPv4地址"
-    // )
-    .describe("环境IP地址（主键）"),
+  apiBaseUrl: z.string().describe("环境IP地址（主键）"),
+});
 
-  // 主键字段：port（复用之前的校验规则）
+export type EnvBaseInterface = z.infer<typeof EnvBaseSchema>;
+
+/**
+ * 基础结构schema（不包含transform）
+ * 用于后续构建UpdateEnvSchema
+ */
+export const EnvItemBaseSchema = EnvBaseSchema.extend({
   port: z
     .number()
     .int("端口号必须是整数")
     .min(1, "端口号不能小于1")
     .max(65535, "端口号不能大于65535")
-    .describe("环境绑定端口（主键）"),
-});
+    .describe("环境绑定端口（必填）"),
 
-/**
- * 基类类型：环境对象的主键信息
- */
-export type EnvBaseInterface = z.infer<typeof EnvBaseSchema>;
+  name: z
+    .string()
+    .describe("环境名称")
+    .optional(),
 
-/**
- * 环境对象的Zod校验规则
- * 用于前后端统一校验环境配置数据
- */
-export const EnvItemSchema = EnvBaseSchema.extend({
-  /**
-   * 环境名称
-   * - 非空字符串
-   * - 至少1个字符（可根据实际需求调整长度限制）
-   */
-  name: z.string().min(1, "环境名称不能为空").describe("环境名称").optional(),
-
-  /**
-   * 环境描述
-   * - 可选字符串
-   */
   description: z.string().optional().describe("环境描述"),
 
-  /**
-   * 环境绑定的开发服务器ID
-   * - 非空字符串（通常是服务器唯一标识）
-   */
   devServerId: z
     .string()
     .min(1, "开发服务器ID不能为空")
     .optional()
     .describe("环境绑定的开发服务器ID"),
 
-  /**
-   * 环境首页
-   * - 可选字符串
-   * @default /
-   */
   homePage: z.string().optional().describe("环境首页"),
 
-  /**
-   * 环境状态
-   */
   status: z.enum(["running", "stopped"]).optional(),
 });
 
 /**
- * 环境对象的类型定义（从Zod schema推导）
- * 前后端可直接导入使用，确保类型一致性
+ * 带transform的完整schema（用于创建环境）
+ * 处理name字段的默认值逻辑
+ */
+export const EnvItemSchema = EnvItemBaseSchema.transform(data => ({
+  ...data,
+  name: data.name ?? data.apiBaseUrl,
+  homePage: data.homePage ?? '/'
+}));
+
+/**
+ * 环境对象的类型定义
  */
 export type EnvItemInterface = z.infer<typeof EnvItemSchema>;
 
-/**
- * 环境对象的部分更新类型
- * - 基础属性（ip 和 port）保持必选（作为查询条件）
- * - 其他扩展属性均为可选（支持部分更新）
- */
 export type EnvItemPartial = PartialExcept<
   EnvItemInterface,
   keyof EnvBaseInterface
 >;
 
-export const UpdateEnvSchema = EnvItemSchema
-  // 将 EnvItemSchema 中除了 ip 和 port 之外的字段设为可选
-  .partial()
-  // 重新强制 ip 和 port 为必填（因为 partial() 会将所有字段变为可选）
-  .extend(EnvBaseSchema.shape)
-  .strict();
+/**
+ * 修复更新schema：基于基础schema而非带transform的schema
+ * 避免ZodPipe类型不支持partial()的问题
+ */
+export const UpdateEnvSchema = EnvItemBaseSchema
+  .partial() // 现在可以正常调用partial()了
+  .extend(EnvBaseSchema.shape) // 确保主键ip仍然是必填的
+  .strict()
+  // 为更新操作也添加name的默认值处理
+  .transform(data => ({
+    ...data,
+    name: data.name ?? data.apiBaseUrl
+  }));
 
-export type UpdateEnvInterface = z.infer<typeof UpdateEnvSchema>
+export type UpdateEnvInterface = z.infer<typeof UpdateEnvSchema>;
+    

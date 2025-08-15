@@ -26,9 +26,7 @@ class EnvService {
     if (!existingEnv) {
       this.envRepo.addEnv(envItem);
     } else {
-      throw new AppError(
-        `添加失败，环境 【${existingEnv.ip}:${existingEnv.port}】 已存在`
-      );
+      throw new AppError(`添加失败，环境 【${existingEnv.apiBaseUrl}】 已存在`);
     }
   }
 
@@ -93,18 +91,23 @@ class EnvService {
    * @returns
    */
   async handleStopServer(env: EnvBaseInterface) {
+    const envItem = this.envRepo.findOneByApiBaseUrl({
+      apiBaseUrl: env.apiBaseUrl,
+    });
+
     // 停止服务
-    await PreProxyServer.stopServer(env.port);
+    await PreProxyServer.stopServer(`${envItem?.port}`);
 
     // 查询数据库中3000端口正在运行的服务
-    const envItem = this.envRepo.findOneByPortAndStatus({
-      port: env.port,
+
+    const envItemRunning = this.envRepo.findOneByPortAndStatus({
+      port: Number(envItem?.port),
       status: "running",
     });
 
     // 如果有则关闭
-    if (envItem) {
-      await this.updateEnvStatus(envItem, "stopped");
+    if (envItemRunning) {
+      await this.updateEnvStatus(envItemRunning, "stopped");
     }
   }
 

@@ -13,12 +13,13 @@
       size="default"
     >
       <el-form-item label="环境名称" prop="name">
-        <el-input v-model="formData.name" />
+        <el-input v-model="formData.name" placeholder="请输入" />
       </el-form-item>
 
       <el-form-item label="环境描述" prop="description">
         <el-input
           type="textarea"
+          placeholder="请输入"
           v-model="formData.description"
           :rows="3"
         />
@@ -34,19 +35,19 @@
         />
       </el-form-item>
 
-      <el-form-item label="开发服务器地址" prop="devServerId">
-        <el-select v-model="formData.devServerId" placeholder="webpack/vite等启动地址">
+      <el-form-item label="开发服务地址" prop="devServerId">
+        <el-select v-model="formData.devServerId" placeholder="请选择开发服务地址">
           <el-option
             v-for="item in devServerOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
+            :key="item.devServerUrl"
+            :label="item.name"
+            :value="item.devServerUrl"
           />
         </el-select>
       </el-form-item>
 
-      <el-form-item label="API环境地址" prop="ip">
-        <el-input v-model="formData.ip" placeholder="例如：http://127.0.0.1:3000" />
+      <el-form-item label="API环境地址" prop="apiBaseUrl">
+        <el-input v-model="formData.apiBaseUrl" placeholder="例如：http://127.0.0.1:3000" />
       </el-form-item>
 
       <el-form-item label="首页地址" prop="homePage">
@@ -88,11 +89,11 @@ defineExpose({
 const formRef = ref<InstanceType<typeof ElForm>>()
 
 const defautlFormData: EnvItemInterface = {
-  ip: '',
-  port: 0,
+  apiBaseUrl: 'http://127.0.0.1:3010',
+  port: 4099,
   name: '',
   devServerId: '',
-  homePage: '',
+  homePage: '/TestCom',
   status: 'stopped',
 }
 
@@ -101,13 +102,26 @@ const formData = reactive(defautlFormData)
 
 // 修正正则表达式
 const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
-  name: [
-    { required: true, message: '请输入环境名称', trigger: 'blur' },
-    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' },
-  ],
+  name: [{ min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }],
   port: [{ required: true, message: '请输入端口号', trigger: 'blur' }],
-  devServerId: [{ required: true, message: '请输入服务器ID', trigger: 'blur' }],
-  ip: [{ required: true, message: '请输入目标服务地址', trigger: 'blur' }],
+  devServerId: [{ required: true, message: '请选择开发服务器', trigger: 'blur' }],
+  apiBaseUrl: [
+    { required: true, message: '请输入API服务器地址', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        // 严格匹配 http/https + IP + 端口(3000-65535)
+        const regex =
+          /^(http|https):\/\/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(3000|[3-9]\d{3}|[1-5]\d{4}|6[0-5]{2}[0-3][0-5])$/;
+
+        if (regex.test(value)) {
+          callback() // 校验通过
+        } else {
+          callback(new Error('请输入正确的地址（格式：http/https://IP:端口，端口范围3000-65535）'))
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
 })
 
 // 优化关闭逻辑
@@ -157,15 +171,11 @@ const submitForm = () => {
   })
 }
 
-const devServerOptions = ref<{ label: string; value: string }[]>([])
+const devServerOptions = ref<DevServerInterface[]>([])
 // 获取开发服务器列表
 const getDevServerList = () => {
   fetchData<ListResponse<DevServerInterface>>(`${props.apiPrefix}/server/list`).then((data) => {
-    devServerOptions.value =
-      data?.list?.map((item: { name: string; id: string }) => ({
-        label: item.name,
-        value: item.id,
-      })) ?? []
+    devServerOptions.value = data?.list ?? []
   })
 }
 getDevServerList()

@@ -24,7 +24,7 @@ class EnvItemModel implements EnvItemInterface {
   /**
    * 环境IP地址
    */
-  ip: string;
+  apiBaseUrl: string;
 
   /**
    * 环境首页
@@ -38,7 +38,7 @@ class EnvItemModel implements EnvItemInterface {
     this.name = envItem.name ?? "";
     this.description = envItem.description ?? "";
     this.port = envItem.port ?? "";
-    this.ip = envItem.ip ?? "";
+    this.apiBaseUrl = envItem.apiBaseUrl ?? "";
     this.homePage = envItem.homePage ?? "";
     this.devServerId = envItem.devServerId ?? "";
   }
