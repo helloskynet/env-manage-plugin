@@ -7,7 +7,7 @@ import {
   DevServerDeleteSchema,
   DevServerUpdateSchema,
   DevServerQuerySchema,
-  DevServerModelSchema
+  DevServerModelSchema,
 } from "@envm/schemas";
 import { AppError } from "../utils/errors.js";
 
@@ -41,7 +41,11 @@ class DevServerRepo {
     // 验证输入数据
     const validationResult = DevServerModelSchema.safeParse(devServer);
     if (!validationResult.success) {
-      throw new AppError(`添加开发服务器失败：参数验证错误 - ${JSON.stringify(validationResult.error.issues)}`);
+      throw new AppError(
+        `添加开发服务器失败：参数验证错误 - ${JSON.stringify(
+          validationResult.error.issues
+        )}`
+      );
     }
 
     this.getCollection().insert(validationResult.data);
@@ -56,13 +60,19 @@ class DevServerRepo {
     // 验证输入数据
     const validationResult = DevServerDeleteSchema.safeParse(devServer);
     if (!validationResult.success) {
-      throw new AppError(`删除开发服务器失败：参数验证错误 - ${JSON.stringify(validationResult.error.issues)}`);
+      throw new AppError(
+        `删除开发服务器失败：参数验证错误 - ${JSON.stringify(
+          validationResult.error.issues
+        )}`
+      );
     }
 
     // 检查服务器是否存在
     const existing = this.findOneById(validationResult.data);
     if (!existing) {
-      throw new AppError(`删除开发服务器失败：服务器【${validationResult.data.id}】不存在`);
+      throw new AppError(
+        `删除开发服务器失败：服务器【${validationResult.data.id}】不存在`
+      );
     }
 
     this.getCollection().findAndRemove(validationResult.data);
@@ -78,7 +88,11 @@ class DevServerRepo {
     // 验证输入数据
     const validationResult = DevServerQuerySchema.safeParse(devServer);
     if (!validationResult.success) {
-      throw new AppError(`查询开发服务器失败：参数验证错误 - ${JSON.stringify(validationResult.error.issues)}`);
+      throw new AppError(
+        `查询开发服务器失败：参数验证错误 - ${JSON.stringify(
+          validationResult.error.issues
+        )}`
+      );
     }
 
     return this.getCollection().findOne(validationResult.data);
@@ -102,20 +116,28 @@ class DevServerRepo {
     // 验证输入数据
     const validationResult = DevServerUpdateSchema.safeParse(devServer);
     if (!validationResult.success) {
-      throw new AppError(`更新开发服务器失败：参数验证错误 - ${JSON.stringify(validationResult.error.issues)}`);
+      throw new AppError(
+        `更新开发服务器失败：参数验证错误 - ${JSON.stringify(
+          validationResult.error.issues
+        )}`
+      );
     }
 
     // 检查服务器是否存在
     const existing = this.findOneById({ id: validationResult.data.id });
     if (!existing) {
-      throw new AppError(`更新开发服务器失败：服务器【${validationResult.data.id}】不存在`);
+      throw new AppError(
+        `更新开发服务器失败：服务器【${validationResult.data.id}】不存在`
+      );
     }
 
     this.getCollection().findAndUpdate(
       { id: validationResult.data.id },
       (server) => {
         if (!server) {
-          throw new AppError(`更新开发服务器失败：服务器【${validationResult.data.id}】不存在`);
+          throw new AppError(
+            `更新开发服务器失败：服务器【${validationResult.data.id}】不存在`
+          );
         }
         Object.assign(server, validationResult.data);
         return server;
@@ -125,4 +147,3 @@ class DevServerRepo {
 }
 
 export { DevServerRepo };
-    

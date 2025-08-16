@@ -64,6 +64,7 @@ class EnvRepo {
   findOne(env: Partial<EnvModel>) {
     return this.getCollection().findOne(env);
   }
+
   /**
    * 根据ID查询环境信息
    * @param id - 包含要查询环境ID
@@ -74,6 +75,15 @@ class EnvRepo {
     return this.findOne({
       id,
     });
+  }
+
+  /**
+   * 根据状态查询环境
+   * @param  status  - 环境状态（如'running'、'stopped'等）
+   * @returns 符合条件的环境数组
+   */
+  findAllByStatus(status: "running" | "stopped"): EnvModel[] {
+    return this.getCollection().find({ status });
   }
 
   /**

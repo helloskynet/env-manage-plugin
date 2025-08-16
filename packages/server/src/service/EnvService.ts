@@ -139,8 +139,8 @@ class EnvService {
     }
 
     try {
-      // 先停止该端口可能运行的服务
-      await this.handleStopServer(env);
+      // 先查与当前服务同端口的环境，如果启动，则关闭掉
+      this.stopServerByPort(envItem.port);
 
       // 启动新的代理服务器
       await PreProxyServer.create(id, this.envRepo, this.devServerRepo);
@@ -155,6 +155,23 @@ class EnvService {
       console.error("环境服务启动失败", id, error);
       throw new AppError(`启动服务失败：${(error as Error).message}`);
     }
+  }
+
+  /**
+   * 关闭指定端口的服务
+   * @param port 
+   */
+  async stopServerByPort(port: number) {
+    // 先查与当前服务同端口的环境，如果启动，则关闭掉
+    const samePortAndRunningEnv = this.envRepo.findOneByPortAndStatus({
+      port: port,
+      status: "running",
+    });
+    if (samePortAndRunningEnv) {
+      console.log(`关闭 ${port} 端口服务`, samePortAndRunningEnv.name);
+      await this.handleStopServer(samePortAndRunningEnv);
+    }
+    console.log(`端口${port}没有服务启动`)
   }
 
   /**

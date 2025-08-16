@@ -4,6 +4,7 @@ import { EnvRepo } from "./repositories/EnvRepo.js";
 import { EnvService } from "./service/EnvService";
 import { DevServerService } from "./service/DevServerService";
 import { DevServerRepo } from "./repositories/DevServerRepo";
+import { ProxyAutoStarter } from "./service/ProxyAutoStarterService";
 
 class Container {
   private static instance: Container;
@@ -17,11 +18,17 @@ class Container {
     this.register("envService", new EnvService(envRepo, devServerRepo));
     this.register("envController", new EnvController(this.get("envService")));
     // 开发服务器服务和控制器的注册
-    this.register("devServerService", new DevServerService(devServerRepo));
+    this.register(
+      "devServerService",
+      new DevServerService(devServerRepo, envRepo)
+    );
     this.register(
       "devServerController",
       new DevServerController(this.get("devServerService"))
     );
+    setTimeout(() => {
+      new ProxyAutoStarter(envRepo, this.get("envService"));
+    }, 5000);
   }
 
   static getInstance(): Container {
