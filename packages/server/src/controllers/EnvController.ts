@@ -1,11 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { EnvService } from "../service/EnvService";
-import {
-  EnvCreate,
-  EnvDelete,
-  EnvQuery,
-  EnvUpdate,
-} from "@envm/schemas";
+import { EnvCreate, EnvDelete, EnvQuery, EnvUpdate } from "@envm/schemas";
 
 /**
  * 环境控制器
@@ -127,10 +122,10 @@ class EnvController {
     try {
       // 验证请求数据
       const envData = req.dto as EnvQuery;
-      console.log("接收环境详情查询请求", { id: envData.id });
+      console.log("接收环境详情查询请求", envData.id);
 
       // 调用服务层获取数据（假设服务层有此方法）
-      const detail = this.envService.findOneById(envData);
+      const detail = this.envService.findOneById(envData.id);
 
       if (!detail) {
         res.error("环境不存在");

@@ -38,24 +38,23 @@ class PreProxyServer {
   } = {};
 
   static async create(
-    envItem: EnvModel,
+    envId: string,
     envRepo: EnvRepo,
     devServerRepo: DevServerRepo
   ) {
-    const { port } = envItem;
-    if (this.appMap[port]) {
-      console.log(`端口 ${port} 已经启动`);
+    if (this.appMap[envId]) {
+      console.log(`环境 ${envId} 已经启动`);
       return null;
     }
 
-    const preProxyServer = new PreProxyServer(envItem, envRepo, devServerRepo);
-    await preProxyServer.startServer(envItem);
-    PreProxyServer.appMap[port] = preProxyServer;
+    const preProxyServer = new PreProxyServer(envId, envRepo, devServerRepo);
+    await preProxyServer.startServer();
+    PreProxyServer.appMap[envId] = preProxyServer;
     return preProxyServer;
   }
 
   private constructor(
-    private envmItem: EnvModel,
+    private envId: string,
     private envRepo: EnvRepo,
     private devServerRepo: DevServerRepo,
     private app = express()
@@ -68,10 +67,8 @@ class PreProxyServer {
    * @returns 获取绑定的环境信息
    */
   getEnvItem() {
-    const envItem = this.envRepo.findOneById({
-      id: this.envmItem.id,
-    });
-    return envItem;
+    const envItem = this.envRepo.findOneById(this.envId);
+    return envItem as EnvModel;
   }
 
   /**
@@ -193,10 +190,10 @@ class PreProxyServer {
    * @param envItem
    * @returns
    */
-  async startServer(envItem: EnvModel) {
-    const { port } = envItem;
-    if (PreProxyServer.appMap[port]) {
-      console.log(`端口 ${port} 已经启动`);
+  async startServer() {
+    const { port } = this.getEnvItem();
+    if (PreProxyServer.appMap[this.envId]) {
+      console.log(`环境 ${this.envId} 已经启动`);
       return;
     }
 

@@ -70,7 +70,7 @@ class EnvService {
     console.log("准备删除环境", id);
 
     // 检查环境是否存在
-    const existingEnv = this.envRepo.findOneById(envItem);
+    const existingEnv = this.envRepo.findOneById(id);
     if (!existingEnv) {
       throw new AppError(`删除失败，环境【${id}】不存在`);
     }
@@ -95,7 +95,7 @@ class EnvService {
     console.log("准备更新环境", id);
 
     // 检查环境是否存在
-    const existingEnv = this.envRepo.findOneById({ id });
+    const existingEnv = this.envRepo.findOneById(id);
     if (!existingEnv) {
       throw new AppError(`更新失败，环境【${id}】不存在`);
     }
@@ -115,8 +115,8 @@ class EnvService {
     return list;
   }
 
-  findOneById(env: EnvQuery) {
-    return this.envRepo.findOneById(env);
+  findOneById(id: string) {
+    return this.envRepo.findOneById(id);
   }
 
   /**
@@ -133,7 +133,7 @@ class EnvService {
     console.log("准备启动环境服务", id);
 
     // 检查环境是否存在
-    const envItem = this.envRepo.findOneById(env);
+    const envItem = this.envRepo.findOneById(id);
     if (!envItem) {
       throw new AppError(`启动失败，环境【${id}】不存在`);
     }
@@ -143,7 +143,7 @@ class EnvService {
       await this.handleStopServer(env);
 
       // 启动新的代理服务器
-      await PreProxyServer.create(envItem, this.envRepo, this.devServerRepo);
+      await PreProxyServer.create(id, this.envRepo, this.devServerRepo);
 
       // 更新环境状态为运行中
       await this.updateEnvStatus({
@@ -170,7 +170,7 @@ class EnvService {
     console.log("准备停止环境服务", id);
 
     // 检查环境是否存在
-    const envItem = this.envRepo.findOneById(env);
+    const envItem = this.envRepo.findOneById(id);
     if (!envItem) {
       throw new AppError(`停止失败，环境【${id}】不存在`);
     }
@@ -205,7 +205,7 @@ class EnvService {
    */
   private async updateEnvStatus(env: EnvUpdate): Promise<EnvModel | undefined> {
     // 查找最新的环境信息（避免使用旧引用）
-    const envItem = this.envRepo.findOneById({ id: env.id });
+    const envItem = this.envRepo.findOneById(env.id);
     if (!envItem) {
       console.warn(`更新状态失败，环境【${env.id}】不存在`);
       return undefined;

@@ -216,7 +216,7 @@ class DevServerService {
     }
 
     // 检查环境是否存在
-    const env = this.envRepo.findOneById({ id: envId });
+    const env = this.envRepo.findOneById( envId );
     if (!env) {
       throw new AppError(`关联失败，环境【${envId}】不存在`);
     }

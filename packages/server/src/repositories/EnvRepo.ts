@@ -3,7 +3,6 @@ import { db } from "./database.js";
 import {
   EnvModel,
   EnvDelete,
-  EnvQuery,
   EnvDeleteSchema,
   EnvUpdate,
   EnvCreate,
@@ -67,12 +66,14 @@ class EnvRepo {
   }
   /**
    * 根据ID查询环境信息
-   * @param env - 包含要查询环境ID的对象
+   * @param id - 包含要查询环境ID
    * @returns 匹配的环境信息对象，若未找到则返回null
    * @throws {Error} 当验证失败时抛出错误
    */
-  findOneById(env: EnvQuery) {
-    return this.getCollection().findOne(env);
+  findOneById(id: string) {
+    return this.findOne({
+      id,
+    });
   }
 
   /**
@@ -86,7 +87,7 @@ class EnvRepo {
     });
   }
 
-    /**
+  /**
    * 根据状态和端口查询
    * @param env
    * @returns
