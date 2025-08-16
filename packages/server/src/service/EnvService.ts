@@ -64,7 +64,7 @@ class EnvService {
    * @throws {AppError} 当输入参数不合法时抛出
    * @throws {AppError} 当环境不存在时抛出
    */
-  handleDeleteEnv(envItem: EnvDelete): void {
+  async handleDeleteEnv(envItem: EnvDelete) {
     // 参数校验
 
     const { id } = envItem;
@@ -74,6 +74,10 @@ class EnvService {
     const existingEnv = this.envRepo.findOneById(id);
     if (!existingEnv) {
       throw new AppError(`删除失败，环境【${id}】不存在`);
+    }
+
+    if (existingEnv.status === "running") {
+      await this.handleStopServer(existingEnv);
     }
 
     // 执行删除
