@@ -63,9 +63,9 @@
         >
           <el-radio
             v-for="item in devServerList"
-            :key="item.devServerUrl"
-            :value="`${item.id}`"
-            :title="item.name"
+            :key="item.id"
+            :value="item.id"
+            :title="item.devServerUrl"
             border
             size="small"
           >{{ item.name }}</el-radio>

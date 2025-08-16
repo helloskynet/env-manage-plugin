@@ -55,7 +55,7 @@ class PreProxyServer {
   }
 
   private constructor(
-    private envmConfig: EnvModel,
+    private envmItem: EnvModel,
     private envRepo: EnvRepo,
     private devServerRepo: DevServerRepo,
     private app = express()
@@ -68,7 +68,9 @@ class PreProxyServer {
    * @returns 获取绑定的环境信息
    */
   getEnvItem() {
-    const envItem = this.envRepo.findOneById(this.envmConfig);
+    const envItem = this.envRepo.findOneById({
+      id: this.envmItem.id,
+    });
     return envItem;
   }
 
