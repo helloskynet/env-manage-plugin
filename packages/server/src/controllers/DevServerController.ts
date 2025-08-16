@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { DevServerService } from "../service/DevServerService";
 import {
-  DevServerQuerySchema,
-  DevServerUpdateSchema,
-  DevServerDeleteSchema,
-  DevServerCreateSchema,
+  DevServerCreate,
+  DevServerUpdate,
+  DevServerDelete,
+  DevServerQuery,
 } from "@envm/schemas";
 
 class DevServerController {
@@ -36,7 +36,7 @@ class DevServerController {
   handleGetDevServerById(req: Request, res: Response, next: NextFunction) {
     try {
       // 验证请求数据
-      const devServerData = DevServerQuerySchema.parse(req.dto);
+      const devServerData =(req.dto) as DevServerQuery;
       console.log("接收环境详情查询请求", { id: devServerData.id });
 
       // 调用服务层获取数据（假设服务层有此方法）
@@ -66,9 +66,9 @@ class DevServerController {
   handleCreateDevServer(req: Request, res: Response, next: NextFunction) {
     try {
       // 验证请求体
-      const validatedData = DevServerCreateSchema.parse(req.body);
+      const devServerItem = req.body as DevServerCreate;
 
-      this.devServerService.handleAddDevServer(validatedData);
+      this.devServerService.handleAddDevServer(devServerItem);
       res.success("开发服务器创建成功");
     } catch (error) {
       next(error);
@@ -84,7 +84,7 @@ class DevServerController {
    */
   handleUpdateDevServer(req: Request, res: Response, next: NextFunction) {
     try {
-      const updateData = DevServerUpdateSchema.parse(req.dto);
+      const updateData = req.dto as DevServerUpdate;
 
       const updatedServer =
         this.devServerService.handleUpdateDevServer(updateData);
@@ -104,7 +104,7 @@ class DevServerController {
    */
   handleDeleteDevServer(req: Request, res: Response, next: NextFunction) {
     try {
-      const devServerData = DevServerDeleteSchema.parse(req.dto);
+      const devServerData = req.dto as DevServerDelete;
       this.devServerService.handleDeleteDevServer(devServerData);
       res.success({ message: "开发服务器删除成功" });
     } catch (error) {

@@ -1,10 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { EnvService } from "../service/EnvService";
 import {
-  EnvCreateSchema,
-  EnvDeleteSchema,
-  EnvQuerySchema,
-  EnvUpdateSchema,
   EnvCreate,
   EnvDelete,
   EnvQuery,
@@ -36,7 +32,7 @@ class EnvController {
   handleAddEnv(req: Request, res: Response, next: NextFunction): void {
     try {
       // 验证请求数据
-      const envData: EnvCreate = EnvCreateSchema.parse(req.dto);
+      const envData = req.dto as EnvCreate;
       console.log("接收新增环境请求", { apiBaseUrl: envData.apiBaseUrl });
 
       // 调用服务层处理业务
@@ -60,7 +56,7 @@ class EnvController {
   handleDeleteEnv(req: Request, res: Response, next: NextFunction): void {
     try {
       // 验证请求数据
-      const envData: EnvDelete = EnvDeleteSchema.parse(req.dto);
+      const envData = req.dto as EnvDelete;
       console.log("接收删除环境请求", { id: envData.id });
 
       // 调用服务层处理业务
@@ -84,7 +80,7 @@ class EnvController {
   handleUpdateEnv(req: Request, res: Response, next: NextFunction): void {
     try {
       // 验证请求数据
-      const envData: EnvUpdate = EnvUpdateSchema.parse(req.dto);
+      const envData = req.dto as EnvUpdate;
       console.log("接收更新环境请求", { id: envData.id });
 
       // 调用服务层处理业务
@@ -130,7 +126,7 @@ class EnvController {
   handleGetDetail(req: Request, res: Response, next: NextFunction): void {
     try {
       // 验证请求数据
-      const envData: EnvQuery = EnvQuerySchema.parse(req.dto);
+      const envData = req.dto as EnvQuery;
       console.log("接收环境详情查询请求", { id: envData.id });
 
       // 调用服务层获取数据（假设服务层有此方法）
@@ -165,7 +161,7 @@ class EnvController {
   ): Promise<void> {
     try {
       // 验证请求数据
-      const envData: EnvQuery = EnvQuerySchema.parse(req.dto);
+      const envData = req.dto as EnvQuery;
       console.log("接收启动代理服务器请求", { id: envData.id });
 
       // 调用服务层处理业务（异步操作）
@@ -193,7 +189,7 @@ class EnvController {
   ): Promise<void> {
     try {
       // 验证请求数据
-      const envData: EnvQuery = EnvQuerySchema.parse(req.dto);
+      const envData = req.dto as EnvQuery;
       console.log("接收停止代理服务器请求", { id: envData.id });
 
       // 调用服务层处理业务（异步操作）
@@ -203,34 +199,6 @@ class EnvController {
       res.success({ message: "代理服务器停止成功" });
     } catch (error) {
       console.error("停止代理服务器请求处理失败", error);
-      next(error);
-    }
-  }
-
-  /**
-   * 更新环境绑定的开发服务器ID
-   * @description 处理更新环境关联开发服务器的PATCH请求
-   * @param req - Express请求对象，包含环境ID和新开发服务器ID（在req.dto中）
-   * @param res - Express响应对象，用于返回处理结果
-   * @param next - Express下一步中间件函数，用于错误处理
-   */
-  handleUpdateDevServerId(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): void {
-    try {
-      // 验证请求数据（复用更新schema）
-      const envData: EnvUpdate = EnvUpdateSchema.parse(req.dto);
-      console.log("接收更新开发服务器ID请求", { id: envData.id });
-
-      // 调用服务层处理业务
-      this.envService.handleUpdateDevServerId(envData);
-
-      // 返回成功响应
-      res.success({ message: "开发服务器ID更新成功" });
-    } catch (error) {
-      console.error("更新开发服务器ID请求处理失败", error);
       next(error);
     }
   }

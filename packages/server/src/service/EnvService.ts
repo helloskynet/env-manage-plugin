@@ -6,10 +6,6 @@ import {
   EnvDelete,
   EnvQuery,
   EnvUpdate,
-  EnvCreateSchema,
-  EnvDeleteSchema,
-  EnvQuerySchema,
-  EnvUpdateSchema,
   EnvModel,
 } from "@envm/schemas";
 import { AppError } from "../utils/errors.js";
@@ -38,26 +34,18 @@ class EnvService {
    */
   handleAddEnv(envItem: EnvCreate): void {
     // 参数校验
-    const validationResult = EnvCreateSchema.safeParse(envItem);
-    if (!validationResult.success) {
-      throw new AppError(
-        `添加环境失败：参数不合法 - ${JSON.stringify(
-          validationResult.error.issues
-        )}`
-      );
-    }
 
-    console.log("准备添加环境", validationResult.data);
+    console.log("准备添加环境", envItem);
 
     // 检查环境是否已存在（通过apiBaseUrl唯一标识）
-    const existingEnv = this.envRepo.findOneByApiBaseUrl(validationResult.data);
+    const existingEnv = this.envRepo.findOneByApiBaseUrl(envItem);
     if (existingEnv) {
       throw new AppError(`添加失败，环境【${existingEnv.apiBaseUrl}】已存在`);
     }
 
     // 生成唯一ID并组装完整环境信息
     const newEnvItem: EnvModel = {
-      ...validationResult.data,
+      ...envItem,
       id: uuidv4(),
       status: "stopped", // 默认初始状态为停止
     };
@@ -77,26 +65,18 @@ class EnvService {
    */
   handleDeleteEnv(envItem: EnvDelete): void {
     // 参数校验
-    const validationResult = EnvDeleteSchema.safeParse(envItem);
-    if (!validationResult.success) {
-      throw new AppError(
-        `删除环境失败：参数不合法 - ${JSON.stringify(
-          validationResult.error.issues
-        )}`
-      );
-    }
 
-    const { id } = validationResult.data;
+    const { id } = envItem;
     console.log("准备删除环境", id);
 
     // 检查环境是否存在
-    const existingEnv = this.envRepo.findOneById(validationResult.data);
+    const existingEnv = this.envRepo.findOneById(envItem);
     if (!existingEnv) {
       throw new AppError(`删除失败，环境【${id}】不存在`);
     }
 
     // 执行删除
-    this.envRepo.deleteEnv(validationResult.data);
+    this.envRepo.deleteEnv(envItem);
     console.log("环境删除成功", id);
   }
 
@@ -110,16 +90,8 @@ class EnvService {
    */
   handleUpdateEnv(envItem: EnvUpdate): void {
     // 参数校验
-    const validationResult = EnvUpdateSchema.safeParse(envItem);
-    if (!validationResult.success) {
-      throw new AppError(
-        `更新环境失败：参数不合法 - ${JSON.stringify(
-          validationResult.error.issues
-        )}`
-      );
-    }
 
-    const { id } = validationResult.data;
+    const { id } = envItem;
     console.log("准备更新环境", id);
 
     // 检查环境是否存在
@@ -129,7 +101,7 @@ class EnvService {
     }
 
     // 执行更新
-    this.envRepo.update(validationResult.data);
+    this.envRepo.update(envItem);
     console.log("环境更新成功", id);
   }
 
@@ -157,35 +129,25 @@ class EnvService {
    * @throws {Error} 当服务器启动失败时抛出
    */
   async handleStartServer(env: EnvQuery): Promise<void> {
-    // 参数校验
-    const validationResult = EnvQuerySchema.safeParse(env);
-    if (!validationResult.success) {
-      throw new AppError(
-        `启动服务失败：参数不合法 - ${JSON.stringify(
-          validationResult.error.issues
-        )}`
-      );
-    }
-
-    const { id } = validationResult.data;
+    const { id } = env;
     console.log("准备启动环境服务", id);
 
     // 检查环境是否存在
-    const envItem = this.envRepo.findOneById(validationResult.data);
+    const envItem = this.envRepo.findOneById(env);
     if (!envItem) {
       throw new AppError(`启动失败，环境【${id}】不存在`);
     }
 
     try {
       // 先停止该端口可能运行的服务
-      await this.handleStopServer(validationResult.data);
+      await this.handleStopServer(env);
 
       // 启动新的代理服务器
       await PreProxyServer.create(envItem, this.envRepo, this.devServerRepo);
 
       // 更新环境状态为运行中
       await this.updateEnvStatus({
-        ...validationResult.data,
+        ...env,
         status: "running",
       });
       console.log("环境服务启动成功", id);
@@ -204,21 +166,11 @@ class EnvService {
    * @throws {AppError} 当环境不存在时抛出
    */
   async handleStopServer(env: EnvQuery): Promise<void> {
-    // 参数校验
-    const validationResult = EnvQuerySchema.safeParse(env);
-    if (!validationResult.success) {
-      throw new AppError(
-        `停止服务失败：参数不合法 - ${JSON.stringify(
-          validationResult.error.issues
-        )}`
-      );
-    }
-
-    const { id } = validationResult.data;
+    const { id } = env;
     console.log("准备停止环境服务", id);
 
     // 检查环境是否存在
-    const envItem = this.envRepo.findOneById(validationResult.data);
+    const envItem = this.envRepo.findOneById(env);
     if (!envItem) {
       throw new AppError(`停止失败，环境【${id}】不存在`);
     }
@@ -230,7 +182,7 @@ class EnvService {
       console.log(`端口【${port}】的服务已停止`);
 
       // 更新同端口运行中环境的状态
-      const runningEnv = this.envRepo.findOneByPortAndStatus({
+      const runningEnv = this.envRepo.findOne({
         port,
         status: "running",
       });
@@ -243,16 +195,6 @@ class EnvService {
     } else {
       console.warn("环境未配置端口，无需停止服务", id);
     }
-  }
-
-  /**
-   * 更新环境关联的开发服务器ID（复用handleUpdateEnv方法，避免代码冗余）
-   * @param envItem - 包含环境ID和新开发服务器ID的对象
-   * @returns {void}
-   * @throws {AppError} 当更新失败时抛出（同handleUpdateEnv）
-   */
-  handleUpdateDevServerId(envItem: EnvUpdate): void {
-    this.handleUpdateEnv(envItem);
   }
 
   /**

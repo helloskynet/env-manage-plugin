@@ -4,7 +4,6 @@ import {
   EnvModel,
   EnvDelete,
   EnvQuery,
-  EnvQuerySchema,
   EnvDeleteSchema,
   EnvUpdate,
   EnvCreate,
@@ -63,12 +62,17 @@ class EnvRepo {
    * @returns 匹配的环境信息对象，若未找到则返回null
    * @throws {Error} 当验证失败时抛出错误
    */
+  findOne(env: Partial<EnvModel>) {
+    return this.getCollection().findOne(env);
+  }
+  /**
+   * 根据ID查询环境信息
+   * @param env - 包含要查询环境ID的对象
+   * @returns 匹配的环境信息对象，若未找到则返回null
+   * @throws {Error} 当验证失败时抛出错误
+   */
   findOneById(env: EnvQuery) {
-    const target = EnvQuerySchema.safeParse(env);
-    if (!target.success) {
-      throw new AppError(`查询环境验证失败: ${JSON.stringify(target.error)}`);
-    }
-    return this.getCollection().findOne(target.data);
+    return this.getCollection().findOne(env);
   }
 
   /**

@@ -6,7 +6,6 @@ import {
   DevServerDelete,
   DevServerQuery,
   DevServerUpdate,
-  DevServerCreateSchema,
   DevServerDeleteSchema,
   DevServerQuerySchema,
   DevServerUpdateSchema,
@@ -25,10 +24,7 @@ class DevServerService {
    * @param devServerRepo - 开发服务器仓库实例，用于devServer数据的持久化操作
    * @param envRepo - 环境仓库实例，用于关联环境的校验与操作
    */
-  constructor(
-    private devServerRepo: DevServerRepo,
-    private envRepo: EnvRepo
-  ) {}
+  constructor(private devServerRepo: DevServerRepo, private envRepo: EnvRepo) {}
 
   /**
    * 添加新开发服务器
@@ -39,21 +35,13 @@ class DevServerService {
    * @throws {AppError} 当服务器URL已存在时抛出
    */
   handleAddDevServer(devServerItem: DevServerCreate): void {
-    // 参数校验
-    const validationResult = DevServerCreateSchema.safeParse(devServerItem);
-    if (!validationResult.success) {
-      throw new AppError(
-        `添加开发服务器失败：参数不合法 - ${JSON.stringify(
-          validationResult.error.issues
-        )}`
-      );
-    }
-
-    const validData = validationResult.data;
+    const validData = devServerItem;
     console.log("准备添加开发服务器", validData);
 
     // 检查服务器URL是否已存在（URL作为唯一标识）
-    const existingServer = this.devServerRepo.findOneByUrl(validData.devServerUrl);
+    const existingServer = this.devServerRepo.findOneByUrl(
+      validData.devServerUrl
+    );
     if (existingServer) {
       throw new AppError(
         `添加失败，开发服务器【${existingServer.devServerUrl}】已存在`
@@ -95,7 +83,9 @@ class DevServerService {
     console.log("准备删除开发服务器", id);
 
     // 检查服务器是否存在
-    const existingServer = this.devServerRepo.findOneById(validationResult.data);
+    const existingServer = this.devServerRepo.findOneById(
+      validationResult.data
+    );
     if (!existingServer) {
       throw new AppError(`删除失败，开发服务器【${id}】不存在`);
     }
@@ -144,8 +134,13 @@ class DevServerService {
 
     const validData = validationResult.data;
     // 若更新了URL，需校验新URL的唯一性
-    if (validData.devServerUrl && validData.devServerUrl !== existingServer.devServerUrl) {
-      const conflictServer = this.devServerRepo.findOneByUrl(validData.devServerUrl);
+    if (
+      validData.devServerUrl &&
+      validData.devServerUrl !== existingServer.devServerUrl
+    ) {
+      const conflictServer = this.devServerRepo.findOneByUrl(
+        validData.devServerUrl
+      );
       if (conflictServer) {
         throw new AppError(
           `更新失败，URL【${validData.devServerUrl}】已被其他开发服务器使用`
@@ -192,7 +187,9 @@ class DevServerService {
     }
 
     const server = this.devServerRepo.findOneById(validationResult.data);
-    console.log(`查询开发服务器【${devServer.id}】结果：${server ? "存在" : "不存在"}`);
+    console.log(
+      `查询开发服务器【${devServer.id}】结果：${server ? "存在" : "不存在"}`
+    );
     return server;
   }
 
