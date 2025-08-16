@@ -6,9 +6,9 @@ import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
 
 import { config } from "../ResolveConfig.js";
-import { EnvItemInterface } from "@envm/schemas";
 import { EnvRepo } from "../repositories/EnvRepo.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
+import { EnvModel } from "envm/index.js";
 
 class PreProxyServer {
   /**
@@ -37,36 +37,29 @@ class PreProxyServer {
     [key: string]: PreProxyServer;
   } = {};
 
-  // fixme: 这里的 devServerMap 是为了存储开发服务器的配置
-  // 目前是为了在代理请求时能够根据环境的 devServerName 获取对应的目标地址
-  // 可能需要进一步优化，或者改为从配置文件中读取
-  static devServerMap: {
-    [key: string]: EnvItemInterface;
-  } = {};
-
   static async create(
-    envmConfig: EnvItemInterface,
+    envItem: EnvModel,
     envRepo: EnvRepo,
     devServerRepo: DevServerRepo
   ) {
-    const { port } = envmConfig;
+    const { port } = envItem;
     if (this.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return null;
     }
 
     const preProxyServer = new PreProxyServer(
-      envmConfig,
+      envItem,
       envRepo,
       devServerRepo
     );
-    await preProxyServer.startServer(envmConfig);
+    await preProxyServer.startServer(envItem);
     PreProxyServer.appMap[port] = preProxyServer;
     return preProxyServer;
   }
 
   private constructor(
-    private envmConfig: EnvItemInterface,
+    private envmConfig: EnvModel,
     private envRepo: EnvRepo,
     private devServerRepo: DevServerRepo,
     private app = express()
@@ -79,7 +72,7 @@ class PreProxyServer {
    * @returns 获取绑定的环境信息
    */
   getEnvItem() {
-    const envItem = this.envRepo.findOneByIpAndPort(this.envmConfig);
+    const envItem = this.envRepo.findOneById(this.envmConfig);
     return envItem;
   }
 
@@ -199,11 +192,11 @@ class PreProxyServer {
 
   /**
    * 启动服务
-   * @param envmConfig
+   * @param envItem
    * @returns
    */
-  async startServer(envmConfig: EnvItemInterface) {
-    const { port } = envmConfig;
+  async startServer(envItem: EnvModel) {
+    const { port } = envItem;
     if (PreProxyServer.appMap[port]) {
       console.log(`端口 ${port} 已经启动`);
       return;

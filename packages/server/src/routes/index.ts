@@ -6,25 +6,25 @@ import { EnvController } from "../controllers/EnvController.js";
 import { DevServerController } from "../controllers/DevServerController.js";
 import { config } from "../ResolveConfig.js";
 import { toDTO } from "../middleware/dto.middleware";
-import { EnvBaseSchema, EnvItemSchema, UpdateEnvSchema } from "@envm/schemas";
+import { EnvPrimarySchema, EnvCreateSchema, EnvUpdateSchema } from "@envm/schemas";
 
 // 1. 创建各模块路由
 const createEnvRoutes = (controller: EnvController) => {
   const router = Router();
   router.get("/getlist", (...res) => controller.handleGetList(...res));
-  router.post("/add", toDTO(EnvItemSchema), (...res) =>
+  router.post("/add", toDTO(EnvCreateSchema), (...res) =>
     controller.handleAddEnv(...res)
   );
-  router.post("/delete", toDTO(EnvBaseSchema), (...res) =>
+  router.post("/delete", toDTO(EnvPrimarySchema), (...res) =>
     controller.handleDeleteEnv(...res)
   );
-  router.post("/update", toDTO(UpdateEnvSchema), (...res) =>
+  router.post("/update", toDTO(EnvUpdateSchema), (...res) =>
     controller.handleUpdateDevServerId(...res)
   );
-  router.post("/start", toDTO(EnvBaseSchema), (...res) =>
+  router.post("/start", toDTO(EnvPrimarySchema), (...res) =>
     controller.handleStartServer(...res)
   );
-  router.post("/stop", toDTO(EnvBaseSchema), (...res) =>
+  router.post("/stop", toDTO(EnvPrimarySchema), (...res) =>
     controller.handleStopServer(...res)
   );
   return router;

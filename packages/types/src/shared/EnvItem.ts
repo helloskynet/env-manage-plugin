@@ -1,20 +1,20 @@
-import { z } from "zod";
-import { PartialExcept } from "./Utils";
+import { z } from 'zod';
 
 /**
- * 基类：环境对象的主键信息（仅ip作为主键）
+ * 环境主键Schema
+ * 用于标识环境的唯一ID
  */
-export const EnvBaseSchema = z.object({
-  apiBaseUrl: z.string().describe("环境IP地址（主键）"),
+export const EnvPrimarySchema = z.object({
+  id: z.string().describe("主键"),
 });
 
-export type EnvBaseInterface = z.infer<typeof EnvBaseSchema>;
-
 /**
- * 基础结构schema（不包含transform）
- * 用于后续构建UpdateEnvSchema
+ * 环境基础信息Schema
+ * 包含环境的基本配置信息
  */
-export const EnvItemBaseSchema = EnvBaseSchema.extend({
+export const EnvItemBaseSchema = z.object({
+  apiBaseUrl: z.string().describe("API服务器地址"),
+
   port: z
     .number()
     .int("端口号必须是整数")
@@ -22,10 +22,7 @@ export const EnvItemBaseSchema = EnvBaseSchema.extend({
     .max(65535, "端口号不能大于65535")
     .describe("环境绑定端口（必填）"),
 
-  name: z
-    .string()
-    .describe("环境名称")
-    .optional(),
+  name: z.string().describe("环境名称").optional(),
 
   description: z.string().optional().describe("环境描述"),
 
@@ -41,38 +38,78 @@ export const EnvItemBaseSchema = EnvBaseSchema.extend({
 });
 
 /**
- * 带transform的完整schema（用于创建环境）
- * 处理name字段的默认值逻辑
+ * 完整环境模型Schema
+ * 合并了主键和基础信息，用于创建完整的环境模型
  */
-export const EnvItemSchema = EnvItemBaseSchema.transform(data => ({
-  ...data,
-  name: data.name ?? data.apiBaseUrl,
-  homePage: data.homePage ?? '/'
-}));
+export const EnvModelSchema = EnvPrimarySchema.extend(EnvItemBaseSchema.shape);
 
 /**
- * 环境对象的类型定义
+ * 新增环境Schema
+ * 用于创建新环境时的参数验证，不需要提供id（由系统生成）
  */
-export type EnvItemInterface = z.infer<typeof EnvItemSchema>;
-
-export type EnvItemPartial = PartialExcept<
-  EnvItemInterface,
-  keyof EnvBaseInterface
->;
+export const EnvCreateSchema = EnvItemBaseSchema.omit({
+  status: true // 新增时状态由系统自动设置
+});
 
 /**
- * 修复更新schema：基于基础schema而非带transform的schema
- * 避免ZodPipe类型不支持partial()的问题
+ * 删除环境Schema
+ * 用于删除环境时的参数验证，只需要提供环境id
  */
-export const UpdateEnvSchema = EnvItemBaseSchema
-  .partial() // 现在可以正常调用partial()了
-  .extend(EnvBaseSchema.shape) // 确保主键ip仍然是必填的
-  .strict()
-  // 为更新操作也添加name的默认值处理
-  .transform(data => ({
-    ...data,
-    name: data.name ?? data.apiBaseUrl
-  }));
+export const EnvDeleteSchema = EnvPrimarySchema;
 
-export type UpdateEnvInterface = z.infer<typeof UpdateEnvSchema>;
+/**
+ * 修改环境Schema
+ * 用于更新环境信息时的参数验证，id为必填项，其他字段可选
+ */
+export const EnvUpdateSchema = EnvPrimarySchema.extend(
+  EnvItemBaseSchema.partial().shape
+);
+
+/**
+ * 查询环境Schema
+ * 用于查询环境信息时的参数验证，只需要提供环境id
+ */
+export const EnvQuerySchema = EnvPrimarySchema;
+
+/**
+ * 环境主键类型
+ * 包含环境的唯一标识id
+ */
+export type EnvPrimary = z.infer<typeof EnvPrimarySchema>;
+
+/**
+ * 环境基础信息类型
+ * 包含环境的所有配置字段
+ */
+export type EnvItemBase = z.infer<typeof EnvItemBaseSchema>;
+
+/**
+ * 完整环境模型类型
+ * 包含环境的所有信息（主键+基础信息）
+ */
+export type EnvModel = z.infer<typeof EnvModelSchema>;
+
+/**
+ * 新增环境参数类型
+ * 用于创建新环境时的参数类型，不包含id字段
+ */
+export type EnvCreate = z.infer<typeof EnvCreateSchema>;
+
+/**
+ * 删除环境参数类型
+ * 用于删除环境时的参数类型，只包含id字段
+ */
+export type EnvDelete = z.infer<typeof EnvDeleteSchema>;
+
+/**
+ * 修改环境参数类型
+ * 用于更新环境时的参数类型，id为必填项，其他字段可选
+ */
+export type EnvUpdate = z.infer<typeof EnvUpdateSchema>;
+
+/**
+ * 查询环境参数类型
+ * 用于查询环境时的参数类型，只包含id字段
+ */
+export type EnvQuery = z.infer<typeof EnvQuerySchema>;
     

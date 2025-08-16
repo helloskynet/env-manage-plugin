@@ -1,6 +1,12 @@
-import { EnvItemInterface } from "@envm/schemas";
+import { EnvModel } from "@envm/schemas";
+import { v4 as uuidv4 } from "uuid";
 
-class EnvItemModel implements EnvItemInterface {
+class EnvItemModel implements EnvModel {
+  /**
+   * 主键
+   */
+  id: string;
+
   /**
    * 环境名称
    */
@@ -31,10 +37,10 @@ class EnvItemModel implements EnvItemInterface {
    */
   homePage: string;
 
-
   status: "running" | "stopped" = "stopped";
 
-  constructor(envItem: EnvItemInterface) {
+  constructor(envItem: EnvModel) {
+    this.id = uuidv4();
     this.name = envItem.name ?? "";
     this.description = envItem.description ?? "";
     this.port = envItem.port ?? "";

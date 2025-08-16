@@ -1,5 +1,5 @@
 import loki from "lokijs";
-import { CreateDevServerInterface, EnvItemInterface } from "@envm/schemas";
+import { CreateDevServerInterface, EnvModel } from "@envm/schemas";
 
 export const db = new loki(".envm.data.json", {
   autosave: true,
@@ -12,9 +12,9 @@ export const db = new loki(".envm.data.json", {
  * 初始化开发环境集合
  */
 const getEnvmsCollection = () => {
-  const envms = db.getCollection<EnvItemInterface>("envms");
+  const envms = db.getCollection<EnvModel>("envms");
   if (!envms) {
-    db.addCollection<EnvItemInterface>("envms", {
+    db.addCollection<EnvModel>("envms", {
       indices: ["apiBaseUrl"],
       unique: ["apiBaseUrl"],
     });

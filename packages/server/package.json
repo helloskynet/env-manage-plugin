@@ -42,11 +42,12 @@
     "set-cookie-parser": "^2.7.1",
     "tslib": "^2.8.1",
     "unplugin": "^2.2.0",
+    "uuid": "^11.1.0",
     "ws": "^8.18.1"
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^4.2.0",
     "@envm/schemas": "workspace:*",
+    "@stylistic/eslint-plugin": "^4.2.0",
     "@types/express": "^5.0.0",
     "@types/lokijs": "^1.5.14",
     "@types/set-cookie-parser": "^2.4.10",
