@@ -1,6 +1,6 @@
 import { DevServerInterface } from "@envm/schemas";
 
-interface DevServerModel extends DevServerInterface{
+interface DevServerItemModel extends DevServerInterface{
   /**
    * 开发服务器的ID
    */
@@ -23,4 +23,4 @@ interface DevServerModel extends DevServerInterface{
   
 }
 
-export { DevServerModel };
+export { DevServerItemModel };

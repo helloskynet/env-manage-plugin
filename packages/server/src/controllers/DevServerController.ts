@@ -1,6 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { DevServerService } from "../service/DevServerService";
-import { CreateDevServerSchema, BaseDevServerSchema } from "@envm/schemas";
+import {
+  DevServerQuerySchema,
+  DevServerUpdateSchema,
+  DevServerDeleteSchema,
+  DevServerCreateSchema,
+} from "@envm/schemas";
 
 class DevServerController {
   constructor(private readonly devServerService: DevServerService) {}
@@ -14,7 +19,7 @@ class DevServerController {
    */
   handleGetDevServerList(req: Request, res: Response, next: NextFunction) {
     try {
-      const list = this.devServerService.getDevServerList();
+      const list = this.devServerService.handleGetList();
       res.success({ list });
     } catch (error) {
       next(error);
@@ -30,14 +35,22 @@ class DevServerController {
    */
   handleGetDevServerById(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
-      const server = this.devServerService.getDevServerById(id);
+      // 验证请求数据
+      const devServerData = DevServerQuerySchema.parse(req.dto);
+      console.log("接收环境详情查询请求", { id: devServerData.id });
 
-      if (!server) {
-        return res.error("开发服务器不存在");
+      // 调用服务层获取数据（假设服务层有此方法）
+      const detail = this.devServerService.findOneById(devServerData);
+
+      if (!detail) {
+        res.error("环境不存在");
       }
 
-      res.success({ server });
+      // 返回成功响应（包含详情数据）
+      res.success({
+        message: "环境详情查询成功",
+        data: detail,
+      });
     } catch (error) {
       next(error);
     }
@@ -53,9 +66,9 @@ class DevServerController {
   handleCreateDevServer(req: Request, res: Response, next: NextFunction) {
     try {
       // 验证请求体
-      const validatedData = CreateDevServerSchema.parse(req.body);
+      const validatedData = DevServerCreateSchema.parse(req.body);
 
-      this.devServerService.createDevServer(validatedData);
+      this.devServerService.handleAddDevServer(validatedData);
       res.success("开发服务器创建成功");
     } catch (error) {
       next(error);
@@ -71,17 +84,10 @@ class DevServerController {
    */
   handleUpdateDevServer(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
-      const updateData = BaseDevServerSchema.partial().parse(req.body);
+      const updateData = DevServerUpdateSchema.parse(req.dto);
 
-      const updatedServer = this.devServerService.updateDevServer(
-        id,
-        updateData
-      );
-
-      if (!updatedServer) {
-        return res.error("开发服务器不存在");
-      }
+      const updatedServer =
+        this.devServerService.handleUpdateDevServer(updateData);
 
       res.success({ message: "开发服务器更新成功", server: updatedServer });
     } catch (error) {
@@ -98,13 +104,8 @@ class DevServerController {
    */
   handleDeleteDevServer(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
-      const result = this.devServerService.deleteDevServer(id);
-
-      if (!result) {
-        return res.error("开发服务器不存在");
-      }
-
+      const devServerData = DevServerDeleteSchema.parse(req.dto);
+      this.devServerService.handleDeleteDevServer(devServerData);
       res.success({ message: "开发服务器删除成功" });
     } catch (error) {
       next(error);

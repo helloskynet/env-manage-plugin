@@ -1,5 +1,5 @@
 import loki from "lokijs";
-import { CreateDevServerInterface, EnvModel } from "@envm/schemas";
+import { DevServerModel, EnvModel } from "@envm/schemas";
 
 export const db = new loki(".envm.data.json", {
   autosave: true,
@@ -15,7 +15,7 @@ const getEnvmsCollection = () => {
   const envms = db.getCollection<EnvModel>("envms");
   if (!envms) {
     db.addCollection<EnvModel>("envms", {
-      indices: ["apiBaseUrl"],
+      indices: ["apiBaseUrl", "id"],
       unique: ["apiBaseUrl"],
     });
   }
@@ -25,11 +25,11 @@ const getEnvmsCollection = () => {
  * 初始化开发服务器集合
  */
 const getDevServerCollection = () => {
-  const devServer = db.getCollection<CreateDevServerInterface>("devServer");
+  const devServer = db.getCollection<DevServerModel>("devServer");
 
   if (!devServer) {
-    db.addCollection<CreateDevServerInterface>("devServer", {
-      indices: ["devServerUrl"],
+    db.addCollection<DevServerModel>("devServer", {
+      indices: ["id", "devServerUrl"],
       unique: ["devServerUrl"],
     });
   }
@@ -41,4 +41,3 @@ function loadHandler() {
   getDevServerCollection();
   console.log("数据库已加载/初始化");
 }
-

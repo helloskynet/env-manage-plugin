@@ -17,7 +17,7 @@
     "inlineSources": true,
     "paths": {
       // 将 @your-org/schemas 映射到实际路径，确保编译时包含
-      "envm/*": ["../types/src/*"]
+      "@envm/schemas/*": ["../types/src/*"]
     }
   },
   "include": ["src/**/*", "eslint.config.ts", "./bin/index.ts"]
