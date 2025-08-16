@@ -1,22 +1,22 @@
-import { Options } from "./types.js";
-import Utils from "./Utils.js";
+import portfinder from "portfinder";
 import http from "http";
 import PostProxyServer from "./PostProxyServer.js";
-import { config  } from "./ResolveConfig.js";
+import { config } from "./utils/ResolveConfig.js";
+import { EnvmConfigInterface } from "@envm/schemas";
 
 class EnvManage {
   /**
    * 应用启动配置
    */
-  options: Options;
+  options: EnvmConfigInterface;
 
-  constructor(options: Options = {}) {
+  constructor(options: EnvmConfigInterface) {
     this.options = options;
   }
 
   async startIndependent() {
     console.log("Starting EnvManage...", config);
-    
+
     // 检查端口是否被占用
     this.checkPortAsync()
       .then(() => {
@@ -33,13 +33,32 @@ class EnvManage {
    * @returns
    */
   checkPortAsync() {
-    return Utils.isPortOccupied(config.port).then((result) => {
+    return this.isPortOccupied(config.port).then((result) => {
       if (result) {
         return this.checkIsRunning().then(() => {
           throw new Error(`请确认服务是否已经在端口 ${config.port} 启动`);
         });
       }
     });
+  }
+
+  /**
+   * 
+   * @param port 查询端口是否被占用
+   * @returns 
+   */
+  isPortOccupied(port: number) {
+    return portfinder
+      .getPortPromise({
+        port: port,
+        stopPort: port,
+      })
+      .then(() => {
+        return false;
+      })
+      .catch(() => {
+        return true;
+      });
   }
   /**
    * 查询端口，中启动的服务是否为 envm
@@ -55,7 +74,7 @@ class EnvManage {
 
     return new Promise((resolve, reject) => {
       const req = http.request(options, (res) => {
-        const statusCode = res.statusCode || 0
+        const statusCode = res.statusCode || 0;
         if (statusCode < 200 || statusCode >= 300) {
           reject(new Error(`请求失败，状态码: ${res.statusCode}`));
           return;

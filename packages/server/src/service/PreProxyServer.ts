@@ -5,7 +5,7 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
 
-import { config } from "../ResolveConfig.js";
+import { config } from "../utils/ResolveConfig.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
 import { EnvModel } from "@envm/schemas";
@@ -229,22 +229,22 @@ class PreProxyServer {
     });
   }
 
-  static stopServer(port: number | string) {
+  static stopServer(id: string) {
     return new Promise((resolve) => {
-      if (!this.getAppInsByPort(port as string)) {
-        console.log(`端口 ${port} 未启动，无需停止！`);
+      if (!this.getAppInsByPort(id as string)) {
+        console.log(`端口 【${id}】 未启动，无需停止！`);
         resolve(1);
         return;
       }
 
-      for (const socket of this.appMap[port].sockets) {
+      for (const socket of this.appMap[id].sockets) {
         socket.destroy();
       }
 
-      this.appMap[port].server.close((err) => {
+      this.appMap[id].server.close((err) => {
         // 停止服务更新状态
-        delete this.appMap[port];
-        console.log(`Server on port ${port} 已关闭`, err || "");
+        delete this.appMap[id];
+        console.log(`Server on port ${id} 已关闭`, err || "");
         resolve(1);
       });
     });

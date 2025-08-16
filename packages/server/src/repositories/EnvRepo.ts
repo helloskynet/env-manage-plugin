@@ -61,7 +61,7 @@ class EnvRepo {
    * @returns 匹配的环境信息对象，若未找到则返回null
    * @throws {Error} 当验证失败时抛出错误
    */
-  findOne(env: Partial<EnvModel>) {
+  findOne(env: LokiQuery<Partial<EnvModel>>) {
     return this.getCollection().findOne(env);
   }
 

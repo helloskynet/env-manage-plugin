@@ -4,7 +4,7 @@ import { WebSocketServer } from "ws";
 import express, { Request } from "express";
 import expressStaticGzip from "express-static-gzip";
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { config } from "./ResolveConfig.js";
+import { config } from "./utils/ResolveConfig.js";
 import { createRouter } from "./routes/index.js";
 import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
 import { responseEnhancer } from "./middleware/responseEnhancer.js";

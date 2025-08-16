@@ -4,7 +4,7 @@ import * as libCookie from "cookie";
 import { Container } from "../Container.js";
 import { EnvController } from "../controllers/EnvController.js";
 import { DevServerController } from "../controllers/DevServerController.js";
-import { config } from "../ResolveConfig.js";
+import { config } from "../utils/ResolveConfig.js";
 import { toDTO } from "../middleware/dto.middleware";
 import {
   EnvPrimarySchema,

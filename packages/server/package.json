@@ -38,6 +38,7 @@
     "express-static-gzip": "^2.2.0",
     "http-proxy-middleware": "^3.0.3",
     "lokijs": "^1.5.12",
+    "pino": "^9.9.0",
     "portfinder": "^1.0.35",
     "set-cookie-parser": "^2.7.1",
     "tslib": "^2.8.1",

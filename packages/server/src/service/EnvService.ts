@@ -140,7 +140,7 @@ class EnvService {
 
     try {
       // 先查与当前服务同端口的环境，如果启动，则关闭掉
-      this.stopServerByPort(envItem.port);
+      await this.stopServerAtSamePort(envItem);
 
       // 启动新的代理服务器
       await PreProxyServer.create(id, this.envRepo, this.devServerRepo);
@@ -159,19 +159,25 @@ class EnvService {
 
   /**
    * 关闭指定端口的服务
-   * @param port 
+   * @param port
    */
-  async stopServerByPort(port: number) {
+  private async stopServerAtSamePort(envItem: EnvModel) {
     // 先查与当前服务同端口的环境，如果启动，则关闭掉
-    const samePortAndRunningEnv = this.envRepo.findOneByPortAndStatus({
-      port: port,
-      status: "running",
+    const samePortAndRunningEnv = this.envRepo.findOne({
+      $and: [
+        { id: { $ne: envItem.id } }, // $ne 表示 "不等于"
+        { port: envItem.port },
+        { status: "running" }, // 直接匹配等于的值
+      ],
     });
     if (samePortAndRunningEnv) {
-      console.log(`关闭 ${port} 端口服务`, samePortAndRunningEnv.name);
+      console.log(
+        `关闭 ${samePortAndRunningEnv.port} 端口服务`,
+        samePortAndRunningEnv.name
+      );
       await this.handleStopServer(samePortAndRunningEnv);
     }
-    console.log(`端口${port}没有服务启动`)
+    console.log(`端口${envItem.port}没有服务启动`);
   }
 
   /**
@@ -193,25 +199,13 @@ class EnvService {
     }
 
     // 停止对应端口的服务
-    const port = envItem.port;
-    if (port) {
-      await PreProxyServer.stopServer(`${port}`);
-      console.log(`端口【${port}】的服务已停止`);
-
-      // 更新同端口运行中环境的状态
-      const runningEnv = this.envRepo.findOne({
-        port,
-        status: "running",
-      });
-      if (runningEnv) {
-        await this.updateEnvStatus({
-          ...runningEnv,
-          status: "stopped",
-        });
-      }
-    } else {
-      console.warn("环境未配置端口，无需停止服务", id);
-    }
+    await PreProxyServer.stopServer(id);
+    console.log(`环境【${envItem.name}】的服务已停止`);
+    // 更新环境的运行状态
+    await this.updateEnvStatus({
+      id,
+      status: "stopped",
+    });
   }
 
   /**
