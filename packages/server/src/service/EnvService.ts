@@ -10,6 +10,7 @@ import {
 } from "@envm/schemas";
 import { AppError } from "../utils/errors.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
+import { envLogger } from "../utils/logger.js";
 
 /**
  * 环境服务类
@@ -35,7 +36,7 @@ class EnvService {
   handleAddEnv(envItem: EnvCreate): void {
     // 参数校验
 
-    console.log("准备添加环境", envItem);
+    envLogger.debug({ envItem }, "准备添加环境");
 
     // 检查环境是否已存在（通过apiBaseUrl唯一标识）
     const existingEnv = this.envRepo.findOneByApiBaseUrl(envItem);
@@ -52,7 +53,7 @@ class EnvService {
 
     // 保存环境
     this.envRepo.addEnv(newEnvItem);
-    console.log("环境添加成功", newEnvItem.id);
+    envLogger.info({ newEnvItem }, "环境添加成功");
   }
 
   /**
@@ -67,7 +68,7 @@ class EnvService {
     // 参数校验
 
     const { id } = envItem;
-    console.log("准备删除环境", id);
+    envLogger.info({ envItem }, "准备删除环境");
 
     // 检查环境是否存在
     const existingEnv = this.envRepo.findOneById(id);
@@ -77,7 +78,7 @@ class EnvService {
 
     // 执行删除
     this.envRepo.deleteEnv(envItem);
-    console.log("环境删除成功", id);
+    envLogger.info({ envItem }, "环境删除成功");
   }
 
   /**
@@ -92,7 +93,7 @@ class EnvService {
     // 参数校验
 
     const { id } = envItem;
-    console.log("准备更新环境", id);
+    envLogger.info({ envItem }, `准备更新环境`);
 
     // 检查环境是否存在
     const existingEnv = this.envRepo.findOneById(id);
@@ -102,7 +103,7 @@ class EnvService {
 
     // 执行更新
     this.envRepo.update(envItem);
-    console.log("环境更新成功", id);
+    envLogger.info({ envItem }, `环境更新成功`);
   }
 
   /**
@@ -111,7 +112,7 @@ class EnvService {
    */
   handleGetList(): EnvModel[] {
     const list = this.envRepo.getAll();
-    console.log(`查询到${list.length}个环境`);
+    envLogger.info({ count: list.length }, `查询到${list.length}个环境`);
     return list;
   }
 
@@ -130,7 +131,7 @@ class EnvService {
    */
   async handleStartServer(env: EnvQuery): Promise<void> {
     const { id } = env;
-    console.log("准备启动环境服务", id);
+    envLogger.info({ env }, "准备启动环境服务");
 
     // 检查环境是否存在
     const envItem = this.envRepo.findOneById(id);
@@ -150,9 +151,9 @@ class EnvService {
         ...env,
         status: "running",
       });
-      console.log("环境服务启动成功", id);
+      envLogger.info({ envItem }, "环境服务启动成功");
     } catch (error) {
-      console.error("环境服务启动失败", id, error);
+      envLogger.error(error, "环境服务启动失败");
       throw new AppError(`启动服务失败：${(error as Error).message}`);
     }
   }
@@ -171,13 +172,15 @@ class EnvService {
       ],
     });
     if (samePortAndRunningEnv) {
-      console.log(
-        `关闭 ${samePortAndRunningEnv.port} 端口服务`,
-        samePortAndRunningEnv.name
+      envLogger.info(
+        {
+          name: samePortAndRunningEnv.name,
+        },
+        `关闭 ${samePortAndRunningEnv.port} 端口服务`
       );
       await this.handleStopServer(samePortAndRunningEnv);
     }
-    console.log(`端口${envItem.port}没有服务启动`);
+    envLogger.info({ port: envItem.port }, `端口${envItem.port}没有服务启动`);
   }
 
   /**
@@ -190,7 +193,7 @@ class EnvService {
    */
   async handleStopServer(env: EnvQuery): Promise<void> {
     const { id } = env;
-    console.log("准备停止环境服务", id);
+    envLogger.info({ id }, "准备停止环境服务");
 
     // 检查环境是否存在
     const envItem = this.envRepo.findOneById(id);
@@ -200,7 +203,7 @@ class EnvService {
 
     // 停止对应端口的服务
     await PreProxyServer.stopServer(id);
-    console.log(`环境【${envItem.name}】的服务已停止`);
+    envLogger.info({ envItem }, `环境【${envItem.name}】的服务已停止`);
     // 更新环境的运行状态
     await this.updateEnvStatus({
       id,
@@ -218,14 +221,17 @@ class EnvService {
     // 查找最新的环境信息（避免使用旧引用）
     const envItem = this.envRepo.findOneById(env.id);
     if (!envItem) {
-      console.warn(`更新状态失败，环境【${env.id}】不存在`);
+      envLogger.warn(`更新状态失败，环境【${env.id}】不存在`);
       return undefined;
     }
 
     // 执行状态更新
     const updatedEnv = { ...envItem, ...env };
     this.envRepo.update(updatedEnv);
-    console.log(`环境【${env.id}】状态已更新为${updatedEnv.status}`);
+    envLogger.info(
+      { env, updatedEnv },
+      `环境【${env.id}】状态已更新为${updatedEnv.status}`
+    );
 
     return updatedEnv;
   }

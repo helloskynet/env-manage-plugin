@@ -9,6 +9,7 @@ import { config } from "../utils/ResolveConfig.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
 import { EnvModel } from "@envm/schemas";
+import { devServerLogger } from "../utils/logger.js";
 
 class PreProxyServer {
   /**
@@ -43,7 +44,7 @@ class PreProxyServer {
     devServerRepo: DevServerRepo
   ) {
     if (this.appMap[envId]) {
-      console.log(`环境 ${envId} 已经启动`);
+      devServerLogger.info(`环境 ${envId} 已经启动`);
       return null;
     }
 
@@ -193,13 +194,13 @@ class PreProxyServer {
   async startServer() {
     const { port } = this.getEnvItem();
     if (PreProxyServer.appMap[this.envId]) {
-      console.log(`环境 ${this.envId} 已经启动`);
+      devServerLogger.info(`环境 ${this.envId} 已经启动`);
       return;
     }
 
     this.server = await new Promise((resolve, reject) => {
       const server = this.app.listen(port, () => {
-        console.log(`Server is running on http://localhost:${port}`);
+        devServerLogger.info(`Server is running on http://localhost:${port}`);
         // 更新状态
         resolve(server);
       });
@@ -232,7 +233,7 @@ class PreProxyServer {
   static stopServer(id: string) {
     return new Promise((resolve) => {
       if (!this.getAppInsByPort(id as string)) {
-        console.log(`端口 【${id}】 未启动，无需停止！`);
+        devServerLogger.info(`端口 【${id}】 未启动，无需停止！`);
         resolve(1);
         return;
       }
@@ -243,9 +244,14 @@ class PreProxyServer {
 
       this.appMap[id].server.close((err) => {
         // 停止服务更新状态
-        delete this.appMap[id];
-        console.log(`Server on port ${id} 已关闭`, err || "");
-        resolve(1);
+        if (err) {
+          console.error("服务器关闭失败：", err);
+          resolve(0);
+        } else {
+          delete this.appMap[id];
+          devServerLogger.info({ id }, `Server on port ${id} 已关闭`);
+          resolve(1);
+        }
       });
     });
   }

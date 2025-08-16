@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { EnvService } from "../service/EnvService";
 import { EnvCreate, EnvDelete, EnvQuery, EnvUpdate } from "@envm/schemas";
+import { envLogger } from "../utils/logger";
 
 /**
  * 环境控制器
@@ -28,7 +29,7 @@ class EnvController {
     try {
       // 验证请求数据
       const envData = req.dto as EnvCreate;
-      console.log("接收新增环境请求", { apiBaseUrl: envData.apiBaseUrl });
+      envLogger.info({ envData }, "接收新增环境请求");
 
       // 调用服务层处理业务
       this.envService.handleAddEnv(envData);
@@ -36,7 +37,7 @@ class EnvController {
       // 返回成功响应
       res.success();
     } catch (error) {
-      console.error("新增环境请求处理失败", error);
+      envLogger.error(error, "新增环境请求处理失败");
       next(error);
     }
   }
@@ -52,7 +53,7 @@ class EnvController {
     try {
       // 验证请求数据
       const envData = req.dto as EnvDelete;
-      console.log("接收删除环境请求", { id: envData.id });
+      envLogger.info({ envData }, "接收删除环境请求");
 
       // 调用服务层处理业务
       this.envService.handleDeleteEnv(envData);
@@ -60,7 +61,7 @@ class EnvController {
       // 返回成功响应
       res.success({ message: "环境删除成功" });
     } catch (error) {
-      console.error("删除环境请求处理失败", error);
+      envLogger.error(error, "删除环境请求处理失败");
       next(error);
     }
   }
@@ -76,7 +77,7 @@ class EnvController {
     try {
       // 验证请求数据
       const envData = req.dto as EnvUpdate;
-      console.log("接收更新环境请求", { id: envData.id });
+      envLogger.info({ envData }, "接收更新环境请求");
 
       // 调用服务层处理业务
       this.envService.handleUpdateEnv(envData);
@@ -84,7 +85,7 @@ class EnvController {
       // 返回成功响应
       res.success({ message: "环境更新成功" });
     } catch (error) {
-      console.error("更新环境请求处理失败", error);
+      envLogger.error(error, "更新环境请求处理失败");
       next(error);
     }
   }
@@ -98,7 +99,7 @@ class EnvController {
    */
   handleGetList(req: Request, res: Response, next: NextFunction): void {
     try {
-      console.log("接收环境列表查询请求");
+      envLogger.info("接收环境列表查询请求");
 
       // 调用服务层获取数据
       const list = this.envService.handleGetList();
@@ -106,7 +107,7 @@ class EnvController {
       // 返回成功响应（包含列表数据）
       res.success({ list, total: list.length });
     } catch (error) {
-      console.error("环境列表查询请求处理失败", error);
+      envLogger.error(error, "环境列表查询请求处理失败");
       next(error);
     }
   }
@@ -122,7 +123,7 @@ class EnvController {
     try {
       // 验证请求数据
       const envData = req.dto as EnvQuery;
-      console.log("接收环境详情查询请求", envData.id);
+      envLogger.info({ envData }, "接收环境详情查询请求");
 
       // 调用服务层获取数据（假设服务层有此方法）
       const detail = this.envService.findOneById(envData.id);
@@ -137,7 +138,7 @@ class EnvController {
         data: detail,
       });
     } catch (error) {
-      console.error("环境详情查询请求处理失败", error);
+      envLogger.error(error, "环境详情查询请求处理失败");
       next(error);
     }
   }
@@ -157,7 +158,7 @@ class EnvController {
     try {
       // 验证请求数据
       const envData = req.dto as EnvQuery;
-      console.log("接收启动代理服务器请求", { id: envData.id });
+      envLogger.info({ envData }, "接收启动代理服务器请求");
 
       // 调用服务层处理业务（异步操作）
       await this.envService.handleStartServer(envData);
@@ -165,7 +166,7 @@ class EnvController {
       // 返回成功响应
       res.success();
     } catch (error) {
-      console.error("启动代理服务器请求处理失败", error);
+      envLogger.error(error, "启动代理服务器请求处理失败");
       next(error);
     }
   }
@@ -185,7 +186,7 @@ class EnvController {
     try {
       // 验证请求数据
       const envData = req.dto as EnvQuery;
-      console.log("接收停止代理服务器请求", { id: envData.id });
+      envLogger.info({ envData }, "接收停止代理服务器请求");
 
       // 调用服务层处理业务（异步操作）
       await this.envService.handleStopServer(envData);
@@ -193,7 +194,7 @@ class EnvController {
       // 返回成功响应
       res.success({ message: "代理服务器停止成功" });
     } catch (error) {
-      console.error("停止代理服务器请求处理失败", error);
+      envLogger.error(error, "停止代理服务器请求处理失败");
       next(error);
     }
   }
