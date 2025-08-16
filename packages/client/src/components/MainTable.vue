@@ -64,7 +64,7 @@
           <el-radio
             v-for="item in devServerList"
             :key="item.devServerUrl"
-            :value="`${item.devServerUrl}`"
+            :value="`${item.id}`"
             :title="item.name"
             border
             size="small"
@@ -111,14 +111,14 @@ import AddEnv from './AddEnv.vue'
 import AddServer from './AddServer.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
-import type { DevServerInterface, EnvItemInterface, ListResponse } from '@envm/schemas'
+import type { DevServerModel, EnvModel, ListResponse } from '@envm/schemas'
 import { fetchData } from '@/utils'
 
 const apiPrefix = 'dev-manage-api'
 
-const tableData = ref<EnvItemInterface[]>([])
+const tableData = ref<EnvModel[]>([])
 
-const devServerList = ref<DevServerInterface[]>([])
+const devServerList = ref<DevServerModel[]>([])
 
 const loadingMap = ref<{ [key: string]: unknown }>({}) // 存储每行的 loading 状态
 
@@ -146,7 +146,7 @@ const handleAddServer = () => {
  */
 const getEnvList = () => {
   refreshLoading.value = true
-  fetchData<ListResponse<EnvItemInterface>>(`${apiPrefix}/env/getlist`)
+  fetchData<ListResponse<EnvModel>>(`${apiPrefix}/env/getlist`)
     .then((res) => {
       tableData.value =
         res?.list.map((item) => {
@@ -165,7 +165,7 @@ const getEnvList = () => {
  *
  */
 const getDevServerList = () => {
-  fetchData<ListResponse<DevServerInterface>>(`${apiPrefix}/server/list`).then((res) => {
+  fetchData<ListResponse<DevServerModel>>(`${apiPrefix}/server/list`).then((res) => {
     devServerList.value = res?.list || []
   })
 }
@@ -176,14 +176,14 @@ onMounted(() => {
   startWs()
 })
 
-const handleStart = (rowData: EnvItemInterface) => {
+const handleStart = (rowData: EnvModel) => {
   updateStatus('start', rowData)
 }
-const handleStop = (rowData: EnvItemInterface) => {
+const handleStop = (rowData: EnvModel) => {
   updateStatus('stop', rowData)
 }
 
-const handleDelete = (rowData: EnvItemInterface) => {
+const handleDelete = (rowData: EnvModel) => {
   ElMessageBox.confirm(`确定删除环境 ${rowData.name} 吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -204,7 +204,7 @@ const handleDelete = (rowData: EnvItemInterface) => {
     })
 }
 
-const updateStatus = (action: string, rowData: EnvItemInterface) => {
+const updateStatus = (action: string, rowData: EnvModel) => {
   loadingMap.value[rowData.port] = true
 
   fetch(`${apiPrefix}/env/${action}`, {
@@ -231,12 +231,11 @@ const updateStatus = (action: string, rowData: EnvItemInterface) => {
     })
 }
 
-const updateSelectedDevServer = (devServerId: string, rowData: EnvItemInterface) => {
+const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
   fetchData({
     url: `${apiPrefix}/env/update`,
     data: {
-      apiBaseUrl: rowData.apiBaseUrl,
-      port: rowData.port,
+      id: rowData.id,
       devServerId,
     },
   }).then(() => {

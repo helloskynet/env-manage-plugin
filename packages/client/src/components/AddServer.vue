@@ -44,7 +44,7 @@
 import { ref, reactive, nextTick } from 'vue'
 import { ElForm, type FormItemRule } from 'element-plus'
 import { fetchData } from '@/utils'
-import { type DevServerInterface } from '@envm/schemas'
+import type { DevServerModel } from '@envm/schemas'
 
 // 定义事件发射类型
 const emit = defineEmits<{
@@ -73,14 +73,14 @@ defineExpose({
 const formRef = ref<InstanceType<typeof ElForm>>()
 
 // 表单默认数据
-const defaultFormData: Partial<DevServerInterface> = {
+const defaultFormData: Partial<DevServerModel> = {
   name: '',
   description: '',
   devServerUrl: 'http://127.0.0.1:5173',
 }
 
 // 表单数据响应式对象
-const formData = reactive<Partial<DevServerInterface>>({ ...defaultFormData })
+const formData = reactive<Partial<DevServerModel>>({ ...defaultFormData })
 
 // 表单验证规则
 const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
@@ -122,7 +122,7 @@ const resetForm = () => {
 }
 
 // 提交表单到后端
-const createDevServer = (serverData: DevServerInterface) => {
+const createDevServer = (serverData: DevServerModel) => {
   fetchData({
     url: `${props.apiPrefix}/server/add`,
     method: 'POST',
@@ -141,10 +141,10 @@ const createDevServer = (serverData: DevServerInterface) => {
 const submitForm = () => {
   formRef.value?.validate((valid) => {
     if (valid) {
-      const submitData: DevServerInterface = {
+      const submitData: DevServerModel = {
         ...formData,
         name: formData.name || formData.devServerUrl,
-      } as DevServerInterface
+      } as DevServerModel
 
       createDevServer(submitData)
     }

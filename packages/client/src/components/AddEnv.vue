@@ -41,7 +41,7 @@
             v-for="item in devServerOptions"
             :key="item.devServerUrl"
             :label="item.name"
-            :value="item.devServerUrl"
+            :value="item.id"
           />
         </el-select>
       </el-form-item>
@@ -66,7 +66,7 @@
 import { ref, reactive, nextTick } from 'vue'
 import { ElForm, type FormItemRule } from 'element-plus'
 import { fetchData } from '@/utils'
-import { type DevServerInterface, type EnvItemInterface, type ListResponse } from '@envm/schemas'
+import type { DevServerModel, EnvModel, ListResponse } from '@envm/schemas'
 
 const emit = defineEmits<{
   (e: 'refreshList'): void
@@ -88,7 +88,7 @@ defineExpose({
 
 const formRef = ref<InstanceType<typeof ElForm>>()
 
-const defautlFormData: EnvItemInterface = {
+const defautlFormData: Omit<EnvModel, 'id'> = {
   apiBaseUrl: 'http://127.0.0.1:3010',
   port: 4099,
   name: '',
@@ -111,7 +111,7 @@ const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
       validator: (rule, value, callback) => {
         // 严格匹配 http/https + IP + 端口(3000-65535)
         const regex =
-          /^(http|https):\/\/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(3000|[3-9]\d{3}|[1-5]\d{4}|6[0-5]{2}[0-3][0-5])$/;
+          /^(http|https):\/\/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(3000|[3-9]\d{3}|[1-5]\d{4}|6[0-5]{2}[0-3][0-5])$/
 
         if (regex.test(value)) {
           callback() // 校验通过
@@ -146,7 +146,7 @@ const resetForm = () => {
  *
  * @param envItem
  */
-const addDevServer = (envItem: EnvItemInterface) => {
+const addDevServer = (envItem: Omit<EnvModel, 'id'>) => {
   fetchData({
     url: `${props.apiPrefix}/env/add`,
     method: 'POST',
@@ -171,10 +171,10 @@ const submitForm = () => {
   })
 }
 
-const devServerOptions = ref<DevServerInterface[]>([])
+const devServerOptions = ref<DevServerModel[]>([])
 // 获取开发服务器列表
 const getDevServerList = () => {
-  fetchData<ListResponse<DevServerInterface>>(`${props.apiPrefix}/server/list`).then((data) => {
+  fetchData<ListResponse<DevServerModel>>(`${props.apiPrefix}/server/list`).then((data) => {
     devServerOptions.value = data?.list ?? []
   })
 }

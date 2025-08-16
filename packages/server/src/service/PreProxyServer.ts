@@ -8,7 +8,7 @@ import * as libCookie from "cookie";
 import { config } from "../ResolveConfig.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
-import { EnvModel } from "envm/index.js";
+import { EnvModel } from "@envm/schemas";
 
 class PreProxyServer {
   /**
@@ -48,11 +48,7 @@ class PreProxyServer {
       return null;
     }
 
-    const preProxyServer = new PreProxyServer(
-      envItem,
-      envRepo,
-      devServerRepo
-    );
+    const preProxyServer = new PreProxyServer(envItem, envRepo, devServerRepo);
     await preProxyServer.startServer(envItem);
     PreProxyServer.appMap[port] = preProxyServer;
     return preProxyServer;
@@ -109,9 +105,9 @@ class PreProxyServer {
         // 查询环境信息
         const envItem = this.getEnvItem();
         // 根据环境信息查询绑定的服务，地址
-        const devServerConfig = this.devServerRepo.findByDevServerUrl(
-          envItem?.devServerId ?? ""
-        );
+        const devServerConfig = this.devServerRepo.findOneById({
+          id: envItem?.devServerId ?? "",
+        });
         // 默认转发到 Webpack 开发服务器
         return `${devServerConfig?.devServerUrl}`;
       },
