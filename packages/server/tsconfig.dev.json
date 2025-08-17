@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json", // 继承基础配置
+  "compilerOptions": {
+    "outDir": "./dist/dev", // 开发环境输出目录（避免与打包冲突）
+    "rootDir": "./",
+    "declaration": false, // 开发阶段不需要生成 .d.ts
+    "inlineSources": true // 调试时关联源文件（可选）
+  },
+  "include": ["src/**/*", "eslint.config.ts", "./bin/index.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

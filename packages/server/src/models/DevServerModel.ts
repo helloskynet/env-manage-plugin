@@ -1,6 +1,6 @@
-import { DevServerInterface } from "@envm/schemas";
+import { DevServerModel } from "@envm/schemas";
 
-interface DevServerItemModel extends DevServerInterface{
+interface DevServerItemModel extends DevServerModel{
   /**
    * 开发服务器的ID
    */
