@@ -2,9 +2,11 @@
   "extends": "./tsconfig.base.json", // 继承基础配置
   "compilerOptions": {
     "outDir": "../dist", // 打包输出目录（与开发区分）
-    "rootDir": "./",
+    "rootDir": "./src",
+    "emitDeclarationOnly": true,
     "declaration": true,
-    "declarationDir": "../dist/types"
+    "sourceMap": false,
+    "declarationDir": "../dist"
   },
   "include": ["src/types/**/*"],
   "exclude": ["src/**/*.test.ts", "src/**/*.dev.ts"]

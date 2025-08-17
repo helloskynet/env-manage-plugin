@@ -25,7 +25,6 @@
     "dev": "tsx watch  --tsconfig tsconfig.dev.json ./bin/index.ts ",
     "prebuild": "tsc -p tsconfig.types.json",
     "build": "tsc -p tsconfig.build.json",
-    "postbuild": "node ../script/build.js",
     "lint": "eslint ./src"
   },
   "author": "lcn",
