@@ -6,7 +6,7 @@ import {
   EnvDeleteSchema,
   EnvUpdate,
   EnvCreate,
-} from "@envm/schemas";
+} from "../types";
 
 /**
  * 环境仓库类

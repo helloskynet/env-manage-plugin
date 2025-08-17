@@ -1,4 +1,4 @@
-import { EnvModel } from "@envm/schemas";
+import { EnvModel } from "../types";
 import { v4 as uuidv4 } from "uuid";
 
 class EnvItemModel implements EnvModel {

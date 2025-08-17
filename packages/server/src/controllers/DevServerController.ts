@@ -5,7 +5,7 @@ import {
   DevServerUpdate,
   DevServerDelete,
   DevServerQuery,
-} from "@envm/schemas";
+} from "../types";
 
 class DevServerController {
   constructor(private readonly devServerService: DevServerService) {}

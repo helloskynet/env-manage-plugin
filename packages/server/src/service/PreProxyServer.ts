@@ -8,7 +8,7 @@ import * as libCookie from "cookie";
 import { config } from "../utils/ResolveConfig.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
-import { EnvModel } from "@envm/schemas";
+import { EnvModel } from "../types";
 import { devServerLogger } from "../utils/logger.js";
 
 class PreProxyServer {

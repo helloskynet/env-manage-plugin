@@ -1,5 +1,5 @@
 import loki from "lokijs";
-import { DevServerModel, EnvModel } from "@envm/schemas";
+import { DevServerModel, EnvModel } from "../types";
 
 export const db = new loki(".envm.data.json", {
   autosave: true,

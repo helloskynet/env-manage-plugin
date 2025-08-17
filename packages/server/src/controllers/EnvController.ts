@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { EnvService } from "../service/EnvService";
-import { EnvCreate, EnvDelete, EnvQuery, EnvUpdate } from "@envm/schemas";
+import { EnvCreate, EnvDelete, EnvQuery, EnvUpdate } from "../types";
 import { envLogger } from "../utils/logger";
 
 /**

@@ -1,7 +1,7 @@
 // config.ts
 import { z } from "zod";
 import dotenv from "dotenv";
-import { EnvmConfigSchema } from "@envm/schemas";
+import { EnvmConfigSchema } from "../types";
 
 // 1. 加载环境变量
 dotenv.config();

@@ -8,7 +8,7 @@ import {
   DevServerUpdateSchema,
   DevServerQuerySchema,
   DevServerModelSchema,
-} from "@envm/schemas";
+} from "../types";
 import { AppError } from "../utils/errors.js";
 
 /**

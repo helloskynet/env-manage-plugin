@@ -11,7 +11,7 @@ import {
   EnvCreateSchema,
   EnvUpdateSchema,
   DevServerCreateSchema,
-} from "@envm/schemas";
+} from "../types";
 
 // 1. 创建各模块路由
 const createEnvRoutes = (controller: EnvController) => {

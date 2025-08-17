@@ -46,7 +46,6 @@
     "ws": "^8.18.1"
   },
   "devDependencies": {
-    "@envm/schemas": "workspace:*",
     "@stylistic/eslint-plugin": "^4.2.0",
     "@types/express": "^5.0.0",
     "@types/lokijs": "^1.5.14",

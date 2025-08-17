@@ -7,7 +7,7 @@ import {
   EnvQuery,
   EnvUpdate,
   EnvModel,
-} from "@envm/schemas";
+} from "../types";
 import { AppError } from "../utils/errors.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
 import { envLogger } from "../utils/logger.js";

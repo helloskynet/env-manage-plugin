@@ -1,4 +1,4 @@
-import { DevServerModel } from "@envm/schemas";
+import { DevServerModel } from "../types";
 
 interface DevServerItemModel extends DevServerModel{
   /**
