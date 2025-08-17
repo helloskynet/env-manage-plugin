@@ -2,7 +2,7 @@ import portfinder from "portfinder";
 import http from "http";
 import PostProxyServer from "./PostProxyServer.js";
 import { config } from "./utils/ResolveConfig.js";
-import { EnvmConfigInterface } from "../types";
+import { EnvmConfigInterface } from "./types";
 
 class EnvManage {
   /**

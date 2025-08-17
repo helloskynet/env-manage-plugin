@@ -15,9 +15,6 @@
     "declaration": false,
     "sourceMap": true,
     "inlineSources": true,
-    "paths": {
-      "@envm/schemas/*": ["../types/src/*"]
-    }
   },
   "include": ["src/**/*", "eslint.config.ts", "./bin/index.ts"]
 }

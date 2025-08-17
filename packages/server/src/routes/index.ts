@@ -63,7 +63,7 @@ const createCommonRoutes = () => {
 };
 
 // 2. 整合所有路由并导出
-export const createRouter = () => {
+export const createRouter = (): Router => {
   const rootRouter = Router();
 
   // 全局中间件（原 ManageRouter 中的通用中间件）

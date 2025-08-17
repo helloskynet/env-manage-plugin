@@ -1,7 +1,7 @@
 import { Server } from "http";
 import { join } from "path";
 import { WebSocketServer } from "ws";
-import express, { Request } from "express";
+import express, { Express, Request } from "express";
 import expressStaticGzip from "express-static-gzip";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { config } from "./utils/ResolveConfig.js";
@@ -13,7 +13,7 @@ import { responseEnhancer } from "./middleware/responseEnhancer.js";
  * 后置代理服务器---同时也是管理页面的服务器
  */
 class PostProxyServer {
-  constructor(private app = express()) {
+  constructor(private app: Express = express()) {
     // 代理中间件
     app.use(this.createPostProxyMiddleware());
 
