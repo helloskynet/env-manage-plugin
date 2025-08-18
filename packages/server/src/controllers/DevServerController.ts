@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express";
-import { DevServerService } from "../service/DevServerService";
+import { DevServerService } from "../service/DevServerService.js";
 import {
   DevServerCreate,
   DevServerUpdate,
   DevServerDelete,
   DevServerQuery,
-} from "../types";
+} from "../types/index.js";
 
 class DevServerController {
   constructor(private readonly devServerService: DevServerService) {}

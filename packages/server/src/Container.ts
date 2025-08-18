@@ -1,10 +1,10 @@
-import { EnvController } from "./controllers/EnvController";
-import { DevServerController } from "./controllers/DevServerController";
+import { EnvController } from "./controllers/EnvController.js";
+import { DevServerController } from "./controllers/DevServerController.js";
 import { EnvRepo } from "./repositories/EnvRepo.js";
-import { EnvService } from "./service/EnvService";
-import { DevServerService } from "./service/DevServerService";
-import { DevServerRepo } from "./repositories/DevServerRepo";
-import { ProxyAutoStarter } from "./service/ProxyAutoStarterService";
+import { EnvService } from "./service/EnvService.js";
+import { DevServerService } from "./service/DevServerService.js";
+import { DevServerRepo } from "./repositories/DevServerRepo.js";
+import { ProxyAutoStarter } from "./service/ProxyAutoStarterService.js";
 
 class Container {
   private static instance: Container;

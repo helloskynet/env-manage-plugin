@@ -1,12 +1,10 @@
 // config.ts
 import { z } from "zod";
 import dotenv from "dotenv";
-import { EnvmConfigSchema } from "../types";
+import { EnvmConfigSchema } from "../types/index.js";
 
 // 1. 加载环境变量
 dotenv.config();
-
-
 
 // 4. 解析环境变量
 const parseConfig = () => {

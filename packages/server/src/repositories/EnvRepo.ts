@@ -6,7 +6,7 @@ import {
   EnvDeleteSchema,
   EnvUpdate,
   EnvCreate,
-} from "../types";
+} from "../types/index.js";
 
 /**
  * 环境仓库类

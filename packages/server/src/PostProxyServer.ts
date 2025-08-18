@@ -9,6 +9,16 @@ import { createRouter } from "./routes/index.js";
 import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
 import { responseEnhancer } from "./middleware/responseEnhancer.js";
 
+const currentModuleUrl = import.meta.url;
+
+// 转换为文件系统路径
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(currentModuleUrl); // 当前文件的完整路径
+
+// 获取目录路径
+import { dirname } from "path";
+const __dirname = dirname(__filename); // 当前文件所在的目录路径
+
 /**
  * 后置代理服务器---同时也是管理页面的服务器
  */

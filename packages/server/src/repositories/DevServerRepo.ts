@@ -8,7 +8,7 @@ import {
   DevServerUpdateSchema,
   DevServerQuerySchema,
   DevServerModelSchema,
-} from "../types";
+} from "../types/index.js";
 import { AppError } from "../utils/errors.js";
 
 /**

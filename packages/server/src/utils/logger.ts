@@ -1,5 +1,5 @@
 import pino from "pino";
-import { config } from "./ResolveConfig";
+import { config } from "./ResolveConfig.js";
 
 // 创建日志实例（默认输出 JSON 格式，适合生产环境）
 export const logger = pino({

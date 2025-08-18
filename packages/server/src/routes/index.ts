@@ -5,13 +5,13 @@ import { Container } from "../Container.js";
 import { EnvController } from "../controllers/EnvController.js";
 import { DevServerController } from "../controllers/DevServerController.js";
 import { config } from "../utils/ResolveConfig.js";
-import { toDTO } from "../middleware/dto.middleware";
+import { toDTO } from "../middleware/dto.middleware.js";
 import {
   EnvPrimarySchema,
   EnvCreateSchema,
   EnvUpdateSchema,
   DevServerCreateSchema,
-} from "../types";
+} from "../types/index.js";
 
 // 1. 创建各模块路由
 const createEnvRoutes = (controller: EnvController) => {

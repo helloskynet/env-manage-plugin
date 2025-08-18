@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { EnvService } from "../service/EnvService";
-import { EnvCreate, EnvDelete, EnvQuery, EnvUpdate } from "../types";
-import { envLogger } from "../utils/logger";
+import { EnvService } from "../service/EnvService.js";
+import { EnvCreate, EnvDelete, EnvQuery, EnvUpdate } from "../types/index.js";
+import { envLogger } from "../utils/logger.js";
 
 /**
  * 环境控制器

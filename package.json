@@ -58,7 +58,7 @@
     "node": ">=14.0.0"
   },
   "files": [
-    "bin",
+    "bin/index.js",
     "dist",
     "templates",
     "README.md",

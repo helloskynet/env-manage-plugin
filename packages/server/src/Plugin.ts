@@ -2,7 +2,7 @@ import { createUnplugin } from "unplugin";
 import type { UnpluginFactory } from "unplugin";
 
 import { EnvManage } from "./index.js";
-import { EnvmConfigInterface } from "./types";
+import { EnvmConfigInterface } from "./types/index.js";
 
 let hasBeenCalled = false;
 export const unpluginFactory: UnpluginFactory<EnvmConfigInterface> = (

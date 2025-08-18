@@ -13,7 +13,7 @@ import viteCompression from 'vite-plugin-compression'
 // https://vite.dev/config/
 export default defineConfig({
   build: {
-    outDir: '../dist/client',
+    outDir: '../server/dist/client',
     emptyOutDir: true, // 强制清空输出目录
     rollupOptions: {
       output: {

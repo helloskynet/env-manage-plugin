@@ -1,7 +1,7 @@
-import { EnvRepo } from "../repositories/EnvRepo";
-import { AppError } from "../utils/errors";
-import { logger } from "../utils/logger";
-import { EnvService } from "./EnvService";
+import { EnvRepo } from "../repositories/EnvRepo.js";
+import { AppError } from "../utils/errors.js";
+import { logger } from "../utils/logger.js";
+import { EnvService } from "./EnvService.js";
 
 /**
  * 代理自动启动器

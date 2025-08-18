@@ -14,16 +14,13 @@
     "envm": "bin/index.js"
   },
   "main": "./dist/Plugin.js",
-  "types": "./dist/types.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/Plugin.js",
-      "types": "./dist/types.d.ts"
+      "import": "./dist/Plugin.js"
     }
   },
   "scripts": {
     "dev": "tsx watch  --tsconfig tsconfig.dev.json ./bin/index.ts ",
-    "prebuild": "tsc -p tsconfig.types.json",
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint ./src"
   },
@@ -70,7 +67,7 @@
     "node": ">=14.0.0"
   },
   "files": [
-    "bin",
+    "bin/index.js",
     "dist",
     "templates",
     "README.md",

@@ -1,4 +1,4 @@
-import { DevServerModel } from "../types";
+import { DevServerModel } from "../types/index.js";
 
 interface DevServerItemModel extends DevServerModel{
   /**
