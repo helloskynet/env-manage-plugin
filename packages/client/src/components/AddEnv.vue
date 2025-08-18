@@ -77,6 +77,7 @@ const visible = ref(false)
 
 const showDialog = () => {
   visible.value = true
+  getDevServerList()
 }
 // 公开方法供外部调用
 defineExpose({
@@ -175,5 +176,4 @@ const getDevServerList = () => {
     devServerOptions.value = data?.list ?? []
   })
 }
-getDevServerList()
 </script>

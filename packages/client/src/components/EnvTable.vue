@@ -122,9 +122,20 @@ const getDevServerList = () => {
   })
 }
 
-onMounted(() => {
+/**
+ * 刷新数据
+ */
+const refresh = () => {
   getEnvList()
   getDevServerList()
+}
+
+defineExpose({
+  refresh,
+})
+
+onMounted(() => {
+  refresh()
 })
 
 const handleStart = (rowData: EnvModel) => {
@@ -134,6 +145,10 @@ const handleStop = (rowData: EnvModel) => {
   updateStatus('stop', rowData)
 }
 
+/**
+ * 删除环境
+ * @param rowData
+ */
 const handleDelete = (rowData: EnvModel) => {
   ElMessageBox.confirm(`确定删除环境 ${rowData.name} 吗？`, '提示', {
     confirmButtonText: '确定',
@@ -155,33 +170,32 @@ const handleDelete = (rowData: EnvModel) => {
     })
 }
 
+/**
+ * 启动或者停止服务
+ * @param action
+ * @param rowData
+ */
 const updateStatus = (action: string, rowData: EnvModel) => {
   loadingMap.value[rowData.port] = true
 
-  fetch(`${apiPrefix}/env/${action}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json', // 必须设置
-    },
-    body: JSON.stringify(rowData),
+  fetchData({
+    url: `${apiPrefix}/env/${action}`,
+    data: rowData,
   })
-    .then((res) => {
-      return res.json()
-    })
-    .then((res) => {
-      console.log(res)
-      if (res.error) {
-        ElMessage.error(res.error)
-      } else if (res.message) {
-        ElMessage.success(res.message)
-      }
+    .then(() => {
       getEnvList()
+      ElMessage.success('操作成功')
     })
     .finally(() => {
       loadingMap.value[rowData.port] = false
     })
 }
 
+/**
+ * 更新绑定的开发服务器
+ * @param devServerId
+ * @param rowData
+ */
 const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
   fetchData({
     url: `${apiPrefix}/env/update`,

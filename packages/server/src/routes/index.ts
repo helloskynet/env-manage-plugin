@@ -50,7 +50,7 @@ const createDevServerRoutes = (controller: DevServerController) => {
 
 const createCommonRoutes = () => {
   const router = Router();
-  router.get("/are-you-ok", (req, res) => res.json({ message: "I'm ok!" }));
+  router.get("/are-you-ok", (req, res) => res.success({}, "I'm ok!"));
   router.get("/clear-proxy-cookie", (req, res) => {
     const cookies = req.headers.cookie;
     if (cookies) {
@@ -61,7 +61,7 @@ const createCommonRoutes = () => {
         }
       });
     }
-    res.json({ message: "Prefixed cookies cleared successfully." });
+    res.success();
   });
   return router;
 };

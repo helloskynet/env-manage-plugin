@@ -24,8 +24,8 @@
     @click="clearProxyCookies"
     :loading="refreshLoading"
   >清除所有代理 Cookie</el-button>
-  <EnvTable v-if="isEnvTable" />
-  <DevServerTable v-else/>
+  <EnvTable v-if="isEnvTable" ref="envTableRef" />
+  <DevServerTable v-else ref="devServerTableRef" />
 
   <AddEnv ref="addEnvRef" @refreshList="refreshList" />
   <AddServer ref="addServerRef" @refreshList="refreshList" />
@@ -37,13 +37,8 @@ import AddServer from './AddServer.vue'
 import EnvTable from './EnvTable.vue'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
-import type { DevServerModel, EnvModel, ListResponse } from '@envm/schemas'
 import { apiPrefix, fetchData } from '@/utils'
 import DevServerTable from './DevServerTable.vue'
-
-const tableData = ref<EnvModel[]>([])
-
-const devServerList = ref<DevServerModel[]>([])
 
 const refreshLoading = ref(false)
 
@@ -63,39 +58,7 @@ const handleAddServer = () => {
   }
 }
 
-/**
- * 获取环境列表
- *
- */
-const getEnvList = () => {
-  refreshLoading.value = true
-  fetchData<ListResponse<EnvModel>>(`${apiPrefix}/env/getlist`)
-    .then((res) => {
-      tableData.value =
-        res?.list.map((item) => {
-          return {
-            ...item,
-            index: `${location.protocol}//${location.hostname}:${item.port}${item.homePage}`,
-          }
-        }) ?? []
-    })
-    .finally(() => {
-      refreshLoading.value = false
-    })
-}
-/**
- * 获取开发服务器列表
- *
- */
-const getDevServerList = () => {
-  fetchData<ListResponse<DevServerModel>>(`${apiPrefix}/server/list`).then((res) => {
-    devServerList.value = res?.list || []
-  })
-}
-
 onMounted(() => {
-  getEnvList()
-  getDevServerList()
   startWs()
 })
 
@@ -111,26 +74,23 @@ const changeTable = () => {
   isEnvTable.value = !isEnvTable.value
 }
 
+const envTableRef = ref()
+const devServerTableRef = ref()
+/**
+ * 刷新表格
+ */
 const refreshList = () => {
-  getEnvList()
-  getDevServerList()
+  envTableRef.value?.refresh()
+  devServerTableRef.value?.refresh()
 }
 
+/**
+ * 清楚代理cookie
+ */
 const clearProxyCookies = () => {
-  fetch(`${apiPrefix}/clear-proxy-cookie`, {
-    method: 'GET',
+  fetchData(`${apiPrefix}/clear-proxy-cookie`).then(() => {
+    ElMessage.success('操作成功')
   })
-    .then((res) => {
-      return res.json()
-    })
-    .then((res) => {
-      console.log(res)
-      if (res.error) {
-        ElMessage.error(res.error)
-      } else if (res.message) {
-        ElMessage.success(res.message)
-      }
-    })
 }
 const reconnect = () => {
   setTimeout(() => {
