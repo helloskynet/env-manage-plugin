@@ -11,6 +11,7 @@ import {
   EnvCreateSchema,
   EnvUpdateSchema,
   DevServerCreateSchema,
+  DevServerDeleteSchema,
 } from "../types/index.js";
 
 // 1. 创建各模块路由
@@ -40,6 +41,9 @@ const createDevServerRoutes = (controller: DevServerController) => {
   router.get("/list", (...res) => controller.handleGetDevServerList(...res));
   router.post("/add", toDTO(DevServerCreateSchema), (...res) =>
     controller.handleCreateDevServer(...res)
+  );
+  router.delete("/", toDTO(DevServerDeleteSchema), (...res) =>
+    controller.handleDeleteDevServer(...res)
   );
   return router;
 };

@@ -6,7 +6,6 @@ import {
   DevServerDelete,
   DevServerQuery,
   DevServerUpdate,
-  DevServerDeleteSchema,
   DevServerQuerySchema,
   DevServerUpdateSchema,
   DevServerModel,
@@ -70,22 +69,12 @@ class DevServerService {
    */
   handleDeleteDevServer(devServerItem: DevServerDelete): void {
     // 参数校验
-    const validationResult = DevServerDeleteSchema.safeParse(devServerItem);
-    if (!validationResult.success) {
-      throw new AppError(
-        `删除开发服务器失败：参数不合法 - ${JSON.stringify(
-          validationResult.error.issues
-        )}`
-      );
-    }
 
-    const { id } = validationResult.data;
+    const { id } = devServerItem;
     console.log("准备删除开发服务器", id);
 
     // 检查服务器是否存在
-    const existingServer = this.devServerRepo.findOneById(
-      validationResult.data
-    );
+    const existingServer = this.devServerRepo.findOneById(devServerItem);
     if (!existingServer) {
       throw new AppError(`删除失败，开发服务器【${id}】不存在`);
     }
@@ -99,7 +88,7 @@ class DevServerService {
     // }
 
     // 执行删除
-    this.devServerRepo.deleteDevServer(validationResult.data);
+    this.devServerRepo.deleteDevServer(devServerItem);
     console.log("开发服务器删除成功", id);
   }
 
@@ -216,7 +205,7 @@ class DevServerService {
     }
 
     // 检查环境是否存在
-    const env = this.envRepo.findOneById( envId );
+    const env = this.envRepo.findOneById(envId);
     if (!env) {
       throw new AppError(`关联失败，环境【${envId}】不存在`);
     }

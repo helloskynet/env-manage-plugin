@@ -65,7 +65,7 @@
 <script lang="ts" setup>
 import { ref, reactive, nextTick } from 'vue'
 import { ElForm, type FormItemRule } from 'element-plus'
-import { fetchData } from '@/utils'
+import { apiPrefix, fetchData } from '@/utils'
 import type { DevServerModel, EnvModel, ListResponse } from '@envm/schemas'
 
 const emit = defineEmits<{
@@ -74,9 +74,6 @@ const emit = defineEmits<{
 
 const visible = ref(false)
 
-const props = defineProps<{
-  apiPrefix: string
-}>()
 
 const showDialog = () => {
   visible.value = true
@@ -148,7 +145,7 @@ const resetForm = () => {
  */
 const addDevServer = (envItem: Omit<EnvModel, 'id'>) => {
   fetchData({
-    url: `${props.apiPrefix}/env/add`,
+    url: `${apiPrefix}/env/add`,
     method: 'POST',
     params: envItem,
   }).then((res) => {
@@ -174,7 +171,7 @@ const submitForm = () => {
 const devServerOptions = ref<DevServerModel[]>([])
 // 获取开发服务器列表
 const getDevServerList = () => {
-  fetchData<ListResponse<DevServerModel>>(`${props.apiPrefix}/server/list`).then((data) => {
+  fetchData<ListResponse<DevServerModel>>(`${apiPrefix}/server/list`).then((data) => {
     devServerOptions.value = data?.list ?? []
   })
 }

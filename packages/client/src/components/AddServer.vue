@@ -43,7 +43,7 @@
 <script lang="ts" setup>
 import { ref, reactive, nextTick } from 'vue'
 import { ElForm, type FormItemRule } from 'element-plus'
-import { fetchData } from '@/utils'
+import { apiPrefix, fetchData } from '@/utils'
 import type { DevServerModel } from '@envm/schemas'
 
 // 定义事件发射类型
@@ -54,10 +54,6 @@ const emit = defineEmits<{
 // 控制弹窗显示状态
 const visible = ref(false)
 
-// 接收父组件传入的API前缀
-const props = defineProps<{
-  apiPrefix: string
-}>()
 
 // 提供给外部调用的显示弹窗方法
 const showDialog = () => {
@@ -124,7 +120,7 @@ const resetForm = () => {
 // 提交表单到后端
 const createDevServer = (serverData: DevServerModel) => {
   fetchData({
-    url: `${props.apiPrefix}/server/add`,
+    url: `${apiPrefix}/server/add`,
     method: 'POST',
     data: serverData, // 使用data而非params，符合POST请求规范
   }).then(() => {
