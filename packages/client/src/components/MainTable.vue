@@ -32,8 +32,8 @@
 </template>
 
 <script lang="ts" setup>
-import AddEnv from './AddEnv.vue'
-import AddServer from './AddServer.vue'
+import AddEnv from './EditEnv.vue'
+import AddServer from './EditServer.vue'
 import EnvTable from './EnvTable.vue'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'

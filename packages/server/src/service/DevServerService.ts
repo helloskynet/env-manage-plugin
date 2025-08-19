@@ -80,12 +80,12 @@ class DevServerService {
     }
 
     // 检查服务器是否已关联环境（关联环境时禁止删除，避免环境依赖异常）
-    // const linkedEnvs = this.envRepo.findEnvsByDevServerId({ devServerId: id });
-    // if (linkedEnvs.length > 0) {
-    //   throw new AppError(
-    //     `删除失败，开发服务器【${id}】已关联 ${linkedEnvs.length} 个环境，请先解除关联`
-    //   );
-    // }
+    const linkedEnvs = this.envRepo.findEnvsByDevServerId(id);
+    if (linkedEnvs.length > 0) {
+      throw new AppError(
+        `删除失败，开发服务器【${existingServer.name}】已关联 ${linkedEnvs.length} 个环境，请先解除关联`
+      );
+    }
 
     // 执行删除
     this.devServerRepo.deleteDevServer(devServerItem);

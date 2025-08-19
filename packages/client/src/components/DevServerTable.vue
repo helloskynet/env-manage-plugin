@@ -3,8 +3,11 @@ import { apiPrefix, fetchData } from '@/utils'
 import type { DevServerModel, ListResponse } from '@envm/schemas'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
+import EditServer from './EditServer.vue'
 
 const devServerList = ref<DevServerModel[]>([])
+
+const editServerRef = ref()
 /**
  * 获取开发服务器列表
  *
@@ -15,8 +18,12 @@ const getDevServerList = () => {
   })
 }
 
+/**
+ * 删除数据
+ * @param rowData
+ */
 const handleDelete = (rowData: DevServerModel) => {
-  ElMessageBox.confirm(`确定删除DevServer ${rowData.name} 吗？`, '提示', {
+  ElMessageBox.confirm(`确定删除DevServer【${rowData.name}】吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
@@ -36,6 +43,9 @@ const handleDelete = (rowData: DevServerModel) => {
     })
 }
 
+const handleModify = (rowData: DevServerModel) => {
+  editServerRef.value.showDialog(rowData)
+}
 onMounted(() => {
   getDevServerList()
 })
@@ -65,8 +75,10 @@ defineExpose({
     />
     <el-table-column label="操作">
       <template #default="scope">
+        <el-button type="" @click="handleModify(scope.row)">修改</el-button>
         <el-button type="danger" @click="handleDelete(scope.row)">删除</el-button>
       </template>
     </el-table-column>
   </el-table>
+  <EditServer ref="editServerRef"  @refreshList="refresh" ></EditServer>
 </template>

@@ -53,14 +53,33 @@ const emit = defineEmits<{
 
 // 控制弹窗显示状态
 const visible = ref(false)
+// 是否为编辑模式
+const isEditMode = ref(false)
+// 当前编辑的数据ID
+const currentId = ref('')
 
+// 弹窗标题（根据模式动态变化）
+const dialogTitle = ref('新增开发服务器')
 
-// 提供给外部调用的显示弹窗方法
-const showDialog = () => {
+// 提供给外部调用的方法
+const showDialog = (rowData?: DevServerModel) => {
   visible.value = true
-  // 重置表单状态
   resetForm()
+
+  // 如果有传入数据，则为编辑模式
+  if (rowData) {
+    isEditMode.value = true
+    currentId.value = rowData.id
+    dialogTitle.value = '编辑开发服务器'
+    // 填充表单数据
+    Object.assign(formData, rowData)
+  } else {
+    // 新增模式
+    isEditMode.value = false
+    dialogTitle.value = '新增开发服务器'
+  }
 }
+
 defineExpose({
   showDialog,
 })
@@ -132,6 +151,18 @@ const createDevServer = (serverData: DevServerModel) => {
     emit('refreshList')
   })
 }
+// 更新开发服务器
+const updateDevServer = (serverData: DevServerModel) => {
+  fetchData({
+    url: `${apiPrefix}/server/update`,
+    method: 'PUT', // 使用PUT方法符合RESTful规范
+    data: serverData,
+  }).then(() => {
+    handleClose(() => { visible.value = false })
+    emit('refreshList')
+  })
+}
+
 
 // 表单提交处理
 const submitForm = () => {
@@ -141,8 +172,12 @@ const submitForm = () => {
         ...formData,
         name: formData.name || formData.devServerUrl,
       } as DevServerModel
-
-      createDevServer(submitData)
+      // 根据模式调用不同方法
+      if (isEditMode.value) {
+        updateDevServer(submitData)
+      } else {
+        createDevServer(submitData)
+      }
     }
   })
 }
