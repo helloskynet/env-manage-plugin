@@ -7,7 +7,6 @@ import {
   DevServerQuery,
   DevServerUpdate,
   DevServerQuerySchema,
-  DevServerUpdateSchema,
   DevServerModel,
 } from "../types/index.js";
 import { AppError } from "../utils/errors.js";
@@ -103,16 +102,8 @@ class DevServerService {
    */
   handleUpdateDevServer(devServerItem: DevServerUpdate): void {
     // 参数校验
-    const validationResult = DevServerUpdateSchema.safeParse(devServerItem);
-    if (!validationResult.success) {
-      throw new AppError(
-        `更新开发服务器失败：参数不合法 - ${JSON.stringify(
-          validationResult.error.issues
-        )}`
-      );
-    }
 
-    const { id } = validationResult.data;
+    const { id } = devServerItem;
     console.log("准备更新开发服务器", id);
 
     // 检查服务器是否存在
@@ -121,7 +112,7 @@ class DevServerService {
       throw new AppError(`更新失败，开发服务器【${id}】不存在`);
     }
 
-    const validData = validationResult.data;
+    const validData = devServerItem;
     // 若更新了URL，需校验新URL的唯一性
     if (
       validData.devServerUrl &&

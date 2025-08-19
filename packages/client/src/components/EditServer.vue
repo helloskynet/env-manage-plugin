@@ -1,45 +1,3 @@
-<template>
-  <el-dialog
-    v-model="visible"
-    title="新增开发服务器"
-    width="600px"
-    :before-close="handleClose"
-  >
-    <el-form
-      ref="formRef"
-      :model="formData"
-      :rules="rules"
-      label-width="130px"
-      size="default"
-    >
-      <el-form-item label="服务名称" prop="name">
-        <el-input v-model="formData.name" placeholder="请输入开发服务名称" />
-      </el-form-item>
-
-      <el-form-item label="服务地址" prop="devServerUrl">
-        <el-input
-          v-model="formData.devServerUrl"
-          placeholder="webpack/vite等启动地址，例如：http://127.0.0.1:3000"
-        />
-      </el-form-item>
-
-      <el-form-item label="服务描述" prop="description">
-        <el-input
-          type="textarea"
-          v-model="formData.description"
-          :rows="3"
-          placeholder="请输入开发服务描述信息"
-        />
-      </el-form-item>
-    </el-form>
-
-    <template #footer>
-      <el-button @click="visible = false">取消</el-button>
-      <el-button type="primary" @click="submitForm">保存</el-button>
-    </template>
-  </el-dialog>
-</template>
-
 <script lang="ts" setup>
 import { ref, reactive, nextTick } from 'vue'
 import { ElForm, type FormItemRule } from 'element-plus'
@@ -158,11 +116,12 @@ const updateDevServer = (serverData: DevServerModel) => {
     method: 'PUT', // 使用PUT方法符合RESTful规范
     data: serverData,
   }).then(() => {
-    handleClose(() => { visible.value = false })
+    handleClose(() => {
+      visible.value = false
+    })
     emit('refreshList')
   })
 }
-
 
 // 表单提交处理
 const submitForm = () => {
@@ -182,3 +141,44 @@ const submitForm = () => {
   })
 }
 </script>
+<template>
+  <el-dialog
+    v-model="visible"
+    :title="isEditMode ? '编辑 Dev Server' : '新增 Dev Server'"
+    width="600px"
+    :before-close="handleClose"
+  >
+    <el-form
+      ref="formRef"
+      :model="formData"
+      :rules="rules"
+      label-width="130px"
+      size="default"
+    >
+      <el-form-item label="服务地址" prop="devServerUrl">
+        <el-input
+          v-model="formData.devServerUrl"
+          placeholder="webpack/vite等启动地址，例如：http://127.0.0.1:3000"
+        />
+      </el-form-item>
+    
+      <el-form-item label="服务名称" prop="name">
+        <el-input v-model="formData.name" placeholder="请输入开发服务名称" />
+      </el-form-item>
+    
+      <el-form-item label="服务描述" prop="description">
+        <el-input
+          type="textarea"
+          v-model="formData.description"
+          :rows="3"
+          placeholder="请输入开发服务描述信息"
+        />
+      </el-form-item>
+    </el-form>
+
+    <template #footer>
+      <el-button @click="visible = false">取消</el-button>
+      <el-button type="primary" @click="submitForm">保存</el-button>
+    </template>
+  </el-dialog>
+</template>

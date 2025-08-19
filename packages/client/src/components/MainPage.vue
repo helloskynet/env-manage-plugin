@@ -1,39 +1,6 @@
-<template>
-  <el-button
-    type="success"
-    @click="handleAddEnv"
-    :loading="refreshLoading"
-  >新增API服务器</el-button>
-  <el-button
-    type="success"
-    @click="handleAddServer"
-    :loading="refreshLoading"
-  >新增DevServer</el-button>
-  <el-button
-    type="success"
-    @click="refreshList"
-    :loading="refreshLoading"
-  >刷新</el-button>
-  <el-button
-    type="success"
-    @click="changeTable"
-    :loading="refreshLoading"
-  >切换</el-button>
-  <el-button
-    type="warning"
-    @click="clearProxyCookies"
-    :loading="refreshLoading"
-  >清除所有代理 Cookie</el-button>
-  <EnvTable v-if="isEnvTable" ref="envTableRef" />
-  <DevServerTable v-else ref="devServerTableRef" />
-
-  <AddEnv ref="addEnvRef" @refreshList="refreshList" />
-  <AddServer ref="addServerRef" @refreshList="refreshList" />
-</template>
-
 <script lang="ts" setup>
-import AddEnv from './EditEnv.vue'
-import AddServer from './EditServer.vue'
+import EditEnv from './EditEnv.vue'
+import EditServer from './EditServer.vue'
 import EnvTable from './EnvTable.vue'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
@@ -62,26 +29,16 @@ onMounted(() => {
   startWs()
 })
 
-/**
- * 当前是否为环境列表
- */
-const isEnvTable = ref(true)
-
-/**
- * 切换查看的数据类型
- */
-const changeTable = () => {
-  isEnvTable.value = !isEnvTable.value
-}
-
 const envTableRef = ref()
 const devServerTableRef = ref()
 /**
  * 刷新表格
  */
 const refreshList = () => {
-  envTableRef.value?.refresh()
-  devServerTableRef.value?.refresh()
+  refreshLoading.value = true
+  Promise.all([envTableRef.value?.refresh(), devServerTableRef.value?.refresh()]).finally(() => {
+    refreshLoading.value = false
+  })
 }
 
 /**
@@ -135,3 +92,38 @@ const startWs = () => {
   })
 }
 </script>
+<template>
+  <el-button
+    type="success"
+    @click="handleAddEnv"
+    :loading="refreshLoading"
+  >新增API Server</el-button>
+  <el-button
+    type="success"
+    @click="handleAddServer"
+    :loading="refreshLoading"
+  >新增Dev Server</el-button>
+  <el-button
+    type="success"
+    @click="refreshList"
+    :loading="refreshLoading"
+  >刷新</el-button>
+  <el-button
+    type="warning"
+    @click="clearProxyCookies"
+    :loading="refreshLoading"
+  >清除所有代理 Cookie</el-button>
+  <br />
+  <br />
+  <el-tabs type="card">
+    <el-tab-pane label="API Server">
+      <EnvTable ref="envTableRef" />
+    </el-tab-pane>
+    <el-tab-pane label="Dev Server">
+      <DevServerTable ref="devServerTableRef" />
+    </el-tab-pane>
+  </el-tabs>
+
+  <EditEnv ref="addEnvRef" @refreshList="refreshList" />
+  <EditServer ref="addServerRef" @refreshList="refreshList" />
+</template>

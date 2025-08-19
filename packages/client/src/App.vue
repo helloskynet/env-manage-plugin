@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import MainTable from './components/MainTable.vue'
+import MainTable from './components/MainPage.vue'
 import TestCom from './components/TestCom.vue'
 
 const isTest = ref(location.href.includes('Test'))

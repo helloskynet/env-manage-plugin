@@ -97,25 +97,25 @@ class PreProxyServer {
    * @returns
    */
   createPreProxyMiddleware() {
-    // 前置转发：将请求转发到 Webpack 开发服务器
+    // 前置转发：将请求转发到 开发服务器
     return createProxyMiddleware({
       ws: true,
       changeOrigin: true,
       router: () => {
         // 查询环境信息
         const envItem = this.getEnvItem();
-        // 根据环境信息查询绑定的服务，地址
+        // 根据环境信息查询绑定的 devServer 地址
         const devServerConfig = this.devServerRepo.findOneById({
           id: envItem?.devServerId ?? "",
         });
-        // 默认转发到 Webpack 开发服务器
+        // 转发到 devServer
         return `${devServerConfig?.devServerUrl}`;
       },
       on: {
         proxyReq: (proxyReq, req) => {
           const envItem = this.getEnvItem();
           const target = `${envItem?.apiBaseUrl}`;
-          proxyReq.setHeader("X-API-Server", `${target}`);
+          proxyReq.setHeader("x-api-server", `${target}`);
           this._rewrieCookieOnProxyReq(proxyReq, req);
         },
         proxyRes: (proxyRes) => {
@@ -124,7 +124,7 @@ class PreProxyServer {
         proxyReqWs: (proxyReq) => {
           const envItem = this.getEnvItem();
           const target = `${envItem?.apiBaseUrl}`;
-          proxyReq.setHeader("X-API-Server", `${target}`);
+          proxyReq.setHeader("x-api-server", `${target}`);
         },
       },
     });

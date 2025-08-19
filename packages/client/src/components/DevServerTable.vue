@@ -13,7 +13,7 @@ const editServerRef = ref()
  *
  */
 const getDevServerList = () => {
-  fetchData<ListResponse<DevServerModel>>(`${apiPrefix}/server/list`).then((res) => {
+  return fetchData<ListResponse<DevServerModel>>(`${apiPrefix}/server/list`).then((res) => {
     devServerList.value = res?.list || []
   })
 }
@@ -23,7 +23,7 @@ const getDevServerList = () => {
  * @param rowData
  */
 const handleDelete = (rowData: DevServerModel) => {
-  ElMessageBox.confirm(`确定删除DevServer【${rowData.name}】吗？`, '提示', {
+  ElMessageBox.confirm(`确定删除DevServer【${rowData.name || rowData.devServerUrl}】吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
@@ -51,7 +51,7 @@ onMounted(() => {
 })
 
 const refresh = () => {
-  getDevServerList()
+  return getDevServerList()
 }
 defineExpose({
   refresh,
@@ -75,10 +75,14 @@ defineExpose({
     />
     <el-table-column label="操作">
       <template #default="scope">
-        <el-button type="" @click="handleModify(scope.row)">修改</el-button>
+        <el-button
+          type="primary"
+          plain
+          @click="handleModify(scope.row)"
+        >修改</el-button>
         <el-button type="danger" @click="handleDelete(scope.row)">删除</el-button>
       </template>
     </el-table-column>
   </el-table>
-  <EditServer ref="editServerRef"  @refreshList="refresh" ></EditServer>
+  <EditServer ref="editServerRef" @refreshList="refresh"></EditServer>
 </template>
