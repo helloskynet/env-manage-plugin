@@ -6,6 +6,7 @@ import { onMounted, ref } from 'vue'
 import EditServer from './EditServer.vue'
 
 const devServerList = ref<DevServerModel[]>([])
+const refreshLoading = ref(false)
 
 const editServerRef = ref()
 /**
@@ -13,9 +14,14 @@ const editServerRef = ref()
  *
  */
 const getDevServerList = () => {
-  return fetchData<ListResponse<DevServerModel>>(`${apiPrefix}/server/list`).then((res) => {
-    devServerList.value = res?.list || []
-  })
+  refreshLoading.value = true
+  return fetchData<ListResponse<DevServerModel>>(`${apiPrefix}/server/list`)
+    .then((res) => {
+      devServerList.value = res?.list || []
+    })
+    .finally(() => {
+      refreshLoading.value = false
+    })
 }
 
 /**
@@ -62,6 +68,7 @@ defineExpose({
     :data="devServerList"
     style="width: 100%"
     stripe
+    v-loading="refreshLoading"
   >
     <el-table-column
       prop="name"

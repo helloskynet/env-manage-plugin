@@ -9,8 +9,6 @@ const tableData = ref<EnvModel[]>([])
 
 const devServerList = ref<DevServerModel[]>([])
 
-const loadingMap = ref<{ [key: string]: unknown }>({}) // 存储每行的 loading 状态
-
 const refreshLoading = ref(false)
 
 /**
@@ -105,7 +103,7 @@ const handleDelete = (rowData: EnvModel) => {
  * @param rowData
  */
 const updateStatus = (action: string, rowData: EnvModel) => {
-  loadingMap.value[rowData.port] = true
+  refreshLoading.value = true
 
   fetchData({
     url: `${apiPrefix}/env/${action}`,
@@ -116,7 +114,7 @@ const updateStatus = (action: string, rowData: EnvModel) => {
       ElMessage.success('操作成功')
     })
     .finally(() => {
-      loadingMap.value[rowData.port] = false
+      refreshLoading.value = false
     })
 }
 
@@ -142,12 +140,13 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
   <el-table
     :data="tableData"
     style="width: 100%"
+    v-loading="refreshLoading"
     stripe
   >
     <el-table-column
       prop="name"
       label="环境名称"
-      width="150"
+      width="140"
     />
     <el-table-column
       prop="apiBaseUrl"
@@ -168,8 +167,16 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
         >{{ scope.row.index }}</el-link>
       </template>
     </el-table-column>
-    <el-table-column prop="port" label="绑定端口" />
-    <el-table-column prop="status" label="状态">
+    <el-table-column
+      prop="port"
+      label="绑定端口"
+      width="100"
+    />
+    <el-table-column
+      prop="status"
+      label="状态"
+      width="140"
+    >
       <template #default="scope">
         <el-tag v-if="scope.row.status === 'stopped'" type="danger">未启动</el-tag>
         <el-tag v-else type="success">已启动</el-tag>
@@ -197,13 +204,11 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
         <el-button
           type="success"
           v-if="scope.row.status === 'stopped'"
-          :loading="loadingMap[scope.row.port]"
           @click="handleStart(scope.row)"
         >启动</el-button>
         <el-button
           type="info"
           v-else
-          :loading="loadingMap[scope.row.port]"
           @click="handleStop(scope.row)"
         >停止</el-button>
         <el-button
@@ -213,7 +218,6 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
         >修改</el-button>
         <el-button
           type="danger"
-          :loading="loadingMap[scope.row.port]"
           @click="handleDelete(scope.row)"
         >删除</el-button>
       </template>

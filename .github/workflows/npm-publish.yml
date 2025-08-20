@@ -31,8 +31,11 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm run build
-      - run: npm publish
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
+      - run: pnpm i
+      - run: pnpm build
+      - run: pnpm --filter env-manage-plugin publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
