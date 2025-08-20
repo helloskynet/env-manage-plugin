@@ -87,6 +87,7 @@ class EnvManage {
 
         res.on("end", () => {
           const result = JSON.parse(responseData);
+          console.log(result)
           resolve(result);
         });
       });
