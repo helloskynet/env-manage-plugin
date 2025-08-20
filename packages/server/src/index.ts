@@ -43,9 +43,9 @@ class EnvManage {
   }
 
   /**
-   * 
+   *
    * @param port 查询端口是否被占用
-   * @returns 
+   * @returns
    */
   isPortOccupied(port: number) {
     return portfinder
