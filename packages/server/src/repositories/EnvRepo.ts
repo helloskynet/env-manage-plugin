@@ -1,5 +1,5 @@
 import { AppError } from "../utils/errors.js";
-import { db } from "./database.js";
+import { getDatabase } from "./database.js";
 import {
   EnvModel,
   EnvDelete,
@@ -18,7 +18,7 @@ class EnvRepo {
    * @returns 环境数据集合对象
    */
   private getCollection() {
-    return db.getCollection<EnvModel>("envms");
+    return getDatabase().getCollection<EnvModel>("envms");
   }
 
   /**

@@ -1,45 +1,47 @@
 import portfinder from "portfinder";
 import http from "http";
 import PostProxyServer from "./PostProxyServer.js";
-import { config } from "./utils/ResolveConfig.js";
+import { getConfig, loadConfig } from "./utils/ResolveConfig.js";
 import { EnvmConfigInterface } from "./types/index.js";
+import { startDatabase } from "./repositories/database.js";
+import { initLoggers, logger } from "./utils/logger.js";
 
 class EnvManage {
-  /**
-   * 应用启动配置
-   */
-  options: EnvmConfigInterface;
+  get config() {
+    return getConfig();
+  }
 
-  constructor(options: EnvmConfigInterface) {
-    this.options = options;
+  constructor(options: Partial<EnvmConfigInterface> = {}) {
+    loadConfig(options);
+    initLoggers(options.logLevel || "");
   }
 
   async startIndependent() {
-    console.log("Starting EnvManage...", config);
+    logger.info(this.config, "Starting EnvManage...");
 
     // 检查端口是否被占用
-    this.checkPortAsync()
-      .then(() => {
-        console.log(`端口 ${config.port} 可用，启动服务...`);
-        new PostProxyServer();
-      })
-      .catch((error) => {
-        console.error("端口检查失败:", error.message);
-      });
+    try {
+      await this.checkPortAsync();
+
+      logger.info(`端口 ${this.config.port} 可用，启动服务...`);
+
+      await startDatabase();
+      new PostProxyServer();
+    } catch (error) {
+      console.error("端口检查失败:", error);
+    }
   }
 
   /**
    * 判断端口是否被占用，如果被占用的，查询是否已经启动
    * @returns
    */
-  checkPortAsync() {
-    return this.isPortOccupied(config.port).then((result) => {
-      if (result) {
-        return this.checkIsRunning().then(() => {
-          throw new Error(`请确认服务是否已经在端口 ${config.port} 启动`);
-        });
-      }
-    });
+  async checkPortAsync() {
+    const result = await this.isPortOccupied(this.config.port);
+    if (result) {
+      await this.checkIsRunning();
+      throw new Error(`请确认服务是否已经在端口 ${this.config.port} 启动`);
+    }
   }
 
   /**
@@ -67,8 +69,8 @@ class EnvManage {
   checkIsRunning() {
     const options = {
       hostname: "127.0.0.1",
-      port: config.port,
-      path: `${config.apiPrefix}/are-you-ok`,
+      port: this.config.port,
+      path: `${this.config.apiPrefix}/are-you-ok`,
       method: "GET",
     };
 
@@ -87,7 +89,7 @@ class EnvManage {
 
         res.on("end", () => {
           const result = JSON.parse(responseData);
-          console.log(result)
+          logger.info(result);
           resolve(result);
         });
       });

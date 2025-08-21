@@ -10,6 +10,7 @@ import {
   DevServerModel,
 } from "../types/index.js";
 import { AppError } from "../utils/errors.js";
+import { devServerLogger } from "../utils/logger.js";
 
 /**
  * 开发服务器服务类
@@ -34,7 +35,7 @@ class DevServerService {
    */
   handleAddDevServer(devServerItem: DevServerCreate): void {
     const validData = devServerItem;
-    console.log("准备添加开发服务器", validData);
+    devServerLogger.info(validData, "准备添加开发服务器");
 
     // 检查服务器URL是否已存在（URL作为唯一标识）
     const existingServer = this.devServerRepo.findOneByUrl(
@@ -54,7 +55,7 @@ class DevServerService {
 
     // 保存开发服务器
     this.devServerRepo.addDevServer(newDevServer);
-    console.log("开发服务器添加成功", newDevServer.id);
+    devServerLogger.info(newDevServer, "开发服务器添加成功");
   }
 
   /**
@@ -70,7 +71,7 @@ class DevServerService {
     // 参数校验
 
     const { id } = devServerItem;
-    console.log("准备删除开发服务器", id);
+    devServerLogger.info(devServerItem, "准备删除开发服务器");
 
     // 检查服务器是否存在
     const existingServer = this.devServerRepo.findOneById(devServerItem);
@@ -88,7 +89,7 @@ class DevServerService {
 
     // 执行删除
     this.devServerRepo.deleteDevServer(devServerItem);
-    console.log("开发服务器删除成功", id);
+    devServerLogger.info(devServerItem, "开发服务器删除成功");
   }
 
   /**
@@ -104,7 +105,7 @@ class DevServerService {
     // 参数校验
 
     const { id } = devServerItem;
-    console.log("准备更新开发服务器", id);
+    devServerLogger.info(devServerItem, "准备更新开发服务器");
 
     // 检查服务器是否存在
     const existingServer = this.devServerRepo.findOneById({ id });
@@ -136,7 +137,7 @@ class DevServerService {
 
     // 执行更新
     this.devServerRepo.update(updatedServer);
-    console.log("开发服务器更新成功", id);
+    devServerLogger.info(updatedServer, "开发服务器更新成功");
   }
 
   /**
@@ -145,7 +146,7 @@ class DevServerService {
    */
   handleGetList(): DevServerModel[] {
     const list = this.devServerRepo.getAll();
-    console.log(`查询到${list.length}个开发服务器`);
+    devServerLogger.info(`查询到${list.length}个开发服务器`);
     return list;
   }
 
@@ -167,7 +168,7 @@ class DevServerService {
     }
 
     const server = this.devServerRepo.findOneById(validationResult.data);
-    console.log(
+    devServerLogger.info(
       `查询开发服务器【${devServer.id}】结果：${server ? "存在" : "不存在"}`
     );
     return server;
@@ -187,7 +188,9 @@ class DevServerService {
       throw new AppError("关联失败：开发服务器ID和环境ID不能为空");
     }
 
-    console.log(`准备关联开发服务器【${devServerId}】到环境【${envId}】`);
+    devServerLogger.info(
+      `准备关联开发服务器【${devServerId}】到环境【${envId}】`
+    );
 
     // 检查开发服务器是否存在
     const devServer = this.devServerRepo.findOneById({ id: devServerId });
@@ -207,7 +210,9 @@ class DevServerService {
     //   status: "linked",
     //   linkedEnvId: envId, // 记录关联的环境ID（需确保Schema支持该字段）
     // });
-    console.log(`开发服务器【${devServerId}】已成功关联到环境【${envId}】`);
+    devServerLogger.info(
+      `开发服务器【${devServerId}】已成功关联到环境【${envId}】`
+    );
   }
 
   /**
@@ -221,7 +226,7 @@ class DevServerService {
       throw new AppError("解除关联失败：开发服务器ID不能为空");
     }
 
-    console.log(`准备解除开发服务器【${devServerId}】的环境关联`);
+    devServerLogger.info(`准备解除开发服务器【${devServerId}】的环境关联`);
 
     const devServer = this.devServerRepo.findOneById({ id: devServerId });
     if (!devServer) {
@@ -234,7 +239,7 @@ class DevServerService {
     //   status: "unlinked",
     //   linkedEnvId: undefined,
     // });
-    console.log(`开发服务器【${devServerId}】已解除环境关联`);
+    devServerLogger.info(`开发服务器【${devServerId}】已解除环境关联`);
   }
 }
 

@@ -1,4 +1,4 @@
-import { db } from "./database.js";
+import { getDatabase } from "./database.js";
 import {
   DevServerModel,
   DevServerDelete,
@@ -21,7 +21,7 @@ class DevServerRepo {
    * @returns 开发服务器数据集合对象
    */
   private getCollection() {
-    return db.getCollection<DevServerModel>("devServer");
+    return getDatabase().getCollection<DevServerModel>("devServer");
   }
 
   /**

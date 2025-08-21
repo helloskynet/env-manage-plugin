@@ -4,7 +4,7 @@ import * as libCookie from "cookie";
 import { Container } from "../Container.js";
 import { EnvController } from "../controllers/EnvController.js";
 import { DevServerController } from "../controllers/DevServerController.js";
-import { config } from "../utils/ResolveConfig.js";
+import { getConfig } from "../utils/ResolveConfig.js";
 import { toDTO } from "../middleware/dto.middleware.js";
 import {
   EnvPrimarySchema,
@@ -60,7 +60,7 @@ const createCommonRoutes = () => {
     if (cookies) {
       const cookieArr = libCookie.parse(cookies);
       Object.keys(cookieArr).forEach((cookieName) => {
-        if (cookieName.endsWith(config.cookieSuffix)) {
+        if (cookieName.endsWith(getConfig().cookieSuffix)) {
           res.appendHeader("Set-Cookie", `${cookieName}=; max-age=0; path=/`);
         }
       });

@@ -1,6 +1,7 @@
 {
   "name": "env-manage-plugin",
   "version": "0.5.1",
+  "type": "module",
   "description": "A dev env plugin that integrates an Express server with request proxying capabilities.",
   "keywords": [
     "proxy",
@@ -20,7 +21,7 @@
     }
   },
   "scripts": {
-    "dev": "tsx watch  --tsconfig tsconfig.dev.json ./bin/index.ts",
+    "dev": "tsx watch  --tsconfig tsconfig.dev.json -- ./bin/index.ts",
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint ./src"
   },
@@ -50,7 +51,6 @@
     "@types/lokijs": "^1.5.14",
     "@types/set-cookie-parser": "^2.4.10",
     "@types/ws": "^8.18.0",
-    "concurrently": "^8.2.2",
     "globals": "^16.1.0",
     "nodemon": "^3.1.9",
     "tsx": "^4.20.3",

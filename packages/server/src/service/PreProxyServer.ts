@@ -5,7 +5,7 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
 
-import { config } from "../utils/ResolveConfig.js";
+import { getConfig } from "../utils/ResolveConfig.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
 import { EnvModel } from "../types/index.js";
@@ -89,7 +89,7 @@ class PreProxyServer {
    * 配置的 cookie 后缀
    */
   static get configCookieSuffix() {
-    return `${config.cookieSuffix}`;
+    return `${getConfig().cookieSuffix}`;
   }
 
   /**

@@ -6,6 +6,7 @@ import {
   DevServerDelete,
   DevServerQuery,
 } from "../types/index.js";
+import { devServerLogger } from "../utils/logger.js";
 
 class DevServerController {
   constructor(private readonly devServerService: DevServerService) {}
@@ -36,8 +37,8 @@ class DevServerController {
   handleGetDevServerById(req: Request, res: Response, next: NextFunction) {
     try {
       // 验证请求数据
-      const devServerData =(req.dto) as DevServerQuery;
-      console.log("接收环境详情查询请求", { id: devServerData.id });
+      const devServerData = req.dto as DevServerQuery;
+      devServerLogger.info(devServerData, "接收环境详情查询请求");
 
       // 调用服务层获取数据（假设服务层有此方法）
       const detail = this.devServerService.findOneById(devServerData);

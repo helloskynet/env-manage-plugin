@@ -4,7 +4,7 @@ import { WebSocketServer } from "ws";
 import express, { Express, Request } from "express";
 import expressStaticGzip from "express-static-gzip";
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { config } from "./utils/ResolveConfig.js";
+import { getConfig } from "./utils/ResolveConfig.js";
 import { createRouter } from "./routes/index.js";
 import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
 import { responseEnhancer } from "./middleware/responseEnhancer.js";
@@ -19,10 +19,16 @@ const __filename = fileURLToPath(currentModuleUrl); // 当前文件的完整路�
 import { dirname } from "path";
 const __dirname = dirname(__filename); // 当前文件所在的目录路径
 
+import { envLogger } from "./utils/logger.js";
 /**
  * 后置代理服务器---同时也是管理页面的服务器
  */
 class PostProxyServer {
+
+  get config() {
+    return getConfig();
+  }
+
   constructor(private app: Express = express()) {
     // 代理中间件
     app.use(this.createPostProxyMiddleware());
@@ -34,7 +40,7 @@ class PostProxyServer {
     app.use(responseEnhancer);
 
     // 初始化管理路由
-    app.use(config.apiPrefix, createRouter());
+    app.use(this.config.apiPrefix, createRouter());
 
     // 全局错误处理中间件
     app.use(globalErrorHandler);
@@ -49,9 +55,9 @@ class PostProxyServer {
    * 启动服务
    */
   private startServer() {
-    return this.app.listen(config.port, () => {
-      console.log(
-        `Post Proxy Middleware is running on http://localhost:${config.port}`
+    return this.app.listen(this.config.port, () => {
+      envLogger.info(
+        `Post Proxy Middleware is running on http://localhost:${this.config.port}`
       );
     });
   }
@@ -64,7 +70,7 @@ class PostProxyServer {
     const wss = new WebSocketServer({ noServer: true });
 
     server.on("upgrade", (request, socket, head) => {
-      if (request?.url?.startsWith(config.apiPrefix)) {
+      if (request?.url?.startsWith(this.config.apiPrefix)) {
         wss.handleUpgrade(request, socket, head, () => {});
       }
     });
