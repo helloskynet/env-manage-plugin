@@ -19,7 +19,7 @@ const getPackageJsonConfig = () => {
     const content = fs.readFileSync(targetPath, "utf8");
     const pkg = JSON.parse(content);
     return pkg.envm || {};
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     console.warn(
       `⚠️ 无法读取 package.json（路径：${targetPath}）中的 envm 配置，将忽略这部分配置:`
@@ -30,7 +30,7 @@ const getPackageJsonConfig = () => {
 
 /**
  * 加载并解析配置（核心函数）
- * @param options 动态配置参数（如自定义 .env 路径）
+ * @param options 动态配置参数（优先级最高）
  * @returns 验证后的配置对象
  */
 export const loadConfig = (
@@ -46,6 +46,13 @@ export const loadConfig = (
       console.warn("⚠️ 未找到 .env 文件，忽略...");
     }
 
+    const {
+      envm_port: port,
+      envm_apiPrefix: apiPrefix,
+      envm_cookieSuffix: cookieSuffix,
+      envm_logLevel: logLevel,
+    } = process.env;
+
     // 3. 读取 package.json 配置（支持自定义路径）
     const packageJsonConfig = getPackageJsonConfig();
 
@@ -53,7 +60,10 @@ export const loadConfig = (
     // 3. 合并配置：优先级从低到高
     const mergedConfig = {
       ...packageJsonConfig, // 最低优先级
-      ...process.env, // 中间优先级
+      port, // 中间优先级
+      apiPrefix,
+      cookieSuffix,
+      logLevel,
       ...overrideConfig, // 最高优先级（外部传入的配置）
     };
     // 5. Zod 验证
@@ -61,19 +71,17 @@ export const loadConfig = (
 
     // 6. 缓存配置并返回
     cachedConfig = parsedConfig;
-    console.log("✅ 配置加载与验证成功");
+    console.log("✅ 配置加载与验证成功", cachedConfig);
     return parsedConfig;
   } catch (error) {
     // 7. 精细化错误处理
     if (error instanceof z.ZodError) {
-      console.error("❌ 配置验证失败（字段错误详情）:", error.issues);
       throw new Error(
         `配置字段错误：${error.issues
           .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
           .join("; ")}`
       );
     }
-    console.error("❌ 配置加载失败:", error);
     throw new Error(`配置加载异常：${(error as Error).message}`);
   }
 };

@@ -12,8 +12,15 @@ class EnvManage {
   }
 
   constructor(options: Partial<EnvmConfigInterface> = {}) {
-    loadConfig(options);
-    initLoggers(options.logLevel || "");
+    try {
+      loadConfig(options);
+      initLoggers(options.logLevel || "");
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("❌ 配置加载失败，服务启动失败，", error.message);
+      }
+      process.exit(1);
+    }
   }
 
   async startIndependent() {

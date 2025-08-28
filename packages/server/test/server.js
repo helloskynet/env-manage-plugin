@@ -1,5 +1,5 @@
-const express = require("express");
-const { WebSocketServer } = require("ws");
+import express from "express";
+import { WebSocketServer } from "ws";
 
 const createServer = (port, second) => {
   const app = express();
