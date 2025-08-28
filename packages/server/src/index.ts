@@ -14,7 +14,7 @@ class EnvManage {
   constructor(options: Partial<EnvmConfigInterface> = {}) {
     try {
       loadConfig(options);
-      initLoggers(options.logLevel || "");
+      initLoggers(this.config.logLevel);
     } catch (error) {
       if (error instanceof Error) {
         console.error("❌ 配置加载失败，服务启动失败，", error.message);
@@ -35,7 +35,10 @@ class EnvManage {
       await startDatabase();
       new PostProxyServer();
     } catch (error) {
-      console.error("端口检查失败:", error);
+      if (error instanceof Error) {
+        logger.error(error, "启动失败");
+      }
+      process.exit(1);
     }
   }
 
@@ -46,8 +49,14 @@ class EnvManage {
   async checkPortAsync() {
     const result = await this.isPortOccupied(this.config.port);
     if (result) {
-      await this.checkIsRunning();
-      throw new Error(`请确认服务是否已经在端口 ${this.config.port} 启动`);
+      try {
+        await this.checkIsRunning();
+      } catch (error) {
+        logger.error(error, "端口被占用，且不是 envm 服务");
+      }
+      throw new Error(
+        `envm 服务已经在端口 ${this.config.port} 启动，请勿重复启动！`
+      );
     }
   }
 
@@ -96,7 +105,7 @@ class EnvManage {
 
         res.on("end", () => {
           const result = JSON.parse(responseData);
-          logger.info(result);
+          logger.info(result, "收到已启动的代理服务返回的消息");
           resolve(result);
         });
       });
