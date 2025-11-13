@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue'
 import type { DevServerModel, EnvModel, ListResponse } from '@envm/schemas'
 import { apiPrefix, fetchData } from '@/utils'
 import EditEnv from './EditEnv.vue'
+import { DocumentCopy, Delete, Edit, VideoPlay, VideoPause } from '@element-plus/icons-vue'
 
 const tableData = ref<EnvModel[]>([])
 
@@ -70,6 +71,12 @@ const handleModify = (rowData: EnvModel) => {
     return
   }
   editEnvRef.value.showDialog(rowData)
+}
+
+const handleCopy = (rowData: EnvModel) => {
+  const newEnv = { ...rowData }
+  newEnv.name = `${newEnv.name}-副本`
+  editEnvRef.value.showDialog(newEnv, true)
 }
 
 /**
@@ -203,23 +210,42 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
       <template #default="scope">
         <el-button
           type="success"
+          circle
+          :icon="VideoPlay"
+          title="启动环境"
           v-if="scope.row.status === 'stopped'"
           @click="handleStart(scope.row)"
-        >启动</el-button>
+        ></el-button>
         <el-button
           type="info"
+          circle
+          :icon="VideoPause"
+          title="停止环境"
           v-else
           @click="handleStop(scope.row)"
-        >停止</el-button>
+        ></el-button>
         <el-button
           type="primary"
           plain
+          circle
+          :icon="Edit"
+          title="修改环境"
           @click="handleModify(scope.row)"
-        >修改</el-button>
+        ></el-button>
         <el-button
           type="danger"
+          :icon="Delete"
+          title="删除环境"
+          circle
           @click="handleDelete(scope.row)"
-        >删除</el-button>
+        ></el-button>
+        <el-button
+          type="primary"
+          :icon="DocumentCopy"
+          title="复制环境"
+          circle
+          @click="handleCopy(scope.row)"
+        ></el-button>
       </template>
     </el-table-column>
   </el-table>

@@ -13,12 +13,12 @@ const isEditMode = ref(false)
 const currentId = ref('')
 
 // 显示对话框，支持新增和编辑模式
-const showDialog = (envItem?: EnvModel) => {
+const showDialog = (envItem?: EnvModel,isCopy:boolean = false) => {
   visible.value = true
   getDevServerList()
 
   // 如果有传入数据，则进入编辑模式
-  if (envItem) {
+  if (envItem && !isCopy) {
     isEditMode.value = true
     currentId.value = envItem.id
     // 复制数据到表单
@@ -28,7 +28,7 @@ const showDialog = (envItem?: EnvModel) => {
     isEditMode.value = false
     currentId.value = ''
     // 重置表单为默认值
-    Object.assign(formData, defautlFormData)
+    Object.assign(formData, defautlFormData,{...envItem})
   }
 
   // 清除之前的验证状态
