@@ -1,5 +1,33 @@
 // src/utils/logger.ts
 import pino, { Logger } from "pino";
+import { execSync } from "child_process";
+import os from "os";
+
+/**
+ * 自动将终端编码切换为 UTF-8（跨平台）
+ */
+function setTerminalEncodingToUtf8() {
+  const platform = os.platform();
+
+  try {
+    if (platform === "win32") {
+      // Windows 系统：切换代码页为 UTF-8（65001）
+      // execSync 执行 cmd 命令，stdio: 'ignore' 避免命令输出干扰日志
+      execSync("chcp 65001", { stdio: "ignore" });
+      console.log("Windows 终端已切换为 UTF-8 编码（代码页 65001）");
+    } else if (platform === "linux" || platform === "darwin") {
+      // Linux/macOS 系统：设置 LC_ALL 为 UTF-8（临时生效）
+      // 注意：类 Unix 系统编码通常由 locale 控制，这里仅临时覆盖
+      process.env.LC_ALL = "en_US.UTF-8";
+      console.log("类 Unix 终端已设置为 UTF-8 编码");
+    }
+  } catch (error) {
+    console.warn("切换终端编码失败，可能导致中文乱码：", error);
+  }
+}
+
+// 在日志初始化前调用，确保编码已切换
+setTerminalEncodingToUtf8();
 
 // 日志初始化选项：需传入加载好的 config
 export type CreateLoggerOptions = {
