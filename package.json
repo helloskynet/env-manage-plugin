@@ -1,6 +1,7 @@
 {
-  "name": "env-manage-plugin",
-  "version": "0.4.9",
+  "name": "env-manage-plugin-root",
+  "version": "0.5.4",
+  "private": true,
   "description": "A dev env plugin that integrates an Express server with request proxying capabilities.",
   "keywords": [
     "proxy",
@@ -22,6 +23,7 @@
     }
   },
   "scripts": {
+    "clean": "pnpm store prune && pnpm dlx rimraf -g **/node_modules",
     "preinstall": "npx only-allow pnpm",
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
@@ -61,5 +63,8 @@
     "templates",
     "README.md",
     "LICENSE"
+  ],
+  "workspaces": [
+    "packages/*"
   ]
 }
