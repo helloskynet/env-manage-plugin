@@ -79,10 +79,10 @@ class EnvRepo {
 
   /**
    * 根据devServerID查询数据
-   * @param devServerId 
-   * @returns 
+   * @param devServerId
+   * @returns
    */
-  findEnvsByDevServerId(devServerId:string) {
+  findEnvsByDevServerId(devServerId: string) {
     return this.getCollection().find({
       devServerId,
     });

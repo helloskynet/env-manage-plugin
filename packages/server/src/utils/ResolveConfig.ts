@@ -19,8 +19,7 @@ const getPackageJsonConfig = () => {
     const content = fs.readFileSync(targetPath, "utf8");
     const pkg = JSON.parse(content);
     return pkg.envm || {};
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (error) {
+  } catch {
     console.warn(
       `⚠️ 无法读取 package.json（路径：${targetPath}）中的 envm 配置，将忽略这部分配置:`
     );

@@ -23,7 +23,10 @@ class DevServerService {
    * @param devServerRepo - 开发服务器仓库实例，用于devServer数据的持久化操作
    * @param envRepo - 环境仓库实例，用于关联环境的校验与操作
    */
-  constructor(private devServerRepo: DevServerRepo, private envRepo: EnvRepo) {}
+  constructor(
+    private devServerRepo: DevServerRepo,
+    private envRepo: EnvRepo
+  ) {}
 
   /**
    * 添加新开发服务器

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * 环境主键Schema
@@ -48,7 +48,7 @@ export const EnvModelSchema = EnvPrimarySchema.extend(EnvItemBaseSchema.shape);
  * 用于创建新环境时的参数验证，不需要提供id（由系统生成）
  */
 export const EnvCreateSchema = EnvItemBaseSchema.omit({
-  status: true // 新增时状态由系统自动设置
+  status: true, // 新增时状态由系统自动设置
 });
 
 /**
@@ -112,4 +112,3 @@ export type EnvUpdate = z.infer<typeof EnvUpdateSchema>;
  * 用于查询环境时的参数类型，只包含id字段
  */
 export type EnvQuery = z.infer<typeof EnvQuerySchema>;
-    

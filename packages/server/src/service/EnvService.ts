@@ -23,7 +23,10 @@ class EnvService {
    * @param envRepo - 环境仓库实例，用于环境数据的持久化操作
    * @param devServerRepo - 开发服务器仓库实例，用于关联开发服务器的操作
    */
-  constructor(private envRepo: EnvRepo, private devServerRepo: DevServerRepo) {}
+  constructor(
+    private envRepo: EnvRepo,
+    private devServerRepo: DevServerRepo
+  ) {}
 
   /**
    * 添加新环境
@@ -97,7 +100,7 @@ class EnvService {
     // 参数校验
 
     const { id } = envItem;
-    envLogger.info({ envItem }, `准备更新环境`);
+    envLogger.info({ envItem }, "准备更新环境");
 
     // 检查环境是否存在
     const existingEnv = this.envRepo.findOneById(id);
@@ -107,7 +110,7 @@ class EnvService {
 
     // 执行更新
     this.envRepo.update(envItem);
-    envLogger.info({ envItem }, `环境更新成功`);
+    envLogger.info({ envItem }, "环境更新成功");
   }
 
   /**

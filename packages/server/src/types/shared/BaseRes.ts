@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * 基础响应结构的Zod校验规则
@@ -24,7 +24,7 @@ export const BaseResponseSchema = z.object({
    * - 可选字段，根据接口需求动态变化
    * - 类型由泛型参数指定
    */
-  data: z.unknown().optional()
+  data: z.unknown().optional(),
 });
 
 /**
@@ -45,7 +45,7 @@ export type BaseResponse<T = unknown> = z.infer<typeof BaseResponseSchema> & {
  */
 export const createResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) => {
   return BaseResponseSchema.extend({
-    data: dataSchema.optional()
+    data: dataSchema.optional(),
   }) as z.ZodObject<{
     code: z.ZodNumber;
     message: z.ZodString;

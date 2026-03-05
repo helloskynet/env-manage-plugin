@@ -25,4 +25,3 @@ export const ResponseCode = {
   NOT_FOUND: 404,
   INTERNAL_ERROR: 500,
 } as const; // 只读约束
-

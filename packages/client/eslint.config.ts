@@ -1,12 +1,16 @@
+// @ts-check
 import { globalIgnores } from 'eslint/config'
 import pluginVue from 'eslint-plugin-vue'
 import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
+import { sharedConfig } from '../../eslint.config.shared'
 
 export default defineConfigWithVueTs(
+  ...sharedConfig,
+
   {
     name: 'app/files-to-lint',
-    files: ['./**/*.{js,mjs,jsx,ts,tsx,vue}'],
+    files: ['**/*.{js,mjs,jsx,ts,tsx,vue}'],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -20,31 +24,33 @@ export default defineConfigWithVueTs(
   ...pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
   skipFormatting,
+
   {
     rules: {
+      // Vue 特定规则
       'vue/max-attributes-per-line': [
         'error',
         {
           singleline: {
-            max: 2, // 单行元素最多允许的属性数量
+            max: 2,
           },
           multiline: {
-            max: 1, // 多行元素每行只允许一个属性
+            max: 1,
           },
         },
-      ], // 可选：控制第一个属性的位置
+      ],
       'vue/first-attribute-linebreak': [
         'error',
         {
-          singleline: 'beside', // 单行时第一个属性与标签名同行
-          multiline: 'below', // 多行时第一个属性在下一行
+          singleline: 'beside',
+          multiline: 'below',
         },
       ],
       'vue/html-closing-bracket-newline': [
         'error',
         {
-          singleline: 'never', // 单行元素：闭合括号不换行
-          multiline: 'always', // 多行元素：闭合括号总是换行
+          singleline: 'never',
+          multiline: 'always',
         },
       ],
       'vue/html-indent': [

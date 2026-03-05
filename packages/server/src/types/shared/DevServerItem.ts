@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * 开发服务器主键Schema
@@ -33,7 +33,9 @@ export const BaseDevServerSchema = z.object({
  * 完整开发服务器模型Schema
  * 合并了主键和基础信息，用于创建完整的开发服务器模型
  */
-export const DevServerModelSchema = DevServerPrimarySchema.extend(BaseDevServerSchema.shape);
+export const DevServerModelSchema = DevServerPrimarySchema.extend(
+  BaseDevServerSchema.shape
+);
 
 /**
  * 新增开发服务器Schema
@@ -102,4 +104,3 @@ export type DevServerUpdate = z.infer<typeof DevServerUpdateSchema>;
  * 用于查询开发服务器时的参数类型，只包含id字段
  */
 export type DevServerQuery = z.infer<typeof DevServerQuerySchema>;
-    

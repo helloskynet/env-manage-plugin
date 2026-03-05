@@ -1,6 +1,6 @@
 import { DevServerModel } from "../types/index.js";
 
-interface DevServerItemModel extends DevServerModel{
+interface DevServerItemModel extends DevServerModel {
   /**
    * 开发服务器的ID
    */
@@ -20,7 +20,6 @@ interface DevServerItemModel extends DevServerModel{
    * 开发服务器的IP地址
    */
   devServerUrl: string;
-  
 }
 
 export { DevServerItemModel };

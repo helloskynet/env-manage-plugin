@@ -24,7 +24,6 @@ import { envLogger } from "./utils/logger.js";
  * 后置代理服务器---同时也是管理页面的服务器
  */
 class PostProxyServer {
-
   get config() {
     return getConfig();
   }

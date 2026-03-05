@@ -45,25 +45,8 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/dev-manage-api': {
-        target: 'http://localhost:3000',
-        ws: true,
-      },
-      '/simple': {
-        target: 'http://localhost:3099',
-        changeOrigin: true,
-      },
-      '/two': {
-        target: 'http://localhost:3099',
-        changeOrigin: true,
-      },
-      '/login': {
-        target: 'http://localhost:3099',
-        changeOrigin: true,
-      },
-      '/test': {
         target: 'http://localhost:3099',
         ws: true,
-        changeOrigin: true,
       },
     },
   },
