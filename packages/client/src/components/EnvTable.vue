@@ -142,6 +142,30 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
     getEnvList()
   })
 }
+import { useClipboard } from '@vueuse/core'
+const { copy, isSupported } = useClipboard()
+/**
+ * 拷贝APIurl
+ */
+const copyApiBaseUrl = (url: string) => {
+  if (!isSupported) {
+    ElMessage.warning('当前浏览器不支持剪贴板功能')
+    return
+  }
+  const regex = /(?<=:\/\/)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?=:\d+|\/|$)/
+  // 提取 IP
+  const match = url.match(regex)
+  const ip = match?.[1] || ''
+  if (ip) {
+    copy(ip)
+      .then(() => {
+        ElMessage.success('复制成功')
+      })
+      .catch(() => {
+        ElMessage.error('复制失败')
+      })
+  }
+}
 </script>
 <template>
   <el-table
@@ -159,7 +183,13 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
       prop="apiBaseUrl"
       label="API服务地址"
       width="180"
-    />
+    >
+      <template #default="scope">
+        <el-text @click="copyApiBaseUrl(scope.row.apiBaseUrl)">
+          {{ scope.row.apiBaseUrl }}
+        </el-text>
+      </template>
+    </el-table-column>
     <el-table-column
       prop="index"
       label="首页地址"
@@ -171,7 +201,9 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
           type="primary"
           :href="scope.row.index"
           target="_blank"
-        >{{ scope.row.index }}</el-link>
+        >
+          {{ scope.row.index }}
+        </el-link>
       </template>
     </el-table-column>
     <el-table-column
@@ -185,11 +217,24 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
       width="140"
     >
       <template #default="scope">
-        <el-tag v-if="scope.row.status === 'stopped'" type="danger">未启动</el-tag>
-        <el-tag v-else type="success">已启动</el-tag>
+        <el-tag
+          v-if="scope.row.status === 'stopped'"
+          type="danger"
+        >
+          未启动
+        </el-tag>
+        <el-tag
+          v-else
+          type="success"
+        >
+          已启动
+        </el-tag>
       </template>
     </el-table-column>
-    <el-table-column prop="devServerId" label="DevServer">
+    <el-table-column
+      prop="devServerId"
+      label="DevServer"
+    >
       <template #default="scope">
         <el-radio-group
           v-model="scope.row.devServerId"
@@ -202,7 +247,9 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
             :title="item.devServerUrl"
             border
             size="small"
-          >{{ item.name }}</el-radio>
+          >
+            {{ item.name }}
+          </el-radio>
         </el-radio-group>
       </template>
     </el-table-column>
@@ -249,5 +296,8 @@ const updateSelectedDevServer = (devServerId: string, rowData: EnvModel) => {
       </template>
     </el-table-column>
   </el-table>
-  <EditEnv ref="editEnvRef" @refreshList="refresh"></EditEnv>
+  <EditEnv
+    ref="editEnvRef"
+    @refreshList="refresh"
+  ></EditEnv>
 </template>

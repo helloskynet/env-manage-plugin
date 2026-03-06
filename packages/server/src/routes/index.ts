@@ -61,7 +61,7 @@ const createCommonRoutes = () => {
       const cookieArr = libCookie.parse(cookies);
       Object.keys(cookieArr).forEach((cookieName) => {
         if (cookieName.endsWith(getConfig().cookieSuffix)) {
-          res.appendHeader("Set-Cookie", `${cookieName}=; max-age=0; path=/`);
+          res.setHeader("Set-Cookie", `${cookieName}=; max-age=0; path=/`);
         }
       });
     }

@@ -26,7 +26,7 @@
     "clean": "pnpm store prune && pnpm dlx rimraf -g **/node_modules",
     "preinstall": "npx only-allow pnpm",
     "dev": "pnpm -r --parallel dev",
-    "build": "pnpm -r build",
+    "build": "pnpm --filter env-manage-plugin --filter client build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "prepare": "husky"
