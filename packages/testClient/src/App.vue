@@ -1,5 +1,10 @@
 <template>
   开发环境管理系统 -- 测试页面
+  <br />
+  用户名：<input type="text" id="username" /> 密码：<input type="password" id="password" />
+  <button @click="showUserInfo" id="login">
+    登录
+  </button>
   <br>
   <button @click="setCookie">set-cookie</button>
   <div id="console" ref="consoleRef"></div>
@@ -91,5 +96,15 @@ const testFunc = () => {
   socket.addEventListener('error', (event) => {
     console.error('WebSocket 连接出错:', event)
   })
+}
+
+const showUserInfo = () => {
+  const usernameInput = document.getElementById('username') as HTMLInputElement
+  const passwordInput = document.getElementById('password') as HTMLInputElement
+
+  const username = usernameInput.value
+  const password = passwordInput.value
+
+  updateConsoleContent(`用户名: ${username}, 密码: ${password} ---- 来自自动填充<br>`)
 }
 </script>

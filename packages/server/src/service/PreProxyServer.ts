@@ -1,6 +1,6 @@
 import { Socket } from "net";
 import { ClientRequest, IncomingMessage, Server, ServerResponse } from "http";
-import express from "express";
+import express, { Request } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
@@ -71,8 +71,16 @@ class PreProxyServer {
     private routeRuleRepo: RouteRuleRepo,
     private app = express()
   ) {
-    // 代理 /envm-inject 开头的请求到 ProxyServer（PostProxyServer）
-    app.use("/envm-inject", this.createInjectProxyMiddleware());
+    app.use([`${getConfig().apiPrefix}/inject/getcurrentenv`], (req, res) => {
+      res.json({ envId: this.envId });
+      res.end();
+    });
+    
+    // 代理 /envm 相关的请求到无需经过 Dev Server ProxyServer（PostProxyServer）
+    app.use(
+      ["/envm-inject",  getConfig().apiPrefix],
+      this.createInjectProxyMiddleware()
+    );
 
     // 主代理中间件
     app.use(this.createPreProxyMiddleware());
@@ -85,10 +93,13 @@ class PreProxyServer {
   private createInjectProxyMiddleware() {
     return createProxyMiddleware({
       ws: true,
+      pathRewrite: (path, req: Request) => {
+        return req.originalUrl;
+      },
       router: () => {
         const config = getConfig();
         // 代理到 ProxyServer（后置代理服务器）
-        return `http://localhost:${config.port}/envm-inject`;
+        return `http://localhost:${config.port}`;
       },
     });
   }
@@ -298,7 +309,10 @@ class PreProxyServer {
         const body = Buffer.concat(chunks);
 
         // 只对 HTML && 路由规则开启注入的路径
-        if (contentType.includes("text/html") && this.shouldInjectScript(requestPath)) {
+        if (
+          contentType.includes("text/html") &&
+          this.shouldInjectScript(requestPath)
+        ) {
           const config = getConfig();
           const scriptDir = config.injectScriptDir;
 
@@ -313,7 +327,10 @@ class PreProxyServer {
           // 读取文件夹下所有 js 文件（排除 # 开头的文件）
           const scriptTags = this.generateImportScripts(scriptDir);
 
-          html = html.replace(/<\/body>\s*<\/html>/gi, `${scriptTags}</body></html>`);
+          html = html.replace(
+            /<\/body>\s*<\/html>/gi,
+            `${scriptTags}</body></html>`
+          );
           const newBody = Buffer.from(html, "utf8");
           res.setHeader("Content-Length", newBody.length);
           res.end(newBody);
@@ -352,7 +369,9 @@ class PreProxyServer {
     }
 
     const importStatements = jsFiles
-      .map((file) =>`<script type="module" src="/envm-inject/${file}"></script>`)
+      .map(
+        (file) => `<script type="module" src="/envm-inject/${file}"></script>`
+      )
       .join("\n");
 
     return importStatements;
