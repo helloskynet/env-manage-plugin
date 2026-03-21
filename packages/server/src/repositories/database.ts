@@ -1,5 +1,5 @@
 import loki from "lokijs";
-import { DevServerModel, EnvModel } from "../types/index.js";
+import { DevServerModel, EnvModel, RouteRuleModel } from "../types/index.js";
 import { logger } from "../utils/logger.js";
 
 // 声明数据库实例类型（避免全局变量类型模糊）
@@ -40,6 +40,17 @@ const initDevServerCollection = (db: loki) => {
 };
 
 /**
+ * 初始化路由规则集合
+ */
+const initRouteRulesCollection = (db: loki) => {
+  if (!db.getCollection<RouteRuleModel>("routeRules")) {
+    db.addCollection<RouteRuleModel>("routeRules", {
+      indices: ["id", "envId", "pathPrefix"],
+    });
+  }
+};
+
+/**
  * 手动启动数据库（核心函数）
  * @returns 数据库实例（确保单例）
  */
@@ -62,6 +73,7 @@ export const startDatabase = (): Promise<loki> => {
         // 初始化集合
         initEnvmsCollection(newDb);
         initDevServerCollection(newDb);
+        initRouteRulesCollection(newDb);
 
         // 5. 赋值单例并返回
         db = newDb;

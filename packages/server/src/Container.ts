@@ -1,9 +1,12 @@
 import { EnvController } from "./controllers/EnvController.js";
 import { DevServerController } from "./controllers/DevServerController.js";
+import { RouteRuleController } from "./controllers/RouteRuleController.js";
 import { EnvRepo } from "./repositories/EnvRepo.js";
 import { EnvService } from "./service/EnvService.js";
 import { DevServerService } from "./service/DevServerService.js";
 import { DevServerRepo } from "./repositories/DevServerRepo.js";
+import { RouteRuleRepo } from "./repositories/RouteRuleRepo.js";
+import { RouteRuleService } from "./service/RouteRuleService.js";
 import { ProxyAutoStarter } from "./service/ProxyAutoStarterService.js";
 
 class Container {
@@ -14,6 +17,7 @@ class Container {
     // 环境和服务的注册
     const envRepo = new EnvRepo();
     const devServerRepo = new DevServerRepo();
+    const routeRuleRepo = new RouteRuleRepo();
     // configIns.initConfig();
     this.register("envService", new EnvService(envRepo, devServerRepo));
     this.register("envController", new EnvController(this.get("envService")));
@@ -25,6 +29,15 @@ class Container {
     this.register(
       "devServerController",
       new DevServerController(this.get("devServerService"))
+    );
+    // 路由规则服务和控制器的注册
+    this.register(
+      "routeRuleService",
+      new RouteRuleService(routeRuleRepo, envRepo)
+    );
+    this.register(
+      "routeRuleController",
+      new RouteRuleController(this.get("routeRuleService"))
     );
     setTimeout(() => {
       new ProxyAutoStarter(envRepo, this.get("envService"));

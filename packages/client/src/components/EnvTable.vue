@@ -4,7 +4,8 @@ import { onMounted, ref } from 'vue'
 import type { DevServerModel, EnvModel, ListResponse } from '@envm/schemas'
 import { apiPrefix, fetchData } from '@/utils'
 import EditEnv from './EditEnv.vue'
-import { DocumentCopy, Delete, Edit, VideoPlay, VideoPause } from '@element-plus/icons-vue'
+import RouteRuleDialog from './RouteRuleDialog.vue'
+import { DocumentCopy, Delete, Edit, VideoPlay, VideoPause, List } from '@element-plus/icons-vue'
 
 const tableData = ref<EnvModel[]>([])
 
@@ -166,6 +167,12 @@ const copyApiBaseUrl = (url: string) => {
       })
   }
 }
+
+const routeRuleDialogRef = ref<InstanceType<typeof RouteRuleDialog>>()
+const handleRouterDetail = (rowData: EnvModel) => {
+  routeRuleDialogRef.value?.showDialog(rowData.id, rowData.name || rowData.apiBaseUrl)
+}
+
 </script>
 <template>
   <el-table
@@ -293,6 +300,13 @@ const copyApiBaseUrl = (url: string) => {
           circle
           @click="handleCopy(scope.row)"
         ></el-button>
+        <el-button
+          type="warning"
+          :icon="List"
+          title="路由表"
+          circle
+          @click="handleRouterDetail(scope.row)"
+        ></el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -300,4 +314,8 @@ const copyApiBaseUrl = (url: string) => {
     ref="editEnvRef"
     @refreshList="refresh"
   ></EditEnv>
+  <RouteRuleDialog
+    ref="routeRuleDialogRef"
+    :env-id="''"
+  />
 </template>

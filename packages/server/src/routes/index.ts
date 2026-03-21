@@ -4,6 +4,7 @@ import * as libCookie from "cookie";
 import { Container } from "../Container.js";
 import { EnvController } from "../controllers/EnvController.js";
 import { DevServerController } from "../controllers/DevServerController.js";
+import { RouteRuleController } from "../controllers/RouteRuleController.js";
 import { getConfig } from "../utils/ResolveConfig.js";
 import { toDTO } from "../middleware/dto.middleware.js";
 import {
@@ -13,6 +14,9 @@ import {
   DevServerCreateSchema,
   DevServerDeleteSchema,
   DevServerUpdateSchema,
+  RouteRuleCreateSchema,
+  RouteRuleDeleteSchema,
+  RouteRuleUpdateSchema,
 } from "../types/index.js";
 
 // 1. 创建各模块路由
@@ -52,6 +56,21 @@ const createDevServerRoutes = (controller: DevServerController) => {
   return router;
 };
 
+const createRouteRuleRoutes = (controller: RouteRuleController) => {
+  const router = Router();
+  router.get("/list/:envId", (...res) => controller.handleGetList(...res));
+  router.post("/add", toDTO(RouteRuleCreateSchema), (...res) =>
+    controller.handleAdd(...res)
+  );
+  router.post("/update", toDTO(RouteRuleUpdateSchema), (...res) =>
+    controller.handleUpdate(...res)
+  );
+  router.post("/delete", toDTO(RouteRuleDeleteSchema), (...res) =>
+    controller.handleDelete(...res)
+  );
+  return router;
+};
+
 const createCommonRoutes = () => {
   const router = Router();
   router.get("/are-you-ok", (req, res) => res.success({}, "I'm ok!"));
@@ -83,10 +102,14 @@ export const createRouter = (): Router => {
   const devServerController = container.get<DevServerController>(
     "devServerController"
   );
+  const routeRuleController = container.get<RouteRuleController>(
+    "routeRuleController"
+  );
 
   // 挂载模块路由
   rootRouter.use("/env", createEnvRoutes(envController));
   rootRouter.use("/server", createDevServerRoutes(devServerController));
+  rootRouter.use("/route-rule", createRouteRuleRoutes(routeRuleController));
   rootRouter.use("/", createCommonRoutes());
 
   return rootRouter;
