@@ -4,6 +4,7 @@ import type { DevServerModel, ListResponse } from '@envm/schemas'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import EditServer from './EditServer.vue'
+import { DocumentCopy, Edit, Delete } from '@element-plus/icons-vue'
 
 const devServerList = ref<DevServerModel[]>([])
 const refreshLoading = ref(false)
@@ -52,6 +53,12 @@ const handleDelete = (rowData: DevServerModel) => {
 const handleModify = (rowData: DevServerModel) => {
   editServerRef.value.showDialog(rowData)
 }
+
+const handleCopy = (rowData: DevServerModel) => {
+  const newServer = { ...rowData }
+  newServer.name = `${newServer.name}-副本`
+  editServerRef.value.showDialog(newServer, true)
+}
 onMounted(() => {
   getDevServerList()
 })
@@ -84,10 +91,25 @@ defineExpose({
       <template #default="scope">
         <el-button
           type="primary"
-          plain
+          :icon="Edit"
+          title="编辑"
+          circle
           @click="handleModify(scope.row)"
-        >修改</el-button>
-        <el-button type="danger" @click="handleDelete(scope.row)">删除</el-button>
+        ></el-button>
+        <el-button
+          type="success"
+          :icon="DocumentCopy"
+          title="复制"
+          circle
+          @click="handleCopy(scope.row)"
+        ></el-button>
+        <el-button
+          type="danger"
+          :icon="Delete"
+          title="删除"
+          circle
+          @click="handleDelete(scope.row)"
+        ></el-button>
       </template>
     </el-table-column>
   </el-table>

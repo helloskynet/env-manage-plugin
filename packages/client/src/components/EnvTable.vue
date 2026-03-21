@@ -305,6 +305,7 @@ const handleRouterDetail = (rowData: EnvModel) => {
           circle
           @click="handleCopy(scope.row)"
         ></el-button>
+        &nbsp;
         <el-badge
           :value="scope.row.routeRuleCount"
           :hidden="!scope.row.routeRuleCount"

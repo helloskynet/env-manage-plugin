@@ -20,21 +20,28 @@ const currentId = ref('')
 const dialogTitle = ref('新增开发服务器')
 
 // 提供给外部调用的方法
-const showDialog = (rowData?: DevServerModel) => {
+const showDialog = (rowData?: DevServerModel, isCopy?: boolean) => {
   visible.value = true
   resetForm()
 
-  // 如果有传入数据，则为编辑模式
-  if (rowData) {
+  // 如果有传入数据且不是复制模式，则为编辑模式
+  if (rowData && !isCopy) {
     isEditMode.value = true
     currentId.value = rowData.id
     dialogTitle.value = '编辑开发服务器'
     // 填充表单数据
     Object.assign(formData, rowData)
   } else {
-    // 新增模式
+    // 新增模式（或复制模式）
     isEditMode.value = false
+    currentId.value = ''
     dialogTitle.value = '新增开发服务器'
+    if (rowData) {
+      // 复制模式：删除id后填充其他数据
+      const copyData = { ...rowData }
+      delete (copyData as Record<string, unknown>).id
+      Object.assign(formData, copyData)
+    }
   }
 }
 
