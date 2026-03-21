@@ -1,5 +1,5 @@
 import { Socket } from "net";
-import { ClientRequest, IncomingMessage, Server } from "http";
+import { ClientRequest, IncomingMessage, Server, ServerResponse } from "http";
 import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import setCookieParser, { Cookie } from "set-cookie-parser";
@@ -20,7 +20,7 @@ class PreProxyServer {
   server!: Server;
 
   /**
-   * 保存当前代理的 socket 连接 关闭前先 断开所有链接
+   * 保存当前代理的 socket 连接 关闭前先断开所有链接
    */
   sockets!: Set<Socket>;
 
@@ -51,7 +51,12 @@ class PreProxyServer {
       return null;
     }
 
-    const preProxyServer = new PreProxyServer(envId, envRepo, devServerRepo, routeRuleRepo);
+    const preProxyServer = new PreProxyServer(
+      envId,
+      envRepo,
+      devServerRepo,
+      routeRuleRepo
+    );
     await preProxyServer.startServer();
     PreProxyServer.appMap[envId] = preProxyServer;
     return preProxyServer;
@@ -125,7 +130,6 @@ class PreProxyServer {
         }
       }
     }
-
     return null;
   }
 
@@ -138,6 +142,7 @@ class PreProxyServer {
     return createProxyMiddleware({
       ws: true,
       changeOrigin: true,
+      selfHandleResponse: true,
       router: (req: IncomingMessage & { path?: string }) => {
         const requestPath = req.path || "/";
 
@@ -164,8 +169,9 @@ class PreProxyServer {
           proxyReq.setHeader("x-api-server", `${target}`);
           this._rewrieCookieOnProxyReq(proxyReq, req);
         },
-        proxyRes: (proxyRes) => {
+        proxyRes: (proxyRes, req, res) => {
           this._rewriteSetCookieOnProxyRes(proxyRes);
+          this._rewriteLoginRedirect(proxyRes, req, res);
         },
         proxyReqWs: (proxyReq, req: IncomingMessage & { path?: string }) => {
           const requestPath = req.path || "/";
@@ -187,7 +193,6 @@ class PreProxyServer {
     const setCookie = proxyRes.headers["set-cookie"];
     if (envItem && setCookie) {
       const setCookies = setCookieParser.parse(setCookie);
-
       const proxyCookie = setCookies.map((item: Cookie) => {
         const cookie = {
           ...item,
@@ -199,7 +204,6 @@ class PreProxyServer {
           cookie as libCookie.SerializeOptions
         );
       });
-
       setCookie.push(...proxyCookie);
     }
   }
@@ -212,10 +216,8 @@ class PreProxyServer {
     req: IncomingMessage
   ) {
     const envItem = this.getEnvItem();
-
     if (envItem && req.headers.cookie) {
       const cookie = libCookie.parse(req.headers.cookie || "");
-
       const newCookies: string[] = [];
 
       Object.keys(cookie).forEach((item) => {
@@ -233,6 +235,56 @@ class PreProxyServer {
     }
   }
 
+  _rewriteLoginRedirect(
+    proxyRes: IncomingMessage,
+    req: IncomingMessage & { path?: string },
+    res: ServerResponse<IncomingMessage>
+  ) {
+    const contentType = proxyRes.headers["content-type"] || "";
+    const requestPath = req.path || "/";
+
+    // 转发状态码 + 响应头
+    res.statusCode = proxyRes.statusCode || 200;
+    for (const key in proxyRes.headers) {
+      if (!res.headersSent && proxyRes.headers[key]) {
+        res.setHeader(key, proxyRes.headers[key]);
+      }
+    }
+
+    const chunks: Buffer[] = [];
+    proxyRes.on("data", (chunk) => chunks.push(chunk));
+    proxyRes.on("end", () => {
+      try {
+        const body = Buffer.concat(chunks);
+
+        // 只对 HTML && 指定路径注入
+        if (
+          contentType.includes("text/html") &&
+          ["/TestCom", "/project", "/home"].some((p) =>
+            requestPath.startsWith(p)
+          )
+        ) {
+          let html = body.toString("utf8");
+          const injectScript = `
+            <script>
+              console.log("这是自动注入的脚本");
+            </script></body></html>`;
+
+          html = html.replace(/<\/body>\s*<\/html>/gi, injectScript);
+          const newBody = Buffer.from(html, "utf8");
+          res.setHeader("Content-Length", newBody.length);
+          res.end(newBody);
+        } else {
+          // 其他内容原样返回
+          res.end(body);
+        }
+      } catch (err) {
+        console.error("注入处理异常", err);
+        res.end(Buffer.concat(chunks));
+      }
+    });
+  }
+
   /**
    * 启动服务
    * @param envItem
@@ -248,7 +300,6 @@ class PreProxyServer {
     this.server = await new Promise((resolve, reject) => {
       const server = this.app.listen(port, () => {
         devServerLogger.info(`Server is running on http://localhost:${port}`);
-        // 更新状态
         resolve(server);
       });
       server.on("error", (err) => {
@@ -257,22 +308,16 @@ class PreProxyServer {
       });
     });
 
-    // 保存所有活动的 socket 连接
     this.sockets = new Set();
-
     this.server.on("connection", (socket) => {
-      this.sockets.add(socket); // 保存 socket
-
-      socket.setTimeout(300000); // 设置超时时间为 5 分钟
-
+      this.sockets.add(socket);
+      socket.setTimeout(300000);
       socket.on("timeout", () => {
         socket.destroy();
         this.sockets.delete(socket);
       });
-
-      // 监听 socket 关闭事件
       socket.on("close", () => {
-        this.sockets.delete(socket); // 从集合中移除已关闭的 socket
+        this.sockets.delete(socket);
       });
     });
   }
@@ -290,7 +335,6 @@ class PreProxyServer {
       }
 
       this.appMap[id].server.close((err) => {
-        // 停止服务更新状态
         if (err) {
           console.error("服务器关闭失败：", err);
           resolve(0);
