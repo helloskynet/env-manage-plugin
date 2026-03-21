@@ -34,7 +34,11 @@ class PostProxyServer {
 
     // 静态资源
     app.use(expressStaticGzip(join(__dirname, "client"), {}));
-
+    // 注入资源
+    app.use(
+      "/envm-inject",
+      express.static(join(process.cwd(), this.config.injectScriptDir || ""), {})
+    );
     // 统一处理响应
     app.use(responseEnhancer);
 

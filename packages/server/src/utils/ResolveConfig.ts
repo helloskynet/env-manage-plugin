@@ -50,6 +50,7 @@ export const loadConfig = (
       envm_apiPrefix: apiPrefix,
       envm_cookieSuffix: cookieSuffix,
       envm_logLevel: logLevel,
+      envm_injectScriptDir: injectScriptDir,
     } = process.env;
 
     // 3. 读取 package.json 配置（支持自定义路径）
@@ -63,6 +64,7 @@ export const loadConfig = (
       apiPrefix,
       cookieSuffix,
       logLevel,
+      injectScriptDir,
       ...overrideConfig, // 最高优先级（外部传入的配置）
     };
     // 5. Zod 验证

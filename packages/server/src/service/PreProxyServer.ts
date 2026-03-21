@@ -5,6 +5,8 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
 import { minimatch } from "minimatch";
+import * as fs from "fs";
+import * as path from "path";
 
 import { getConfig } from "../utils/ResolveConfig.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
@@ -69,7 +71,26 @@ class PreProxyServer {
     private routeRuleRepo: RouteRuleRepo,
     private app = express()
   ) {
+    // 代理 /envm-inject 开头的请求到 ProxyServer（PostProxyServer）
+    app.use("/envm-inject", this.createInjectProxyMiddleware());
+
+    // 主代理中间件
     app.use(this.createPreProxyMiddleware());
+  }
+
+  /**
+   * 创建注入脚本的代理中间件
+   * 代理所有 /envm-inject 开头的请求到 ProxyServer
+   */
+  private createInjectProxyMiddleware() {
+    return createProxyMiddleware({
+      ws: true,
+      router: () => {
+        const config = getConfig();
+        // 代理到 ProxyServer（后置代理服务器）
+        return `http://localhost:${config.port}/envm-inject`;
+      },
+    });
   }
 
   /**
@@ -138,12 +159,14 @@ class PreProxyServer {
       // 使用 minimatch 支持 glob 模式匹配
       if (minimatch(requestPath, rule.pathPrefix, { dot: true })) {
         // 获取目标环境信息
-        const targetEnv = this.envRepo.findOneById(rule.targetEnvId);
-        if (targetEnv?.apiBaseUrl) {
-          devServerLogger.info(
-            `路由规则匹配成功: ${requestPath} -> ${rule.pathPrefix}, 转发到: ${targetEnv.apiBaseUrl}`
-          );
-          return targetEnv.apiBaseUrl;
+        if (rule.targetEnvId) {
+          const targetEnv = this.envRepo.findOneById(rule.targetEnvId);
+          if (targetEnv?.apiBaseUrl) {
+            devServerLogger.info(
+              `路由规则匹配成功: ${requestPath} -> ${rule.pathPrefix}, 转发到: ${targetEnv.apiBaseUrl}`
+            );
+            return targetEnv.apiBaseUrl;
+          }
         }
       }
     }
@@ -276,13 +299,21 @@ class PreProxyServer {
 
         // 只对 HTML && 路由规则开启注入的路径
         if (contentType.includes("text/html") && this.shouldInjectScript(requestPath)) {
-          let html = body.toString("utf8");
-          const injectScript = `
-            <script>
-              console.log("这是自动注入的脚本");
-            </script></body></html>`;
+          const config = getConfig();
+          const scriptDir = config.injectScriptDir;
 
-          html = html.replace(/<\/body>\s*<\/html>/gi, injectScript);
+          if (!scriptDir) {
+            devServerLogger.warn("未配置注入脚本目录 (injectScriptDir)");
+            res.end(body);
+            return;
+          }
+
+          let html = body.toString("utf8");
+
+          // 读取文件夹下所有 js 文件（排除 # 开头的文件）
+          const scriptTags = this.generateImportScripts(scriptDir);
+
+          html = html.replace(/<\/body>\s*<\/html>/gi, `${scriptTags}</body></html>`);
           const newBody = Buffer.from(html, "utf8");
           res.setHeader("Content-Length", newBody.length);
           res.end(newBody);
@@ -295,6 +326,36 @@ class PreProxyServer {
         res.end(Buffer.concat(chunks));
       }
     });
+  }
+
+  /**
+   * 生成导入脚本的 HTML
+   * @param scriptDir 脚本文件夹路径
+   * @returns 脚本标签 HTML
+   */
+  private generateImportScripts(scriptDir: string): string {
+    const fullPath = path.resolve(scriptDir);
+
+    if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isDirectory()) {
+      devServerLogger.warn(`注入脚本目录不存在: ${fullPath}`);
+      return "";
+    }
+
+    const files = fs.readdirSync(fullPath);
+    const jsFiles = files
+      .filter((file) => file.endsWith(".js") && !file.startsWith("#"))
+      .sort();
+
+    if (jsFiles.length === 0) {
+      devServerLogger.warn(`注入脚本目录没有 js 文件: ${fullPath}`);
+      return "";
+    }
+
+    const importStatements = jsFiles
+      .map((file) =>`<script type="module" src="/envm-inject/${file}"></script>`)
+      .join("\n");
+
+    return importStatements;
   }
 
   /**

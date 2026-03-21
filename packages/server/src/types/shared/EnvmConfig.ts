@@ -10,6 +10,11 @@ export const EnvmConfigSchema = z.object({
   apiPrefix: z.string().default("/dev-manage-api"),
   cookieSuffix: z.string().default("envm"), // 新增 cookie 后缀配置
   logLevel: z.string().default("info"),
+  injectScriptDir: z
+    .string()
+    .default(".envminject")
+    .optional()
+    .describe("注入脚本的文件夹路径"),
 });
 
 // 3. 创建配置接口
