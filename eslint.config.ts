@@ -1,14 +1,16 @@
 // @ts-check
 import json from "@eslint/json";
-import tseslint from "typescript-eslint";
 import { sharedConfig } from "./eslint.config.shared";
 
-export default tseslint.config(
+export default [
   ...sharedConfig,
   {
     files: ["**/*.json"],
     language: "json/json",
     ...json.configs.recommended,
+    rules: {
+      "no-irregular-whitespace": "off",
+    },
   },
   // 根目录特定配置
   {
@@ -19,5 +21,5 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
-  }
-);
+  },
+];

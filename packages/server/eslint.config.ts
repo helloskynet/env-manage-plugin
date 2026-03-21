@@ -1,8 +1,7 @@
 // @ts-check
-import tseslint from "typescript-eslint";
 import { sharedConfig } from "../../eslint.config.shared";
 
-export default tseslint.config(
+export default [
   ...sharedConfig,
   {
     files: ["**/*.ts"],
@@ -21,5 +20,5 @@ export default tseslint.config(
       // 允许 __dirname 和 __filename
       "no-restricted-globals": "off",
     },
-  }
-);
+  },
+];

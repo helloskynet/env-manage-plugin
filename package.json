@@ -32,8 +32,9 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "packages/client/**/*.{ts,vue,js}": ["eslint --fix"],
-    "packages/server/src/**/*.ts": ["eslint --fix"]
+    "packages/{server,client}/**/*.{ts,vue,js}": [
+      "eslint --fix"
+    ]
   },
   "author": "lcn",
   "license": "MIT",
