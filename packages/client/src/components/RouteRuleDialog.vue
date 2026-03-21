@@ -10,7 +10,6 @@ interface RouteRuleModel {
   envId: string
   pathPrefix: string
   targetEnvId: string
-  targetEnvName?: string
   description?: string
   createdAt?: string
   updatedAt?: string

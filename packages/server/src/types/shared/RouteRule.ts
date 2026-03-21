@@ -23,8 +23,6 @@ export const RouteRuleBaseSchema = z.object({
     .optional()
     .describe("目标环境ID（转发到此环境）"),
 
-  targetEnvName: z.string().optional().describe("目标环境名称"),
-
   description: z.string().optional().describe("描述"),
 
   enabled: z.boolean().optional().default(true).describe("是否启用"),

@@ -9,7 +9,6 @@ interface RouteRuleModel {
   envId: string
   pathPrefix: string
   targetEnvId: string
-  targetEnvName?: string
   description?: string
   injectScript?: boolean
   createdAt?: string
@@ -63,7 +62,6 @@ const defaultFormData: Omit<RouteRuleModel, 'id'> = {
   envId: '',
   pathPrefix: '',
   targetEnvId: '',
-  targetEnvName: '',
   description: '',
   injectScript: false,
 }
@@ -135,14 +133,6 @@ const getEnvList = () => {
     .catch(() => {
       ElMessage.error('获取环境列表失败')
     })
-}
-
-// 选择目标环境时更新名称
-const handleTargetEnvChange = (envId: string) => {
-  const selectedEnv = envOptions.value.find((env) => env.id === envId)
-  if (selectedEnv) {
-    formData.targetEnvName = selectedEnv.name || selectedEnv.apiBaseUrl
-  }
 }
 
 /**
@@ -232,12 +222,11 @@ const submitForm = () => {
           v-model="formData.targetEnvId"
           placeholder="请选择目标环境"
           :clearable="formData.injectScript"
-          @change="handleTargetEnvChange"
         >
           <el-option
             v-for="item in envOptions"
             :key="item.id"
-            :label="item.name || item.apiBaseUrl"
+            :label="item.name + ' (' + item.apiBaseUrl + ')'"
             :value="item.id"
           />
         </el-select>
