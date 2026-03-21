@@ -1,6 +1,6 @@
 {
-  "name": "env-manage-plugin",
-  "version": "0.5.5",
+  "name": "env-plugin",
+  "version": "0.5.6",
   "type": "module",
   "description": "A dev env plugin that integrates an Express server with request proxying capabilities.",
   "keywords": [
@@ -58,12 +58,12 @@
     "typescript": "^5.8.2"
   },
   "bugs": {
-    "url": "https://github.com/helloskynet/env-manage-plugin/issues"
+    "url": "https://github.com/lumos934/env-plugin/issues"
   },
-  "homepage": "https://github.com/helloskynet/env-manage-plugin#readme",
+  "homepage": "https://github.com/lumos934/env-plugin#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/helloskynet/env-manage-plugin.git"
+    "url": "https://github.com/lumos934/env-plugin.git"
   },
   "engines": {
     "node": ">=14.0.0"

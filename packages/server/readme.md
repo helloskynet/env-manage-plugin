@@ -1,6 +1,6 @@
 [![npm][npm]][npm-url]
 [![node][node]][node-url]
-![npm](https://img.shields.io/npm/dw/env-manage-plugin.svg)
+![npm](https://img.shields.io/npm/dw/env-plugin.svg)
 
 # EnvManage - 环境管理工具
 
@@ -30,13 +30,13 @@ graph LR
 ### 安装
 
 ```bash
-npm i -D env-manage-plugin
+npm i -D env-plugin
 ```
 
 或者全局安装
 
 ```bash
-npm i -g env-manage-plugin
+npm i -g env-plugin
 ```
 
 ### 启动
@@ -142,13 +142,13 @@ envm_logLevel=info
 
 ### 作为插件启动
 
-`env-manage-plugin` 使用 [Unplugin](https://unplugin.unjs.io) 为各种构建工具提供统一插件，作为插件启动。
+`env-plugin` 使用 [Unplugin](https://unplugin.unjs.io) 为各种构建工具提供统一插件，作为插件启动。
 
 #### webpack
 
 ```js
 // webpack.config.js
-import { envmWebpackPlugin } from "env-manage-plugin";
+import { envmWebpackPlugin } from "env-plugin";
 
 export default {
   plugins: [
@@ -165,7 +165,7 @@ export default {
 ```js
 // vite.config.js
 import { defineConfig } from "vite";
-import { envmVitePlugin } from "env-manage-plugin";
+import { envmVitePlugin } from "env-plugin";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -200,15 +200,15 @@ export default defineConfig({
 
 ## 作者
 
-- [helloskynet](https://github.com/helloskynet)
+- [lumos934](https://github.com/lumos934)
 
 ---
 
 感谢使用 `EnvManage`！如果你有任何问题或建议，请随时联系我们。
 
-[npm]: https://img.shields.io/npm/v/env-manage-plugin.svg?logo=npm
-[npm-url]: https://npmjs.com/package/env-manage-plugin
-[node]: https://img.shields.io/node/v/env-manage-plugin.svg?logo=node.js
+[npm]: https://img.shields.io/npm/v/env-plugin.svg?logo=npm
+[npm-url]: https://npmjs.com/package/env-plugin
+[node]: https://img.shields.io/node/v/env-plugin.svg?logo=node.js
 [node-url]: https://nodejs.org
 
 这个怎么样？

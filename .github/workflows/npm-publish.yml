@@ -39,6 +39,6 @@ jobs:
 
       - run: pnpm i
       - run: pnpm build
-      - run: pnpm --filter env-manage-plugin publish --no-git-checks
+      - run: pnpm --filter env-plugin publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}

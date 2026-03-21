@@ -1,6 +1,6 @@
 {
-  "name": "env-manage-plugin-root",
-  "version": "0.5.4",
+  "name": "env-plugin-root",
+  "version": "0.5.6",
   "private": true,
   "description": "A dev env plugin that integrates an Express server with request proxying capabilities.",
   "keywords": [
@@ -26,7 +26,7 @@
     "clean": "pnpm store prune && pnpm dlx rimraf -g **/node_modules",
     "preinstall": "npx only-allow pnpm",
     "dev": "pnpm -r --parallel dev",
-    "build": "pnpm --filter env-manage-plugin --filter client build",
+    "build": "pnpm --filter env-plugin --filter client build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "prepare": "husky"
@@ -53,12 +53,12 @@
     "vite": "^7.3.1"
   },
   "bugs": {
-    "url": "https://github.com/helloskynet/env-manage-plugin/issues"
+    "url": "https://github.com/lumos934/env-plugin/issues"
   },
-  "homepage": "https://github.com/helloskynet/env-manage-plugin#readme",
+  "homepage": "https://github.com/lumos934/env-plugin#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/helloskynet/env-manage-plugin.git"
+    "url": "https://github.com/lumos934/env-plugin.git"
   },
   "engines": {
     "node": ">=14.0.0"
