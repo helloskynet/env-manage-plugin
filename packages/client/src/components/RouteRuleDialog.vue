@@ -8,6 +8,7 @@ import EditRouteRule from './EditRouteRule.vue'
 interface RouteRuleModel {
   id: string
   envId: string
+  enabled: boolean
   pathPrefix: string
   targetEnvId: string
   description?: string
@@ -75,15 +76,11 @@ const handleEdit = (row: RouteRuleModel) => {
 
 // 删除路由规则
 const handleDelete = (row: RouteRuleModel) => {
-  ElMessageBox.confirm(
-    `确定删除路由规则【${row.pathPrefix}】吗？`,
-    '提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
+  ElMessageBox.confirm(`确定删除路由规则【${row.pathPrefix}】吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
     .then(() => {
       return fetchData({
         url: `${apiPrefix}/route-rule/delete`,
@@ -133,7 +130,12 @@ const handleClose = () => {
     :before-close="handleClose"
   >
     <div class="toolbar">
-      <el-button type="primary" @click="handleAdd">新增规则</el-button>
+      <el-button
+        type="primary"
+        @click="handleAdd"
+      >
+        新增规则
+      </el-button>
       <el-button @click="loadRouteRules">刷新</el-button>
     </div>
 
@@ -145,10 +147,20 @@ const handleClose = () => {
     >
       <template #empty>
         <el-empty description="暂无路由规则">
-          <el-button type="primary" @click="handleAdd">新增规则</el-button>
+          <el-button
+            type="primary"
+            @click="handleAdd"
+          >
+            新增规则
+          </el-button>
         </el-empty>
       </template>
-      <el-table-column prop="enabled" label="状态" width="80" align="center">
+      <el-table-column
+        prop="enabled"
+        label="状态"
+        width="80"
+        align="center"
+      >
         <template #default="scope">
           <el-switch
             v-model="scope.row.enabled"

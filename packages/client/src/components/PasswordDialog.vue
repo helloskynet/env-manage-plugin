@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiPrefix, fetchData } from '@/utils'
-import { Delete, Edit, Key } from '@element-plus/icons-vue'
+import { Delete, Edit } from '@element-plus/icons-vue'
 import EditPassword from './EditPassword.vue'
 
 interface PasswordModel {
@@ -76,15 +76,11 @@ const handleEdit = (row: PasswordModel) => {
 
 // 删除密码
 const handleDelete = (row: PasswordModel) => {
-  ElMessageBox.confirm(
-    `确定删除密码【${row.name}】吗？`,
-    '提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
+  ElMessageBox.confirm(`确定删除密码【${row.name}】吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
     .then(() => {
       return fetchData({
         url: `${apiPrefix}/password/delete`,
@@ -114,6 +110,7 @@ const handleSetDefault = async (row: PasswordModel) => {
     ElMessage.success('已设为默认密码')
     loadPasswords()
   } catch (error) {
+    console.log('设置默认密码失败:', error)
     ElMessage.error('设置默认密码失败')
   }
 }
@@ -131,7 +128,12 @@ const handleClose = () => {
     :before-close="handleClose"
   >
     <div class="toolbar">
-      <el-button type="primary" @click="handleAdd">新增密码</el-button>
+      <el-button
+        type="primary"
+        @click="handleAdd"
+      >
+        新增密码
+      </el-button>
       <el-button @click="loadPasswords">刷新</el-button>
     </div>
 
@@ -143,12 +145,27 @@ const handleClose = () => {
     >
       <template #empty>
         <el-empty description="暂无密码">
-          <el-button type="primary" @click="handleAdd">新增密码</el-button>
+          <el-button
+            type="primary"
+            @click="handleAdd"
+          >
+            新增密码
+          </el-button>
         </el-empty>
       </template>
-      <el-table-column prop="isDefault" label="默认" width="80" align="center">
+      <el-table-column
+        prop="isDefault"
+        label="默认"
+        width="80"
+        align="center"
+      >
         <template #default="scope">
-          <el-tag v-if="scope.row.isDefault" type="success">默认</el-tag>
+          <el-tag
+            v-if="scope.row.isDefault"
+            type="success"
+          >
+            默认
+          </el-tag>
           <span v-else>-</span>
         </template>
       </el-table-column>
@@ -156,8 +173,7 @@ const handleClose = () => {
         prop="name"
         label="名称"
         min-width="120"
-      >
-      </el-table-column>
+      ></el-table-column>
       <el-table-column
         prop="username"
         label="用户名"
@@ -168,9 +184,7 @@ const handleClose = () => {
         label="密码"
         min-width="120"
       >
-        <template #default="scope">
-          ********
-        </template>
+        <template #default>********</template>
       </el-table-column>
       <el-table-column
         prop="description"

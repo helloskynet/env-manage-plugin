@@ -6,6 +6,7 @@ import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import { apiPrefix, fetchData } from '@/utils'
 import DevServerTable from './DevServerTable.vue'
+import { Plus, Refresh, Delete } from '@element-plus/icons-vue'
 
 const refreshLoading = ref(false)
 
@@ -94,25 +95,41 @@ const startWs = () => {
 </script>
 <template>
   <el-button
-    type="success"
+    type="primary"
+    :icon="Plus"
+    plain
     @click="handleAddEnv"
     :loading="refreshLoading"
-  >新增API Server</el-button>
+  >
+    新增API Server
+  </el-button>
   <el-button
-    type="success"
+    type="primary"
+    :icon="Plus"
+    plain
     @click="handleAddServer"
     :loading="refreshLoading"
-  >新增Dev Server</el-button>
+  >
+    新增Dev Server
+  </el-button>
   <el-button
     type="success"
+    :icon="Refresh"
+    plain
     @click="refreshList"
     :loading="refreshLoading"
-  >刷新</el-button>
+  >
+    刷新
+  </el-button>
   <el-button
     type="warning"
+    :icon="Delete"
+    plain
     @click="clearProxyCookies"
     :loading="refreshLoading"
-  >清除所有代理 Cookie</el-button>
+  >
+    清除所有代理 Cookie
+  </el-button>
   <br />
   <br />
   <el-tabs type="card">
@@ -124,6 +141,12 @@ const startWs = () => {
     </el-tab-pane>
   </el-tabs>
 
-  <EditEnv ref="addEnvRef" @refreshList="refreshList" />
-  <EditServer ref="addServerRef" @refreshList="refreshList" />
+  <EditEnv
+    ref="addEnvRef"
+    @refreshList="refreshList"
+  />
+  <EditServer
+    ref="addServerRef"
+    @refreshList="refreshList"
+  />
 </template>

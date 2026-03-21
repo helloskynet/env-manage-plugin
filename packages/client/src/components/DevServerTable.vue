@@ -91,13 +91,14 @@ defineExpose({
       <template #default="scope">
         <el-button
           type="primary"
+          plain
           :icon="Edit"
           title="编辑"
           circle
           @click="handleModify(scope.row)"
         ></el-button>
         <el-button
-          type="success"
+          type="primary"
           :icon="DocumentCopy"
           title="复制"
           circle
