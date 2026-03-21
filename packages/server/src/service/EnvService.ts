@@ -126,7 +126,7 @@ class EnvService {
     if (this.routeRuleRepo) {
       const result = list.map((env) => ({
         ...env,
-        routeRuleCount: this.routeRuleRepo!.countByEnvId(env.id),
+        routeRuleCount: this.routeRuleRepo?.countByEnvId(env.id) ?? 0,
       }));
       envLogger.info({ count: list.length }, `查询到${list.length}个环境`);
       return result;

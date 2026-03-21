@@ -5,7 +5,16 @@ import type { DevServerModel, EnvModel, ListResponse } from '@envm/schemas'
 import { apiPrefix, fetchData } from '@/utils'
 import EditEnv from './EditEnv.vue'
 import RouteRuleDialog from './RouteRuleDialog.vue'
-import { DocumentCopy, Delete, Edit, VideoPlay, VideoPause, List } from '@element-plus/icons-vue'
+import PasswordDialog from './PasswordDialog.vue'
+import {
+  DocumentCopy,
+  Delete,
+  Edit,
+  VideoPlay,
+  VideoPause,
+  List,
+  Key,
+} from '@element-plus/icons-vue'
 
 // 扩展 EnvModel 类型以包含路由规则数量
 interface EnvModelWithRouteCount extends EnvModel {
@@ -178,6 +187,10 @@ const handleRouterDetail = (rowData: EnvModel) => {
   routeRuleDialogRef.value?.showDialog(rowData.id, rowData.name || rowData.apiBaseUrl)
 }
 
+const passwordDialogRef = ref<InstanceType<typeof PasswordDialog>>()
+const handlePasswordDetail = (rowData: EnvModel) => {
+  passwordDialogRef.value?.showDialog(rowData.id, rowData.name || rowData.apiBaseUrl)
+}
 </script>
 <template>
   <el-table
@@ -307,6 +320,7 @@ const handleRouterDetail = (rowData: EnvModel) => {
         ></el-button>
         &nbsp;
         <el-badge
+          type="warning"
           :value="scope.row.routeRuleCount"
           :hidden="!scope.row.routeRuleCount"
           :offset="[3, 10]"
@@ -320,6 +334,14 @@ const handleRouterDetail = (rowData: EnvModel) => {
             @click="handleRouterDetail(scope.row)"
           ></el-button>
         </el-badge>
+        &nbsp;
+        <el-button
+          type="success"
+          :icon="Key"
+          title="密码管理"
+          circle
+          @click="handlePasswordDetail(scope.row)"
+        ></el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -329,6 +351,10 @@ const handleRouterDetail = (rowData: EnvModel) => {
   ></EditEnv>
   <RouteRuleDialog
     ref="routeRuleDialogRef"
+    :env-id="''"
+  />
+  <PasswordDialog
+    ref="passwordDialogRef"
     :env-id="''"
   />
 </template>

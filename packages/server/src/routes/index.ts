@@ -5,6 +5,7 @@ import { Container } from "../Container.js";
 import { EnvController } from "../controllers/EnvController.js";
 import { DevServerController } from "../controllers/DevServerController.js";
 import { RouteRuleController } from "../controllers/RouteRuleController.js";
+import { PasswordController } from "../controllers/PasswordController.js";
 import { getConfig } from "../utils/ResolveConfig.js";
 import { toDTO } from "../middleware/dto.middleware.js";
 import {
@@ -17,6 +18,9 @@ import {
   RouteRuleCreateSchema,
   RouteRuleDeleteSchema,
   RouteRuleUpdateSchema,
+  PasswordCreateSchema,
+  PasswordDeleteSchema,
+  PasswordUpdateSchema,
 } from "../types/index.js";
 
 // 1. 创建各模块路由
@@ -71,6 +75,21 @@ const createRouteRuleRoutes = (controller: RouteRuleController) => {
   return router;
 };
 
+const createPasswordRoutes = (controller: PasswordController) => {
+  const router = Router();
+  router.get("/list/:envId", (...res) => controller.handleGetList(...res));
+  router.post("/add", toDTO(PasswordCreateSchema), (...res) =>
+    controller.handleAdd(...res)
+  );
+  router.post("/update", toDTO(PasswordUpdateSchema), (...res) =>
+    controller.handleUpdate(...res)
+  );
+  router.post("/delete", toDTO(PasswordDeleteSchema), (...res) =>
+    controller.handleDelete(...res)
+  );
+  return router;
+};
+
 const createCommonRoutes = () => {
   const router = Router();
   router.get("/are-you-ok", (req, res) => res.success({}, "I'm ok!"));
@@ -105,11 +124,15 @@ export const createRouter = (): Router => {
   const routeRuleController = container.get<RouteRuleController>(
     "routeRuleController"
   );
+  const passwordController = container.get<PasswordController>(
+    "passwordController"
+  );
 
   // 挂载模块路由
   rootRouter.use("/env", createEnvRoutes(envController));
   rootRouter.use("/server", createDevServerRoutes(devServerController));
   rootRouter.use("/route-rule", createRouteRuleRoutes(routeRuleController));
+  rootRouter.use("/password", createPasswordRoutes(passwordController));
   rootRouter.use("/", createCommonRoutes());
 
   return rootRouter;

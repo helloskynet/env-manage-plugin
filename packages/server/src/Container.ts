@@ -1,12 +1,15 @@
 import { EnvController } from "./controllers/EnvController.js";
 import { DevServerController } from "./controllers/DevServerController.js";
 import { RouteRuleController } from "./controllers/RouteRuleController.js";
+import { PasswordController } from "./controllers/PasswordController.js";
 import { EnvRepo } from "./repositories/EnvRepo.js";
 import { EnvService } from "./service/EnvService.js";
 import { DevServerService } from "./service/DevServerService.js";
 import { DevServerRepo } from "./repositories/DevServerRepo.js";
 import { RouteRuleRepo } from "./repositories/RouteRuleRepo.js";
 import { RouteRuleService } from "./service/RouteRuleService.js";
+import { PasswordRepo } from "./repositories/PasswordRepo.js";
+import { PasswordService } from "./service/PasswordService.js";
 import { ProxyAutoStarter } from "./service/ProxyAutoStarterService.js";
 
 class Container {
@@ -18,6 +21,7 @@ class Container {
     const envRepo = new EnvRepo();
     const devServerRepo = new DevServerRepo();
     const routeRuleRepo = new RouteRuleRepo();
+    const passwordRepo = new PasswordRepo();
     // configIns.initConfig();
     this.register("envService", new EnvService(envRepo, devServerRepo, routeRuleRepo));
     this.register("envController", new EnvController(this.get("envService")));
@@ -38,6 +42,15 @@ class Container {
     this.register(
       "routeRuleController",
       new RouteRuleController(this.get("routeRuleService"))
+    );
+    // 密码服务和控制器的注册
+    this.register(
+      "passwordService",
+      new PasswordService(passwordRepo)
+    );
+    this.register(
+      "passwordController",
+      new PasswordController(this.get("passwordService"))
     );
     setTimeout(() => {
       new ProxyAutoStarter(envRepo, this.get("envService"), routeRuleRepo);

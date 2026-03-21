@@ -1,5 +1,5 @@
 import loki from "lokijs";
-import { DevServerModel, EnvModel, RouteRuleModel } from "../types/index.js";
+import { DevServerModel, EnvModel, PasswordModel, RouteRuleModel } from "../types/index.js";
 import { logger } from "../utils/logger.js";
 
 // 声明数据库实例类型（避免全局变量类型模糊）
@@ -51,6 +51,17 @@ const initRouteRulesCollection = (db: loki) => {
 };
 
 /**
+ * 初始化密码集合
+ */
+const initPasswordsCollection = (db: loki) => {
+  if (!db.getCollection<PasswordModel>("passwords")) {
+    db.addCollection<PasswordModel>("passwords", {
+      indices: ["id", "envId", "isDefault"],
+    });
+  }
+};
+
+/**
  * 手动启动数据库（核心函数）
  * @returns 数据库实例（确保单例）
  */
@@ -74,6 +85,7 @@ export const startDatabase = (): Promise<loki> => {
         initEnvmsCollection(newDb);
         initDevServerCollection(newDb);
         initRouteRulesCollection(newDb);
+        initPasswordsCollection(newDb);
 
         // 5. 赋值单例并返回
         db = newDb;
