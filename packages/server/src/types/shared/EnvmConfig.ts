@@ -12,7 +12,7 @@ export const EnvmConfigSchema = z.object({
   logLevel: z.string().default("info"),
   injectScriptDir: z
     .string()
-    .default(".envminject")
+    .default(".envm")
     .optional()
     .describe("注入脚本的文件夹路径"),
 });

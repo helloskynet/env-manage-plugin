@@ -7,38 +7,27 @@ on:
   release:
     types: [created]
 
-jobs:
-  # build:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 20
-  #     - run: npm ci
-  #     - run: npm run build:client
-  #     - uses: actions/cache@v3
-  #       with:
-  #         path: src/client
-  #         key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
+permissions:
+  id-token: write
+  contents: read
 
+jobs:
   publish-npm:
-    # needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           registry-url: https://registry.npmjs.org/
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
           version: latest
 
-      - run: pnpm i
+      - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter env-plugin publish --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - run: |
+          unset NODE_AUTH_TOKEN
+          pnpm --filter env-plugin publish --no-git-checks
