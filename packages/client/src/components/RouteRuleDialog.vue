@@ -28,6 +28,7 @@ const currentEnvName = ref(props.envName)
 const visible = ref(false)
 const loading = ref(false)
 const tableData = ref<RouteRuleModel[]>([])
+const switchLoading = ref<Record<string, boolean>>({})
 
 const editRouteRuleRef = ref()
 
@@ -99,6 +100,27 @@ const handleDelete = (row: RouteRuleModel) => {
     })
 }
 
+// 切换规则启用状态
+const handleToggleEnabled = async (row: RouteRuleModel) => {
+  switchLoading.value[row.id!] = true
+  try {
+    await fetchData({
+      url: `${apiPrefix}/route-rule/update`,
+      method: 'POST',
+      params: {
+        id: row.id,
+        enabled: row.enabled,
+      },
+    })
+    ElMessage.success(row.enabled ? '已启用' : '已禁用')
+  } catch {
+    // 回滚状态
+    row.enabled = !row.enabled
+  } finally {
+    switchLoading.value[row.id!] = false
+  }
+}
+
 // 关闭对话框
 const handleClose = () => {
   visible.value = false
@@ -127,6 +149,15 @@ const handleClose = () => {
           <el-button type="primary" @click="handleAdd">新增规则</el-button>
         </el-empty>
       </template>
+      <el-table-column prop="enabled" label="状态" width="80" align="center">
+        <template #default="scope">
+          <el-switch
+            v-model="scope.row.enabled"
+            :loading="switchLoading[scope.row.id]"
+            @change="handleToggleEnabled(scope.row)"
+          />
+        </template>
+      </el-table-column>
       <el-table-column
         prop="pathPrefix"
         label="路径前缀"

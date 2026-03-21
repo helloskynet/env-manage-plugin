@@ -104,8 +104,11 @@ class PreProxyServer {
   private matchRouteRule(requestPath: string): string | null {
     const routeRules = this.routeRuleRepo.getByEnvId(this.envId);
 
+    // 过滤出已启用的规则
+    const enabledRules = routeRules.filter((rule) => rule.enabled !== false);
+
     // 按 pathPrefix 长度降序排序，确保最长前缀匹配优先
-    const sortedRules = [...routeRules].sort(
+    const sortedRules = [...enabledRules].sort(
       (a, b) => b.pathPrefix.length - a.pathPrefix.length
     );
 

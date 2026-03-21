@@ -27,6 +27,8 @@ export const RouteRuleBaseSchema = z.object({
 
   description: z.string().optional().describe("描述"),
 
+  enabled: z.boolean().optional().default(true).describe("是否启用"),
+
   createdAt: z.string().optional(),
 
   updatedAt: z.string().optional(),
