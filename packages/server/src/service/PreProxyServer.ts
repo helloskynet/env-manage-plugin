@@ -102,6 +102,23 @@ class PreProxyServer {
   }
 
   /**
+   * 根据请求路径匹配路由规则，检查是否需要注入 Script
+   * @param requestPath 请求路径
+   * @returns 是否需要注入 Script
+   */
+  private shouldInjectScript(requestPath: string): boolean {
+    const routeRules = this.routeRuleRepo.getByEnvId(this.envId);
+    const enabledRules = routeRules.filter((rule) => rule.enabled !== false);
+
+    for (const rule of enabledRules) {
+      if (minimatch(requestPath, rule.pathPrefix, { dot: true })) {
+        return rule.injectScript === true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * 根据请求路径匹配路由规则
    * @param requestPath 请求路径
    * @returns 匹配到的目标环境地址，如果没有匹配则返回 null
@@ -257,13 +274,8 @@ class PreProxyServer {
       try {
         const body = Buffer.concat(chunks);
 
-        // 只对 HTML && 指定路径注入
-        if (
-          contentType.includes("text/html") &&
-          ["/TestCom", "/project", "/home"].some((p) =>
-            requestPath.startsWith(p)
-          )
-        ) {
+        // 只对 HTML && 路由规则开启注入的路径
+        if (contentType.includes("text/html") && this.shouldInjectScript(requestPath)) {
           let html = body.toString("utf8");
           const injectScript = `
             <script>

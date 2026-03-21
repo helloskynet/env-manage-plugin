@@ -11,6 +11,7 @@ interface RouteRuleModel {
   targetEnvId: string
   targetEnvName?: string
   description?: string
+  injectScript?: boolean
   createdAt?: string
   updatedAt?: string
 }
@@ -64,10 +65,14 @@ const defaultFormData: Omit<RouteRuleModel, 'id'> = {
   targetEnvId: '',
   targetEnvName: '',
   description: '',
+  injectScript: false,
 }
 
 // 使用初始值填充表单
 const formData = reactive<Omit<RouteRuleModel, 'id'>>({ ...defaultFormData })
+
+// 动态计算 targetEnvId 是否必填
+const isTargetEnvRequired = () => !formData.injectScript
 
 const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
   pathPrefix: [
@@ -84,7 +89,18 @@ const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
       trigger: 'blur',
     },
   ],
-  targetEnvId: [{ required: true, message: '请选择目标环境', trigger: 'change' }],
+  targetEnvId: [
+    {
+      validator: (rule, value, callback) => {
+        if (isTargetEnvRequired() && !value) {
+          callback(new Error('请选择目标环境'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'change',
+    },
+  ],
 })
 
 // 关闭对话框时重置表单
@@ -200,10 +216,22 @@ const submitForm = () => {
         />
       </el-form-item>
 
-      <el-form-item label="目标环境" prop="targetEnvId">
+      <el-form-item label="注入Script">
+        <el-switch v-model="formData.injectScript" />
+        <div style="color: #999; font-size: 12px; margin-top: 4px">
+          开启后将在响应HTML中注入脚本，且目标环境可为空
+        </div>
+      </el-form-item>
+
+      <el-form-item
+        label="目标环境"
+        prop="targetEnvId"
+        :required="!formData.injectScript"
+      >
         <el-select
           v-model="formData.targetEnvId"
           placeholder="请选择目标环境"
+          :clearable="formData.injectScript"
           @change="handleTargetEnvChange"
         >
           <el-option

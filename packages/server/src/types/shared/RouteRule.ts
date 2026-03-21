@@ -20,7 +20,7 @@ export const RouteRuleBaseSchema = z.object({
 
   targetEnvId: z
     .string()
-    .min(1, "目标环境ID不能为空")
+    .optional()
     .describe("目标环境ID（转发到此环境）"),
 
   targetEnvName: z.string().optional().describe("目标环境名称"),
@@ -28,6 +28,12 @@ export const RouteRuleBaseSchema = z.object({
   description: z.string().optional().describe("描述"),
 
   enabled: z.boolean().optional().default(true).describe("是否启用"),
+
+  injectScript: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe("是否注入Script脚本"),
 
   createdAt: z.string().optional(),
 

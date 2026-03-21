@@ -41,12 +41,20 @@ class RouteRuleService {
    * @throws {Error} 当输入参数不合法或目标环境不存在时抛出
    */
   handleAdd(routeRuleItem: RouteRuleCreate): RouteRuleModel {
-    const { envId, pathPrefix, targetEnvId } = routeRuleItem;
+    const { envId, pathPrefix, targetEnvId, injectScript } = routeRuleItem;
 
-    // 检查目标环境是否存在
-    const targetEnv = this.envRepo.findOneById(targetEnvId);
-    if (!targetEnv) {
-      throw new Error(`添加失败，目标环境【${targetEnvId}】不存在`);
+    let targetEnvName = "";
+
+    // 如果目标环境有值，检查目标环境是否存在
+    if (targetEnvId) {
+      const targetEnv = this.envRepo.findOneById(targetEnvId);
+      if (!targetEnv) {
+        throw new Error(`添加失败，目标环境【${targetEnvId}】不存在`);
+      }
+      targetEnvName = targetEnv.name || targetEnv.apiBaseUrl;
+    } else if (!injectScript) {
+      // 未开启注入脚本且目标环境为空时报错
+      throw new Error("添加失败，目标环境不能为空");
     }
 
     // 检查是否已存在相同路径前缀的规则（同一环境下）
@@ -59,7 +67,8 @@ class RouteRuleService {
     const newRouteRule: RouteRuleModel = {
       ...routeRuleItem,
       id: uuidv4(),
-      targetEnvName: targetEnv.name || targetEnv.apiBaseUrl,
+      targetEnvId,
+      targetEnvName,
       createdAt: now,
       updatedAt: now,
     };
@@ -77,7 +86,7 @@ class RouteRuleService {
    * @throws {Error} 当输入参数不合法或规则/目标环境不存在时抛出
    */
   handleUpdate(routeRuleItem: RouteRuleUpdate): RouteRuleModel {
-    const { id, targetEnvId } = routeRuleItem;
+    const { id, targetEnvId, targetEnvName } = routeRuleItem;
 
     // 检查路由规则是否存在
     const existingRule = this.routeRuleRepo.findOneById(id);
@@ -85,8 +94,16 @@ class RouteRuleService {
       throw new Error(`更新失败，路由规则【${id}】不存在`);
     }
 
-    // 如果更新了目标环境，检查目标环境是否存在
-    if (targetEnvId && targetEnvId !== existingRule.targetEnvId) {
+    // 判断是否需要清空目标环境：
+    // 2. targetEnvId 未传递或者 targetEnvName 任意一个为空（表示清空）
+    const shouldClearTarget = targetEnvId === "" || targetEnvId === undefined || targetEnvName === "";
+
+    if (shouldClearTarget) {
+      // 清空目标环境
+      routeRuleItem.targetEnvId = "";
+      routeRuleItem.targetEnvName = "";
+    } else if (targetEnvId !== undefined && targetEnvId !== existingRule.targetEnvId) {
+      // 更新了目标环境，检查目标环境是否存在
       const targetEnv = this.envRepo.findOneById(targetEnvId);
       if (!targetEnv) {
         throw new Error(`更新失败，目标环境【${targetEnvId}】不存在`);
