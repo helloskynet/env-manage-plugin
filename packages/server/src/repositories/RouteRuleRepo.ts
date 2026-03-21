@@ -45,6 +45,15 @@ class RouteRuleRepo {
   }
 
   /**
+   * 统计指定环境的路由规则数量
+   * @param envId - 环境ID
+   * @returns 路由规则数量
+   */
+  countByEnvId(envId: string): number {
+    return this.getCollection().count({ envId });
+  }
+
+  /**
    * 根据ID查询单个路由规则
    * @param id - 路由规则ID
    * @returns 匹配的路由规则，若未找到则返回null

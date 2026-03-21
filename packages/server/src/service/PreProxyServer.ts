@@ -4,10 +4,12 @@ import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import setCookieParser, { Cookie } from "set-cookie-parser";
 import * as libCookie from "cookie";
+import { minimatch } from "minimatch";
 
 import { getConfig } from "../utils/ResolveConfig.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
+import { RouteRuleRepo } from "../repositories/RouteRuleRepo.js";
 import { EnvModel } from "../types/index.js";
 import { devServerLogger } from "../utils/logger.js";
 
@@ -41,14 +43,15 @@ class PreProxyServer {
   static async create(
     envId: string,
     envRepo: EnvRepo,
-    devServerRepo: DevServerRepo
+    devServerRepo: DevServerRepo,
+    routeRuleRepo: RouteRuleRepo
   ) {
     if (this.appMap[envId]) {
       devServerLogger.info(`环境 ${envId} 已经启动`);
       return null;
     }
 
-    const preProxyServer = new PreProxyServer(envId, envRepo, devServerRepo);
+    const preProxyServer = new PreProxyServer(envId, envRepo, devServerRepo, routeRuleRepo);
     await preProxyServer.startServer();
     PreProxyServer.appMap[envId] = preProxyServer;
     return preProxyServer;
@@ -58,6 +61,7 @@ class PreProxyServer {
     private envId: string,
     private envRepo: EnvRepo,
     private devServerRepo: DevServerRepo,
+    private routeRuleRepo: RouteRuleRepo,
     private app = express()
   ) {
     app.use(this.createPreProxyMiddleware());
@@ -93,6 +97,36 @@ class PreProxyServer {
   }
 
   /**
+   * 根据请求路径匹配路由规则
+   * @param requestPath 请求路径
+   * @returns 匹配到的目标环境地址，如果没有匹配则返回 null
+   */
+  private matchRouteRule(requestPath: string): string | null {
+    const routeRules = this.routeRuleRepo.getByEnvId(this.envId);
+
+    // 按 pathPrefix 长度降序排序，确保最长前缀匹配优先
+    const sortedRules = [...routeRules].sort(
+      (a, b) => b.pathPrefix.length - a.pathPrefix.length
+    );
+
+    for (const rule of sortedRules) {
+      // 使用 minimatch 支持 glob 模式匹配
+      if (minimatch(requestPath, rule.pathPrefix, { dot: true })) {
+        // 获取目标环境信息
+        const targetEnv = this.envRepo.findOneById(rule.targetEnvId);
+        if (targetEnv?.apiBaseUrl) {
+          devServerLogger.info(
+            `路由规则匹配成功: ${requestPath} -> ${rule.pathPrefix}, 转发到: ${targetEnv.apiBaseUrl}`
+          );
+          return targetEnv.apiBaseUrl;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * 生成代理中间件
    * @returns
    */
@@ -101,29 +135,39 @@ class PreProxyServer {
     return createProxyMiddleware({
       ws: true,
       changeOrigin: true,
-      router: () => {
-        // 查询环境信息
+      router: (req: IncomingMessage & { path?: string }) => {
+        const requestPath = req.path || "/";
+
+        // 1. 检查是否配置了路由规则
+        const customTarget = this.matchRouteRule(requestPath);
+        if (customTarget) {
+          return customTarget;
+        }
+
+        // 2. 默认转发到 devServer
         const envItem = this.getEnvItem();
-        // 根据环境信息查询绑定的 devServer 地址
         const devServerConfig = this.devServerRepo.findOneById({
           id: envItem?.devServerId ?? "",
         });
-        // 转发到 devServer
         return `${devServerConfig?.devServerUrl}`;
       },
       on: {
-        proxyReq: (proxyReq, req) => {
-          const envItem = this.getEnvItem();
-          const target = `${envItem?.apiBaseUrl}`;
+        proxyReq: (proxyReq, req: IncomingMessage & { path?: string }) => {
+          const requestPath = req.path || "/";
+
+          // 优先使用路由规则的目标地址，否则使用环境默认的 apiBaseUrl
+          const customTarget = this.matchRouteRule(requestPath);
+          const target = customTarget || `${this.getEnvItem()?.apiBaseUrl}`;
           proxyReq.setHeader("x-api-server", `${target}`);
           this._rewrieCookieOnProxyReq(proxyReq, req);
         },
         proxyRes: (proxyRes) => {
           this._rewriteSetCookieOnProxyRes(proxyRes);
         },
-        proxyReqWs: (proxyReq) => {
-          const envItem = this.getEnvItem();
-          const target = `${envItem?.apiBaseUrl}`;
+        proxyReqWs: (proxyReq, req: IncomingMessage & { path?: string }) => {
+          const requestPath = req.path || "/";
+          const customTarget = this.matchRouteRule(requestPath);
+          const target = customTarget || `${this.getEnvItem()?.apiBaseUrl}`;
           proxyReq.setHeader("x-api-server", `${target}`);
         },
       },

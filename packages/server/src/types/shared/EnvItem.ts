@@ -112,3 +112,10 @@ export type EnvUpdate = z.infer<typeof EnvUpdateSchema>;
  * 用于查询环境时的参数类型，只包含id字段
  */
 export type EnvQuery = z.infer<typeof EnvQuerySchema>;
+
+/**
+ * 带路由规则数量的环境模型
+ */
+export type EnvModelWithRouteCount = EnvModel & {
+  routeRuleCount?: number;
+};

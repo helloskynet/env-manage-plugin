@@ -1,4 +1,5 @@
 import { EnvRepo } from "../repositories/EnvRepo.js";
+import { RouteRuleRepo } from "../repositories/RouteRuleRepo.js";
 import { AppError } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
 import { EnvService } from "./EnvService.js";
@@ -10,7 +11,8 @@ import { EnvService } from "./EnvService.js";
 export class ProxyAutoStarter {
   constructor(
     private readonly envRepo: EnvRepo,
-    private readonly proxyService: EnvService
+    private readonly proxyService: EnvService,
+    private readonly routeRuleRepo: RouteRuleRepo
   ) {
     this.start();
   }

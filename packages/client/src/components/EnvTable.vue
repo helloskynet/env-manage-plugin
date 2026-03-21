@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElBadge } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import type { DevServerModel, EnvModel, ListResponse } from '@envm/schemas'
 import { apiPrefix, fetchData } from '@/utils'
@@ -7,7 +7,12 @@ import EditEnv from './EditEnv.vue'
 import RouteRuleDialog from './RouteRuleDialog.vue'
 import { DocumentCopy, Delete, Edit, VideoPlay, VideoPause, List } from '@element-plus/icons-vue'
 
-const tableData = ref<EnvModel[]>([])
+// 扩展 EnvModel 类型以包含路由规则数量
+interface EnvModelWithRouteCount extends EnvModel {
+  routeRuleCount?: number
+}
+
+const tableData = ref<EnvModelWithRouteCount[]>([])
 
 const devServerList = ref<DevServerModel[]>([])
 
@@ -300,13 +305,20 @@ const handleRouterDetail = (rowData: EnvModel) => {
           circle
           @click="handleCopy(scope.row)"
         ></el-button>
-        <el-button
-          type="warning"
-          :icon="List"
-          title="路由表"
-          circle
-          @click="handleRouterDetail(scope.row)"
-        ></el-button>
+        <el-badge
+          :value="scope.row.routeRuleCount"
+          :hidden="!scope.row.routeRuleCount"
+          :offset="[3, 10]"
+          :max="99"
+        >
+          <el-button
+            type="warning"
+            :icon="List"
+            title="路由表"
+            circle
+            @click="handleRouterDetail(scope.row)"
+          ></el-button>
+        </el-badge>
       </template>
     </el-table-column>
   </el-table>

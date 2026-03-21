@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <strong>English</strong> | <a href="#中文">中文</a>
+  <!-- <strong>English</strong> | <a href="#中文">中文</a> -->
 </p>
 
 ---

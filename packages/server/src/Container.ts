@@ -19,7 +19,7 @@ class Container {
     const devServerRepo = new DevServerRepo();
     const routeRuleRepo = new RouteRuleRepo();
     // configIns.initConfig();
-    this.register("envService", new EnvService(envRepo, devServerRepo));
+    this.register("envService", new EnvService(envRepo, devServerRepo, routeRuleRepo));
     this.register("envController", new EnvController(this.get("envService")));
     // 开发服务器服务和控制器的注册
     this.register(
@@ -40,7 +40,7 @@ class Container {
       new RouteRuleController(this.get("routeRuleService"))
     );
     setTimeout(() => {
-      new ProxyAutoStarter(envRepo, this.get("envService"));
+      new ProxyAutoStarter(envRepo, this.get("envService"), routeRuleRepo);
     }, 5000);
   }
 

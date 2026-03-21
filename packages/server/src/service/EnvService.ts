@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import PreProxyServer from "./PreProxyServer.js";
 import { EnvRepo } from "../repositories/EnvRepo.js";
+import { RouteRuleRepo } from "../repositories/RouteRuleRepo.js";
 import {
   EnvCreate,
   EnvDelete,
@@ -22,10 +23,12 @@ class EnvService {
    * 构造函数 - 通过依赖注入初始化仓库实例
    * @param envRepo - 环境仓库实例，用于环境数据的持久化操作
    * @param devServerRepo - 开发服务器仓库实例，用于关联开发服务器的操作
+   * @param routeRuleRepo - 路由规则仓库实例，用于获取路由规则数量
    */
   constructor(
     private envRepo: EnvRepo,
-    private devServerRepo: DevServerRepo
+    private devServerRepo: DevServerRepo,
+    private routeRuleRepo?: RouteRuleRepo
   ) {}
 
   /**
@@ -115,10 +118,19 @@ class EnvService {
 
   /**
    * 获取所有环境列表
-   * @returns {EnvModel[]} 环境信息数组
+   * @returns {Array<EnvModel & {routeRuleCount?: number}>} 环境信息数组
    */
-  handleGetList(): EnvModel[] {
+  handleGetList(): Array<EnvModel & { routeRuleCount?: number }> {
     const list = this.envRepo.getAll();
+    // 如果有 routeRuleRepo，则统计每个环境的路由规则数量
+    if (this.routeRuleRepo) {
+      const result = list.map((env) => ({
+        ...env,
+        routeRuleCount: this.routeRuleRepo!.countByEnvId(env.id),
+      }));
+      envLogger.info({ count: list.length }, `查询到${list.length}个环境`);
+      return result;
+    }
     envLogger.info({ count: list.length }, `查询到${list.length}个环境`);
     return list;
   }
@@ -151,7 +163,7 @@ class EnvService {
       await this.stopServerAtSamePort(envItem);
 
       // 启动新的代理服务器
-      await PreProxyServer.create(id, this.envRepo, this.devServerRepo);
+      await PreProxyServer.create(id, this.envRepo, this.devServerRepo, this.routeRuleRepo!);
 
       // 更新环境状态为运行中
       await this.updateEnvStatus({
