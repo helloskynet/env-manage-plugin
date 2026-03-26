@@ -63,20 +63,6 @@ const rules = reactive<Partial<Record<string, FormItemRule[]>>>({
   devServerId: [{ required: true, message: '请选择开发服务器', trigger: 'blur' }],
   apiBaseUrl: [
     { required: true, message: '请输入API服务器地址', trigger: 'blur' },
-    {
-      validator: (rule, value, callback) => {
-        // 严格匹配 http/https + IP + 端口(3000-65535)
-        const regex =
-          /^(http|https):\/\/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(3000|[3-9]\d{3}|[1-5]\d{4}|6[0-5]{2}[0-3][0-5])$/
-
-        if (regex.test(value)) {
-          callback() // 校验通过
-        } else {
-          callback(new Error('请输入正确的地址（格式：http/https://IP:端口，端口范围3000-65535）'))
-        }
-      },
-      trigger: 'blur',
-    },
   ],
 })
 
