@@ -54,16 +54,18 @@ class RouteRuleService {
    * @throws {Error} 当输入参数不合法或目标环境不存在时抛出
    */
   handleAdd(routeRuleItem: RouteRuleCreate): RouteRuleModel {
-    const { envId, pathPrefix, targetEnvId, injectScript } = routeRuleItem;
+    const { envId, pathPrefix, targetEnvId } = routeRuleItem;
 
-    // 如果目标环境有值，检查目标环境是否存在
+    // 检查目标环境是否存在
     if (targetEnvId) {
       const targetEnv = this.envRepo.findOneById(targetEnvId);
       if (!targetEnv) {
         throw new Error(`添加失败，目标环境【${targetEnvId}】不存在`);
       }
-    } else if (!injectScript) {
-      // 未开启注入脚本且目标环境为空时报错
+    }
+
+    // 目标环境不能为空
+    if (!targetEnvId) {
       throw new Error("添加失败，目标环境不能为空");
     }
 

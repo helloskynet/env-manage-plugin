@@ -27,12 +27,6 @@ export const RouteRuleBaseSchema = z.object({
 
   enabled: z.boolean().optional().default(true).describe("是否启用"),
 
-  injectScript: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe("是否注入Script脚本"),
-
   createdAt: z.string().optional(),
 
   updatedAt: z.string().optional(),

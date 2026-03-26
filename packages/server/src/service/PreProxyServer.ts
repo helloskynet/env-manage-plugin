@@ -134,23 +134,6 @@ class PreProxyServer {
   }
 
   /**
-   * 根据请求路径匹配路由规则，检查是否需要注入 Script
-   * @param requestPath 请求路径
-   * @returns 是否需要注入 Script
-   */
-  private shouldInjectScript(requestPath: string): boolean {
-    const routeRules = this.routeRuleRepo.getByEnvId(this.envId);
-    const enabledRules = routeRules.filter((rule) => rule.enabled !== false);
-
-    for (const rule of enabledRules) {
-      if (minimatch(requestPath, rule.pathPrefix, { dot: true })) {
-        return rule.injectScript === true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * 根据请求路径匹配路由规则
    * @param requestPath 请求路径
    * @returns 匹配到的目标环境地址，如果没有匹配则返回 null
@@ -288,11 +271,10 @@ class PreProxyServer {
 
   _rewriteLoginRedirect(
     proxyRes: IncomingMessage,
-    req: IncomingMessage & { path?: string },
+    _req: IncomingMessage & { path?: string },
     res: ServerResponse<IncomingMessage>
   ) {
     const contentType = proxyRes.headers["content-type"] || "";
-    const requestPath = req.path || "/";
 
     // 转发状态码 + 响应头
     res.statusCode = proxyRes.statusCode || 200;
@@ -308,16 +290,12 @@ class PreProxyServer {
       try {
         const body = Buffer.concat(chunks);
 
-        // 只对 HTML && 路由规则开启注入的路径
-        if (
-          contentType.includes("text/html") &&
-          this.shouldInjectScript(requestPath)
-        ) {
+        // 只对 HTML 且配置了注入脚本目录
+        if (contentType.includes("text/html")) {
           const config = getConfig();
           const scriptDir = config.injectScriptDir;
 
           if (!scriptDir) {
-            devServerLogger.warn("未配置注入脚本目录 (injectScriptDir)");
             res.end(body);
             return;
           }
@@ -351,6 +329,10 @@ class PreProxyServer {
    * @returns 脚本标签 HTML
    */
   private generateImportScripts(scriptDir: string): string {
+    if (!scriptDir) {
+      return "";
+    }
+
     const fullPath = path.resolve(scriptDir);
 
     if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isDirectory()) {
