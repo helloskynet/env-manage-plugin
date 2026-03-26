@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import EditEnv from './EditEnv.vue'
-import EditServer from './EditServer.vue'
-import EnvTable from './EnvTable.vue'
+import ApiServerEdit from './ApiServerEdit.vue'
+import DevServerEdit from './DevServerEdit.vue'
+import ApiServerTable from './ApiServerTable.vue'
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import { apiPrefix, fetchData } from '@/utils'
@@ -10,19 +10,19 @@ import { Plus, Refresh, Delete } from '@element-plus/icons-vue'
 
 const refreshLoading = ref(false)
 
-const addEnvRef = ref()
-const addServerRef = ref()
+const apiServerEditRef = ref()
+const devServerEditRef = ref()
 
-const handleAddEnv = () => {
+const handleAddApiServer = () => {
   // 使用 $refs 调用子组件方法
-  if (addEnvRef.value) {
-    addEnvRef.value.showDialog()
+  if (apiServerEditRef.value) {
+    apiServerEditRef.value.showDialog()
   }
 }
-const handleAddServer = () => {
+const handleAddDevServer = () => {
   // 使用 $refs 调用子组件方法
-  if (addServerRef.value) {
-    addServerRef.value.showDialog()
+  if (devServerEditRef.value) {
+    devServerEditRef.value.showDialog()
   }
 }
 
@@ -30,16 +30,18 @@ onMounted(() => {
   startWs()
 })
 
-const envTableRef = ref()
+const apiServerTableRef = ref()
 const devServerTableRef = ref()
 /**
  * 刷新表格
  */
 const refreshList = () => {
   refreshLoading.value = true
-  Promise.all([envTableRef.value?.refresh(), devServerTableRef.value?.refresh()]).finally(() => {
-    refreshLoading.value = false
-  })
+  Promise.all([apiServerTableRef.value?.refresh(), devServerTableRef.value?.refresh()]).finally(
+    () => {
+      refreshLoading.value = false
+    },
+  )
 }
 
 /**
@@ -98,7 +100,7 @@ const startWs = () => {
     type="primary"
     :icon="Plus"
     plain
-    @click="handleAddEnv"
+    @click="handleAddApiServer"
     :loading="refreshLoading"
   >
     新增API Server
@@ -107,7 +109,7 @@ const startWs = () => {
     type="primary"
     :icon="Plus"
     plain
-    @click="handleAddServer"
+    @click="handleAddDevServer"
     :loading="refreshLoading"
   >
     新增Dev Server
@@ -134,19 +136,19 @@ const startWs = () => {
   <br />
   <el-tabs type="card">
     <el-tab-pane label="API Server">
-      <EnvTable ref="envTableRef" />
+      <api-server-table ref="apiServerTableRef"></api-server-table>
     </el-tab-pane>
     <el-tab-pane label="Dev Server">
-      <DevServerTable ref="devServerTableRef" />
+      <dev-server-table ref="devServerTableRef"></dev-server-table>
     </el-tab-pane>
   </el-tabs>
 
-  <EditEnv
-    ref="addEnvRef"
+  <api-server-edit
+    ref="apiServerEditRef"
     @refreshList="refreshList"
-  />
-  <EditServer
-    ref="addServerRef"
+  ></api-server-edit>
+  <dev-server-edit
+    ref="devServerEditRef"
     @refreshList="refreshList"
-  />
+  ></dev-server-edit>
 </template>

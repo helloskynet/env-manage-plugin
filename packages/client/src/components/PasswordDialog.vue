@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiPrefix, fetchData } from '@/utils'
 import { Delete, Edit } from '@element-plus/icons-vue'
-import EditPassword from './EditPassword.vue'
+import PasswordEdit from './PasswordEdit.vue'
 
 interface PasswordModel {
   id: string
@@ -30,7 +30,7 @@ const visible = ref(false)
 const loading = ref(false)
 const tableData = ref<PasswordModel[]>([])
 
-const editPasswordRef = ref()
+const passwordEditRef = ref()
 
 // 显示对话框
 const showDialog = (id?: string, name?: string) => {
@@ -66,12 +66,12 @@ const loadPasswords = () => {
 
 // 打开新增弹窗
 const handleAdd = () => {
-  editPasswordRef.value?.showDialog(currentEnvId.value)
+  passwordEditRef.value?.showDialog(currentEnvId.value)
 }
 
 // 打开编辑弹窗
 const handleEdit = (row: PasswordModel) => {
-  editPasswordRef.value?.showDialog(currentEnvId.value, row)
+  passwordEditRef.value?.showDialog(currentEnvId.value, row)
 }
 
 // 删除密码
@@ -230,10 +230,10 @@ const handleClose = () => {
     </template>
   </el-dialog>
 
-  <EditPassword
-    ref="editPasswordRef"
+  <password-edit
+    ref="passwordEditRef"
     @refreshList="loadPasswords"
-  />
+  ></password-edit>
 </template>
 
 <style scoped>

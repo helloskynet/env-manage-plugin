@@ -3,7 +3,7 @@ import { ElMessage, ElMessageBox, ElBadge } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import type { DevServerModel, EnvModel, ListResponse } from '@envm/schemas'
 import { apiPrefix, fetchData } from '@/utils'
-import EditEnv from './EditEnv.vue'
+import ApiServerEdit from './ApiServerEdit.vue'
 import RouteRuleDialog from './RouteRuleDialog.vue'
 import PasswordDialog from './PasswordDialog.vue'
 import {
@@ -345,16 +345,16 @@ const handlePasswordDetail = (rowData: EnvModel) => {
       </template>
     </el-table-column>
   </el-table>
-  <EditEnv
+  <api-server-edit
     ref="editEnvRef"
     @refreshList="refresh"
-  ></EditEnv>
-  <RouteRuleDialog
+  ></api-server-edit>
+  <route-rule-dialog
     ref="routeRuleDialogRef"
     :env-id="''"
-  />
-  <PasswordDialog
+  ></route-rule-dialog>
+  <password-dialog
     ref="passwordDialogRef"
     :env-id="''"
-  />
+  ></password-dialog> 
 </template>

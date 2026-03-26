@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiPrefix, fetchData } from '@/utils'
 import { Delete, Edit } from '@element-plus/icons-vue'
-import EditRouteRule from './EditRouteRule.vue'
+import RouteRuleEdit from './RouteRuleEdit.vue'
 
 interface RouteRuleModel {
   id: string
@@ -30,7 +30,7 @@ const loading = ref(false)
 const tableData = ref<RouteRuleModel[]>([])
 const switchLoading = ref<Record<string, boolean>>({})
 
-const editRouteRuleRef = ref()
+const routeRuleEditRef = ref()
 
 // 显示对话框
 const showDialog = (id?: string, name?: string) => {
@@ -66,12 +66,12 @@ const loadRouteRules = () => {
 
 // 打开新增弹窗
 const handleAdd = () => {
-  editRouteRuleRef.value?.showDialog(currentEnvId.value)
+  routeRuleEditRef.value?.showDialog(currentEnvId.value)
 }
 
 // 打开编辑弹窗
 const handleEdit = (row: RouteRuleModel) => {
-  editRouteRuleRef.value?.showDialog(currentEnvId.value, row)
+  routeRuleEditRef.value?.showDialog(currentEnvId.value, row)
 }
 
 // 删除路由规则
@@ -222,10 +222,10 @@ const handleClose = () => {
     </template>
   </el-dialog>
 
-  <EditRouteRule
-    ref="editRouteRuleRef"
+  <route-rule-edit
+    ref="routeRuleEditRef"
     @refreshList="loadRouteRules"
-  />
+  ></route-rule-edit>
 </template>
 
 <style scoped>

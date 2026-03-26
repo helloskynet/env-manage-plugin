@@ -3,13 +3,13 @@ import { apiPrefix, fetchData } from '@/utils'
 import type { DevServerModel, ListResponse } from '@envm/schemas'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
-import EditServer from './EditServer.vue'
+import DevServerEdit from './DevServerEdit.vue'
 import { DocumentCopy, Edit, Delete } from '@element-plus/icons-vue'
 
 const devServerList = ref<DevServerModel[]>([])
 const refreshLoading = ref(false)
 
-const editServerRef = ref()
+const devServerEditRef = ref()
 /**
  * 获取开发服务器列表
  *
@@ -51,13 +51,13 @@ const handleDelete = (rowData: DevServerModel) => {
 }
 
 const handleModify = (rowData: DevServerModel) => {
-  editServerRef.value.showDialog(rowData)
+  devServerEditRef.value.showDialog(rowData)
 }
 
 const handleCopy = (rowData: DevServerModel) => {
   const newServer = { ...rowData }
   newServer.name = `${newServer.name}-副本`
-  editServerRef.value.showDialog(newServer, true)
+  devServerEditRef.value.showDialog(newServer, true)
 }
 onMounted(() => {
   getDevServerList()
@@ -114,5 +114,5 @@ defineExpose({
       </template>
     </el-table-column>
   </el-table>
-  <EditServer ref="editServerRef" @refreshList="refresh"></EditServer>
+  <dev-server-edit ref="editServerRef" @refreshList="refresh"></dev-server-edit>
 </template>
