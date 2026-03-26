@@ -114,5 +114,5 @@ defineExpose({
       </template>
     </el-table-column>
   </el-table>
-  <dev-server-edit ref="editServerRef" @refreshList="refresh"></dev-server-edit>
+  <dev-server-edit ref="devServerEditRef" @refreshList="refresh"></dev-server-edit>
 </template>
