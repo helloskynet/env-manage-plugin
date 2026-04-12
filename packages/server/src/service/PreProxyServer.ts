@@ -75,10 +75,10 @@ class PreProxyServer {
       res.json({ envId: this.envId });
       res.end();
     });
-    
+
     // 代理 /envm 相关的请求到无需经过 Dev Server ProxyServer（PostProxyServer）
     app.use(
-      ["/envm-inject",  getConfig().apiPrefix],
+      ["/envm-inject", getConfig().apiPrefix],
       this.createInjectProxyMiddleware()
     );
 
@@ -335,8 +335,8 @@ class PreProxyServer {
 
     const fullPath = path.resolve(scriptDir);
 
+    // 检查目录是否存在且是一个文件夹
     if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isDirectory()) {
-      devServerLogger.warn(`注入脚本目录不存在: ${fullPath}`);
       return "";
     }
 
@@ -345,8 +345,8 @@ class PreProxyServer {
       .filter((file) => file.endsWith(".js") && !file.startsWith("#"))
       .sort();
 
+    // 如果没有符合要求的 js 文件，返回空字符串
     if (jsFiles.length === 0) {
-      devServerLogger.warn(`注入脚本目录没有 js 文件: ${fullPath}`);
       return "";
     }
 
