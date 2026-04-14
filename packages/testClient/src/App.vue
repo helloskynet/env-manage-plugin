@@ -1,11 +1,16 @@
 <template>
   开发环境管理系统 -- 测试页面
   <br />
-  用户名：<input type="text" id="username" /> 密码：<input type="password" id="password" />
-  <button @click="showUserInfo" id="login">
-    登录
-  </button>
-  <br>
+  <form action="#">
+    用户名：<input type="text" id="username" placeholder="用户名" />
+    <br />
+    密码：<input placeholder="密码" type="password" id="password" />
+    <br />
+    <button @click="showUserInfo" id="login" :disabled="!isLoginCanClick">
+      {{ isLoginCanClick ? '登录' : '登录中...' }}
+    </button>
+  </form>
+  <br />
   <button @click="setCookie">set-cookie</button>
   <div id="console" ref="consoleRef"></div>
 </template>
@@ -98,12 +103,20 @@ const testFunc = () => {
   })
 }
 
+const isLoginCanClick = ref(true)
+
 const showUserInfo = () => {
   const usernameInput = document.getElementById('username') as HTMLInputElement
   const passwordInput = document.getElementById('password') as HTMLInputElement
 
   const username = usernameInput.value
   const password = passwordInput.value
+
+  isLoginCanClick.value = false // 点击后禁用登录按钮，防止重复点击
+
+  setTimeout(() => {
+    isLoginCanClick.value = true // 点击后禁用登录按钮，防止重复点击
+  }, 5000)
 
   updateConsoleContent(`用户名: ${username}, 密码: ${password} ---- 来自自动填充<br>`)
 }

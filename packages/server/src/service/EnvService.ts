@@ -12,6 +12,7 @@ import {
 import { AppError } from "../utils/errors.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
 import { envLogger } from "../utils/logger.js";
+import * as os from "os";
 
 /**
  * 环境服务类
@@ -19,6 +20,7 @@ import { envLogger } from "../utils/logger.js";
  * 依赖环境仓库(EnvRepo)和开发服务器仓库(DevServerRepo)实现数据持久化和关联操作
  */
 class EnvService {
+  serverIp: string;
   /**
    * 构造函数 - 通过依赖注入初始化仓库实例
    * @param envRepo - 环境仓库实例，用于环境数据的持久化操作
@@ -29,7 +31,9 @@ class EnvService {
     private envRepo: EnvRepo,
     private devServerRepo: DevServerRepo,
     private routeRuleRepo?: RouteRuleRepo
-  ) {}
+  ) {
+    this.serverIp = `${this.getLocalIp()}`;
+  }
 
   /**
    * 添加新环境
@@ -117,6 +121,25 @@ class EnvService {
   }
 
   /**
+   * 获取本机 IP 地址
+   * @returns 本机 IP 地址
+   */
+  getLocalIp(): string {
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+      const iface = interfaces[name];
+      if (!iface) continue;
+      for (const info of iface) {
+        // 跳过 IPv6 和内部地址
+        if (info.family === "IPv4" && !info.internal) {
+          return info.address;
+        }
+      }
+    }
+    return "127.0.0.1";
+  }
+
+  /**
    * 获取所有环境列表
    * @returns {Array<EnvModel & {routeRuleCount?: number}>} 环境信息数组
    */
@@ -127,6 +150,7 @@ class EnvService {
       const result = list.map((env) => ({
         ...env,
         routeRuleCount: this.routeRuleRepo?.countByEnvId(env.id) ?? 0,
+        serverIp: this.serverIp,
       }));
       envLogger.info({ count: list.length }, `查询到${list.length}个环境`);
       return result;
@@ -163,7 +187,12 @@ class EnvService {
       await this.stopServerAtSamePort(envItem);
 
       // 启动新的代理服务器
-      await PreProxyServer.create(id, this.envRepo, this.devServerRepo, this.routeRuleRepo!);
+      await PreProxyServer.create(
+        id,
+        this.envRepo,
+        this.devServerRepo,
+        this.routeRuleRepo!
+      );
 
       // 更新环境状态为运行中
       await this.updateEnvStatus({

@@ -372,4 +372,4 @@ MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
 
 ---
 
-<p align="center">由 <a href="https://github.com/lumos934">lumos934</a> 用 ❤️ 构建
+<p align="center">由 <a href="https://github.com/lumos934">lumos934</a> 用 ❤️ 构建</p>

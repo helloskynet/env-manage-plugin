@@ -71,7 +71,7 @@ class PreProxyServer {
     private routeRuleRepo: RouteRuleRepo,
     private app = express()
   ) {
-    app.use([`${getConfig().apiPrefix}/inject/getcurrentenv`], (req, res) => {
+    app.use([`${getConfig().apiPrefix}/inject/getcurrentenv`], (_req, res) => {
       res.json({ envId: this.envId });
       res.end();
     });

@@ -14,6 +14,7 @@ import {
   VideoPause,
   List,
   Key,
+  CopyDocument,
 } from '@element-plus/icons-vue'
 
 // 扩展 EnvModel 类型以包含路由规则数量
@@ -182,6 +183,22 @@ const copyApiBaseUrl = (url: string) => {
   }
 }
 
+// 复制替换 IP 后的地址
+const copyIndexUrl = (item: EnvModelWithRouteCount & { serverIp: string }) => {
+  if (!isSupported) {
+    ElMessage.warning('当前浏览器不支持剪贴板功能')
+    return
+  }
+
+  copy(`${location.protocol}//${item.serverIp}:${item.port}${item.homePage}`)
+    .then(() => {
+      ElMessage.success('复制成功')
+    })
+    .catch(() => {
+      ElMessage.error('复制失败')
+    })
+}
+
 const routeRuleDialogRef = ref<InstanceType<typeof RouteRuleDialog>>()
 const handleRouterDetail = (rowData: EnvModel) => {
   routeRuleDialogRef.value?.showDialog(rowData.id, rowData.name || rowData.apiBaseUrl)
@@ -229,6 +246,13 @@ const handlePasswordDetail = (rowData: EnvModel) => {
         >
           {{ scope.row.index }}
         </el-link>
+        <el-button
+          :icon="CopyDocument"
+          type="primary"
+          link
+          title="复制IP地址"
+          @click="copyIndexUrl(scope.row)"
+        ></el-button>
       </template>
     </el-table-column>
     <el-table-column
@@ -356,5 +380,5 @@ const handlePasswordDetail = (rowData: EnvModel) => {
   <password-dialog
     ref="passwordDialogRef"
     :env-id="''"
-  ></password-dialog> 
+  ></password-dialog>
 </template>
