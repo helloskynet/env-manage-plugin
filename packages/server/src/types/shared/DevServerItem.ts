@@ -30,12 +30,24 @@ export const BaseDevServerSchema = z.object({
 });
 
 /**
+ * 开发服务器排序Schema
+ * 用于保存排序顺序
+ */
+export const DevServerSortSchema = z.object({
+  orders: z.array(z.object({
+    id: z.string(),
+    sortOrder: z.number(),
+  })),
+});
+
+/**
  * 完整开发服务器模型Schema
  * 合并了主键和基础信息，用于创建完整的开发服务器模型
  */
-export const DevServerModelSchema = DevServerPrimarySchema.extend(
-  BaseDevServerSchema.shape
-);
+export const DevServerModelSchema = DevServerPrimarySchema.extend({
+  ...BaseDevServerSchema.shape,
+  sortOrder: z.number().optional().default(0),
+});
 
 /**
  * 新增开发服务器Schema
@@ -104,3 +116,13 @@ export type DevServerUpdate = z.infer<typeof DevServerUpdateSchema>;
  * 用于查询开发服务器时的参数类型，只包含id字段
  */
 export type DevServerQuery = z.infer<typeof DevServerQuerySchema>;
+
+/**
+ * 排序参数类型
+ */
+export type DevServerSort = z.infer<typeof DevServerSortSchema>;
+
+/**
+ * 排序项类型
+ */
+export type DevServerSortOrder = DevServerSort['orders'][number];

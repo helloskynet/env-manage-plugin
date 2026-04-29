@@ -15,6 +15,7 @@ import {
   DevServerCreateSchema,
   DevServerDeleteSchema,
   DevServerUpdateSchema,
+  DevServerSortSchema,
   RouteRuleCreateSchema,
   RouteRuleDeleteSchema,
   RouteRuleUpdateSchema,
@@ -53,6 +54,9 @@ const createDevServerRoutes = (controller: DevServerController) => {
   );
   router.put("/update", toDTO(DevServerUpdateSchema), (...res) =>
     controller.handleUpdateDevServer(...res)
+  );
+  router.put("/sort", toDTO(DevServerSortSchema), (...res) =>
+    controller.handleUpdateSortOrder(...res)
   );
   router.delete("/", toDTO(DevServerDeleteSchema), (...res) =>
     controller.handleDeleteDevServer(...res)

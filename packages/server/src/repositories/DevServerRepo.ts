@@ -144,6 +144,23 @@ class DevServerRepo {
       }
     );
   }
+
+  /**
+   * 更新开发服务器排序顺序
+   * @param id - 开发服务器ID
+   * @param sortOrder - 排序顺序
+   */
+  updateSortOrder(id: string, sortOrder: number): void {
+    this.getCollection().findAndUpdate(
+      { id },
+      (server) => {
+        if (server) {
+          server.sortOrder = sortOrder;
+        }
+        return server;
+      }
+    );
+  }
 }
 
 export { DevServerRepo };

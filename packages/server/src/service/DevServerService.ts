@@ -8,6 +8,7 @@ import {
   DevServerUpdate,
   DevServerQuerySchema,
   DevServerModel,
+  DevServerSort,
 } from "../types/index.js";
 import { AppError } from "../utils/errors.js";
 import { devServerLogger } from "../utils/logger.js";
@@ -144,13 +145,18 @@ class DevServerService {
   }
 
   /**
-   * 获取所有开发服务器列表
+   * 获取所有开发服务器列表（按 sortOrder 排序）
    * @returns {DevServerModel[]} 开发服务器信息数组
    */
   handleGetList(): DevServerModel[] {
     const list = this.devServerRepo.getAll();
+    const sortedList = [...list].sort((a, b) => {
+      const orderA = a.sortOrder ?? 0;
+      const orderB = b.sortOrder ?? 0;
+      return orderA - orderB;
+    });
     devServerLogger.info(`查询到${list.length}个开发服务器`);
-    return list;
+    return sortedList;
   }
 
   /**
@@ -243,6 +249,27 @@ class DevServerService {
     //   linkedEnvId: undefined,
     // });
     devServerLogger.info(`开发服务器【${devServerId}】已解除环境关联`);
+  }
+
+  /**
+   * 批量更新排序顺序
+   * @param sortData - 排序数据
+   * @returns {void}
+   * @throws {AppError} 当数据不合法时抛出
+   */
+  handleUpdateSortOrder(sortData: DevServerSort): void {
+    const { orders } = sortData;
+    devServerLogger.info(orders, "准备更新排序顺序");
+
+    for (const item of orders) {
+      const existing = this.devServerRepo.findOneById({ id: item.id });
+      if (!existing) {
+        throw new AppError(`排序更新失败，开发服务器【${item.id}】不存在`);
+      }
+      this.devServerRepo.updateSortOrder(item.id, item.sortOrder);
+    }
+
+    devServerLogger.info("排序顺序更新成功");
   }
 }
 

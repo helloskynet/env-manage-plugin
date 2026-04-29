@@ -45,6 +45,17 @@ const refreshList = () => {
 }
 
 /**
+ * 刷新指定表格
+ */
+const refreshTable = (tab: { props: { name: string } }) => {
+  if (tab.props.name === 'api-server') {
+    apiServerTableRef.value?.refresh()
+  } else if (tab.props.name === 'dev-server') {
+    devServerTableRef.value?.refresh()
+  }
+}
+
+/**
  * 清楚代理cookie
  */
 const clearProxyCookies = () => {
@@ -134,11 +145,11 @@ const startWs = () => {
   </el-button>
   <br />
   <br />
-  <el-tabs type="card">
-    <el-tab-pane label="API Server">
+  <el-tabs type="card" @tab-click="refreshTable">
+    <el-tab-pane label="API Server" name="api-server">
       <api-server-table ref="apiServerTableRef"></api-server-table>
     </el-tab-pane>
-    <el-tab-pane label="Dev Server">
+    <el-tab-pane label="Dev Server" name="dev-server">
       <dev-server-table ref="devServerTableRef"></dev-server-table>
     </el-tab-pane>
   </el-tabs>

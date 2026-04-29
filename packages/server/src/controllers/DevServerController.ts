@@ -5,6 +5,7 @@ import {
   DevServerUpdate,
   DevServerDelete,
   DevServerQuery,
+  DevServerSort,
 } from "../types/index.js";
 import { devServerLogger } from "../utils/logger.js";
 
@@ -108,6 +109,24 @@ class DevServerController {
       const devServerData = req.dto as DevServerDelete;
       this.devServerService.handleDeleteDevServer(devServerData);
       res.success({ message: "开发服务器删除成功" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * 处理更新排序顺序
+   * @param req
+   * @param res
+   * @param next
+   * @returns
+   */
+  handleUpdateSortOrder(req: Request, res: Response, next: NextFunction) {
+    try {
+      const sortData = req.dto as DevServerSort;
+      devServerLogger.info(sortData, "接收排序更新请求");
+      this.devServerService.handleUpdateSortOrder(sortData);
+      res.success({ message: "排序更新成功" });
     } catch (error) {
       next(error);
     }

@@ -5,6 +5,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import DevServerEdit from './DevServerEdit.vue'
 import { DocumentCopy, Edit, Delete } from '@element-plus/icons-vue'
+import { VueDraggable } from 'vue-draggable-plus'
 
 const devServerList = ref<DevServerModel[]>([])
 const refreshLoading = ref(false)
@@ -50,6 +51,31 @@ const handleDelete = (rowData: DevServerModel) => {
     })
 }
 
+// ====================== 拖拽修复开始 ======================
+
+const onEnd = () => {
+  saveSortOrder(devServerList.value)
+}
+
+// 保存排序到后端
+const saveSortOrder = (list: DevServerModel[]) => {
+  const orders = list.map((item, index) => ({
+    id: item.id,
+    sortOrder: index,
+  }))
+  fetchData({
+    url: `${apiPrefix}/server/sort`,
+    method: 'PUT',
+    data: { orders },
+  })
+    .then(() => ElMessage.success('排序保存成功'))
+    .catch(() => {
+      ElMessage.error('排序保存失败')
+      getDevServerList()
+    })
+}
+// ====================== 拖拽修复结束 ======================
+
 const handleModify = (rowData: DevServerModel) => {
   devServerEditRef.value.showDialog(rowData)
 }
@@ -71,48 +97,59 @@ defineExpose({
 })
 </script>
 <template>
-  <el-table
-    :data="devServerList"
-    style="width: 100%"
-    stripe
-    v-loading="refreshLoading"
+  <VueDraggable
+    v-model="devServerList"
+    :animation="150"
+    target="tbody"
+    @end="onEnd"
   >
-    <el-table-column
-      prop="name"
-      label="DevServer名称"
-      width="200"
-    />
-    <el-table-column
-      prop="devServerUrl"
-      label="DevServer地址"
-      width="200"
-    />
-    <el-table-column label="操作">
-      <template #default="scope">
-        <el-button
-          type="primary"
-          plain
-          :icon="Edit"
-          title="编辑"
-          circle
-          @click="handleModify(scope.row)"
-        ></el-button>
-        <el-button
-          type="primary"
-          :icon="DocumentCopy"
-          title="复制"
-          circle
-          @click="handleCopy(scope.row)"
-        ></el-button>
-        <el-button
-          type="danger"
-          :icon="Delete"
-          title="删除"
-          circle
-          @click="handleDelete(scope.row)"
-        ></el-button>
-      </template>
-    </el-table-column>
-  </el-table>
-  <dev-server-edit ref="devServerEditRef" @refreshList="refresh"></dev-server-edit>
+    <el-table
+      :data="devServerList"
+      style="width: 100%"
+      stripe
+      row-key="id"
+      v-loading="refreshLoading"
+    >
+      <el-table-column
+        prop="name"
+        label="DevServer名称"
+        width="200"
+      />
+      <el-table-column
+        prop="devServerUrl"
+        label="DevServer地址"
+        width="200"
+      />
+      <el-table-column label="操作">
+        <template #default="scope">
+          <el-button
+            type="primary"
+            plain
+            :icon="Edit"
+            title="编辑"
+            circle
+            @click="handleModify(scope.row)"
+          ></el-button>
+          <el-button
+            type="primary"
+            :icon="DocumentCopy"
+            title="复制"
+            circle
+            @click="handleCopy(scope.row)"
+          ></el-button>
+          <el-button
+            type="danger"
+            :icon="Delete"
+            title="删除"
+            circle
+            @click="handleDelete(scope.row)"
+          ></el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </VueDraggable>
+  <dev-server-edit
+    ref="devServerEditRef"
+    @refreshList="refresh"
+  ></dev-server-edit>
 </template>
