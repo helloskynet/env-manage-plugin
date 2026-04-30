@@ -28,10 +28,14 @@ class EnvRepo {
 
   /**
    * 获取所有环境信息
-   * @returns 所有环境信息的数组
+   * @returns 所有环境信息的数组（按sortOrder排序）
    */
   getAll(): EnvModel[] {
-    return this.getCollection().find();
+    return this.getCollection().find().sort((a, b) => {
+      const orderA = a.sortOrder ?? 0
+      const orderB = b.sortOrder ?? 0
+      return orderA - orderB
+    })
   }
 
   /**

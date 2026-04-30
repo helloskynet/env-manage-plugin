@@ -12,6 +12,7 @@ import {
   EnvPrimarySchema,
   EnvCreateSchema,
   EnvUpdateSchema,
+  EnvSortSchema,
   DevServerCreateSchema,
   DevServerDeleteSchema,
   DevServerUpdateSchema,
@@ -42,6 +43,9 @@ const createEnvRoutes = (controller: EnvController) => {
   );
   router.post("/stop", toDTO(EnvPrimarySchema), (...res) =>
     controller.handleStopServer(...res)
+  );
+  router.put("/sort", toDTO(EnvSortSchema), (...res) =>
+    controller.handleUpdateSortOrder(...res)
   );
   return router;
 };

@@ -8,6 +8,7 @@ import {
   EnvQuery,
   EnvUpdate,
   EnvModel,
+  EnvSort,
 } from "../types/index.js";
 import { AppError } from "../utils/errors.js";
 import { DevServerRepo } from "../repositories/DevServerRepo.js";
@@ -282,6 +283,29 @@ class EnvService {
     );
 
     return updatedEnv;
+  }
+
+  /**
+   * 批量更新排序顺序
+   * @param sortData - 排序数据
+   * @returns {void}
+   * @throws {AppError} 当数据不合法时抛出
+   */
+  handleUpdateSortOrder(sortData: EnvSort): void {
+    const { orders } = sortData;
+    envLogger.info(orders, "准备更新排序顺序");
+
+    for (const item of orders) {
+      const existing = this.envRepo.findOneById(item.id);
+      if (!existing) {
+        throw new AppError(`环境【${item.id}】不存在，无法更新排序`);
+      }
+      this.envRepo.update({
+        id: item.id,
+        sortOrder: item.sortOrder,
+      });
+    }
+    envLogger.info("排序更新成功");
   }
 }
 

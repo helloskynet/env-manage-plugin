@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { EnvService } from "../service/EnvService.js";
-import { EnvCreate, EnvDelete, EnvQuery, EnvUpdate } from "../types/index.js";
+import { EnvCreate, EnvDelete, EnvQuery, EnvUpdate, EnvSort } from "../types/index.js";
 import { envLogger } from "../utils/logger.js";
 
 /**
@@ -195,6 +195,25 @@ class EnvController {
       res.success({ message: "代理服务器停止成功" });
     } catch (error) {
       envLogger.error(error, "停止代理服务器请求处理失败");
+      next(error);
+    }
+  }
+
+  /**
+   * 更新环境排序顺序
+   * @description 处理更新环境排序的PUT请求
+   * @param req - Express请求对象，包含排序数据（在req.dto中）
+   * @param res - Express响应对象，用于返回处理结果
+   * @param next - Express下一步中间件函数，用于错误处理
+   */
+  handleUpdateSortOrder(req: Request, res: Response, next: NextFunction): void {
+    try {
+      const sortData = req.dto as EnvSort;
+      envLogger.info(sortData, "接收排序更新请求");
+      this.envService.handleUpdateSortOrder(sortData);
+      res.success({ message: "排序更新成功" });
+    } catch (error) {
+      envLogger.error(error, "排序更新请求处理失败");
       next(error);
     }
   }

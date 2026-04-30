@@ -35,6 +35,8 @@ export const EnvItemBaseSchema = z.object({
   homePage: z.string().optional().describe("环境首页"),
 
   status: z.enum(["running", "stopped"]).optional(),
+
+  sortOrder: z.number().optional().describe("排序顺序"),
 });
 
 /**
@@ -119,3 +121,24 @@ export type EnvQuery = z.infer<typeof EnvQuerySchema>;
 export type EnvModelWithRouteCount = EnvModel & {
   routeRuleCount?: number;
 };
+
+/**
+ * 环境排序Schema
+ * 用于保存排序顺序
+ */
+export const EnvSortSchema = z.object({
+  orders: z.array(z.object({
+    id: z.string(),
+    sortOrder: z.number(),
+  })),
+});
+
+/**
+ * 排序参数类型
+ */
+export type EnvSort = z.infer<typeof EnvSortSchema>;
+
+/**
+ * 排序项类型
+ */
+export type EnvSortOrder = EnvSort['orders'][number];

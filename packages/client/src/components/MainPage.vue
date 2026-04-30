@@ -145,11 +145,21 @@ const startWs = () => {
   </el-button>
   <br />
   <br />
-  <el-tabs type="card" @tab-click="refreshTable">
-    <el-tab-pane label="API Server" name="api-server">
+  <el-tabs
+    type="card"
+    @tab-click="refreshTable"
+    default-value="api-server"
+  >
+    <el-tab-pane
+      label="API Server"
+      name="api-server"
+    >
       <api-server-table ref="apiServerTableRef"></api-server-table>
     </el-tab-pane>
-    <el-tab-pane label="Dev Server" name="dev-server">
+    <el-tab-pane
+      label="Dev Server"
+      name="dev-server"
+    >
       <dev-server-table ref="devServerTableRef"></dev-server-table>
     </el-tab-pane>
   </el-tabs>
