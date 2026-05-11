@@ -55,6 +55,7 @@ class DevServerService {
     const newDevServer: DevServerModel = {
       ...validData,
       id: uuidv4(),
+      sortOrder: 0,
     };
 
     // 保存开发服务器

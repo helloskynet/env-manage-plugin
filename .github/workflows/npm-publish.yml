@@ -6,7 +6,7 @@ name: Node.js Package
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 permissions:
   id-token: write
@@ -25,7 +25,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: latest
+          version: 10
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
